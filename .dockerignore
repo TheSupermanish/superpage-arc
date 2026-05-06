@@ -1,0 +1,37 @@
+# Dependencies (reinstalled in Docker)
+node_modules
+**/node_modules
+
+# Git
+.git
+
+# Build outputs EXCEPT frontend (pre-built locally)
+dist
+packages/contracts/artifacts
+packages/contracts/cache
+packages/x402-sdk-eth/dist
+
+# NOTE: .next is NOT ignored — it's pre-built locally and copied in
+
+# Data dumps
+data/
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+
+# Docker
+Dockerfile
+docker-compose.prod.yml
+
+# Test files
+**/__tests__
+**/*.test.ts
+**/test-*.ts
+
+# Local env files (production env injected via docker-compose)
+packages/backend/.env
+packages/frontend/.env.local
+packages/ai-agent/.env
+packages/contracts/.env

@@ -1,0 +1,71 @@
+"use client";
+
+import { ReactNode, useState, useEffect } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { WagmiProvider } from "wagmi";
+import { RainbowKitProvider, getDefaultConfig, darkTheme } from "@rainbow-me/rainbowkit";
+import { mainnet, sepolia, base, baseSepolia, polygon, arbitrum, optimism, flowMainnet, flowTestnet } from "wagmi/chains";
+import { cronos, cronosTestnet, mantleSepolia, biteV2Sandbox, mezoMainnet, mezoTestnet } from "@/lib/chains";
+import "@rainbow-me/rainbowkit/styles.css";
+
+const queryClient = new QueryClient();
+
+// All supported chains - Mezo testnet first since it's now the default
+const supportedChains = [
+  mezoTestnet,      // Default testnet (x402 payment chain on Mezo matsnet)
+  mezoMainnet,      // Mezo mainnet (Bitcoin economic layer)
+  flowTestnet,      // Flow EVM testnet
+  flowMainnet,      // Flow EVM mainnet
+  baseSepolia,      // Base testnet
+  base,             // Base mainnet
+  mainnet,          // Ethereum mainnet
+  sepolia,          // Ethereum testnet
+  polygon,          // Polygon mainnet
+  arbitrum,         // Arbitrum mainnet
+  optimism,         // Optimism mainnet
+  biteV2Sandbox,    // SKALE testnet
+  cronosTestnet,    // Cronos testnet
+  cronos,           // Cronos mainnet
+  mantleSepolia,    // Mantle testnet
+] as const;
+
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+if (!projectId || projectId === "YOUR_PROJECT_ID") {
+  console.error("WalletConnect project ID not configured. Set NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID");
+}
+
+const config = getDefaultConfig({
+  appName: "SuperPage",
+  projectId: projectId || "YOUR_PROJECT_ID",
+  chains: supportedChains,
+  ssr: true,
+});
+
+interface EthereumWalletProviderProps {
+  children: ReactNode;
+}
+
+export function EthereumWalletProvider({ children }: EthereumWalletProviderProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider
+          theme={darkTheme({
+            accentColor: "#5B8FB9", // SuperPage blue from logo
+            accentColorForeground: "white",
+            borderRadius: "medium",
+          })}
+          initialChain={mezoTestnet}
+        >
+          {mounted ? children : null}
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+}
