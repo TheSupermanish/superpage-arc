@@ -2,18 +2,18 @@
  * ERC-8004 Configuration
  *
  * Contract addresses and chain config for the ERC-8004 Trustless Agents
- * registries deployed on Flow EVM Testnet (chainId: 545).
+ * registries deployed on Mezo Testnet / matsnet (chainId: 31611).
  */
 
-export const ERC8004_CHAIN_ID = 545;
-export const ERC8004_NETWORK = "flow-testnet" as const;
-export const ERC8004_RPC_URL = "https://testnet.evm.nodes.onflow.org";
-export const ERC8004_EXPLORER_URL = "https://evm-testnet.flowscan.io";
+export const ERC8004_CHAIN_ID = 31611;
+export const ERC8004_NETWORK = "mezo-testnet" as const;
+export const ERC8004_RPC_URL = "https://rpc.test.mezo.org";
+export const ERC8004_EXPLORER_URL = "https://explorer.test.mezo.org";
 
 export const ERC8004_CONTRACTS = {
-  identityRegistry: "0xbdf0ae617ac3570795b9b18ece6fd85444c6a918" as `0x${string}`,
-  reputationRegistry: "0xf0aab3cfc4dc5e335faeb0b95a934af994073b95" as `0x${string}`,
-  validationRegistry: "0x0bfff9626f409639c8501c14813ddba6f30d5a99" as `0x${string}`,
+  identityRegistry: "0x92b19730d0b7416f195600489cd9be29e109ebce" as `0x${string}`,
+  reputationRegistry: "0x6a81e89fdb563cdf0d21dc2ea5c18ec4020e596f" as `0x${string}`,
+  validationRegistry: "0x70d51bafea51fb2f60a06824c1bc5638e36243a1" as `0x${string}`,
 } as const;
 
 export const ERC8004_EXTENSION_URI = "urn:eip:8004:trustless-agents";

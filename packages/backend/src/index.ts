@@ -191,18 +191,18 @@ async function startServer() {
       console.warn("[migration] Store network migration skipped:", (e as Error).message);
     }
 
-    // ERC-8004: Auto-register agent identity on Flow if not configured
+    // ERC-8004: Auto-register agent identity on Mezo testnet if not configured
     try {
-      const { getERC8004Config, ERC8004_EXPLORER_URL } = await import("./erc8004/config.js");
+      const { getERC8004Config, ERC8004_EXPLORER_URL, ERC8004_CHAIN_ID } = await import("./erc8004/config.js");
       const config = getERC8004Config();
       if (config.agentId !== null) {
-        console.log(`[ERC-8004] Agent registered: ID=${config.agentId} (chain: eip155:545)`);
+        console.log(`[ERC-8004] Agent registered: ID=${config.agentId} (chain: eip155:${ERC8004_CHAIN_ID})`);
       } else if (config.walletPrivateKey) {
         console.log("[ERC-8004] No agent ID configured, auto-registering...");
         const { registerAgent } = await import("./erc8004/identity.js");
         const baseUrl = process.env.APP_URL || `http://localhost:${PORT}`;
         const result = await registerAgent(`${baseUrl}/.well-known/agent-registration.json`);
-        console.log(`[ERC-8004] ✅ Registered agent ID=${result.agentId} on Flow EVM Testnet`);
+        console.log(`[ERC-8004] ✅ Registered agent ID=${result.agentId} on Mezo Testnet`);
         console.log(`[ERC-8004]    tx: ${ERC8004_EXPLORER_URL}/tx/${result.txHash}`);
         console.log(`[ERC-8004]    Set ERC8004_AGENT_ID=${result.agentId} in .env to skip next time`);
         process.env.ERC8004_AGENT_ID = result.agentId.toString();

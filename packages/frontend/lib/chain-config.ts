@@ -106,8 +106,9 @@ export const USDC_ADDRESSES: Record<string, `0x${string}`> = {
   "bite-v2-sandbox": "0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8",
   "flow": "0xF1815bd50389c46847f0Bda824eC8da914045D14",
   "flow-testnet": "0x291b030d596cf505f774426d8de7c946ce5af7a5",
-  // Mezo: bridged mUSDC exists on mainnet only. Testnet uses MUSD (no USDC).
+  // Mezo: bridged mUSDC on mainnet, SuperPage MockUSDC on testnet.
   "mezo": "0x04671C72Aab5AC02A03c1098314b1BB6B560c197",
+  "mezo-testnet": "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c",
 };
 
 // MUSD (Mezo USD stablecoin) addresses — Mezo's BTC-backed native stablecoin (18 decimals).

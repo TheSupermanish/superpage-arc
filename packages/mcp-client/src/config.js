@@ -232,6 +232,8 @@ export const TOKEN_ADDRESSES = {
   },
   "mezo-testnet": {
     MUSD: "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
+    // SuperPage MockUSDC on matsnet (6 dec, mintable test token)
+    USDC: "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c",
   },
 };
 

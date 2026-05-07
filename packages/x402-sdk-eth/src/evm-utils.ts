@@ -370,7 +370,8 @@ export const TOKEN_ADDRESSES: Record<Network, Record<Exclude<TokenType, "ETH" | 
     MUSD: "0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186" as Address, // MUSD (18 dec)
   },
   "mezo-testnet": {
-    USDC: ZERO_ADDR, // No bridged USDC on matsnet — use MUSD instead
+    // SuperPage MockUSDC deployed on matsnet (6 decimals)
+    USDC: "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c" as Address,
     USDT: ZERO_ADDR,
     DAI: ZERO_ADDR,
     MUSD: "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503" as Address, // matsnet MUSD (18 dec)

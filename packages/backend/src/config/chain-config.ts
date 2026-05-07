@@ -302,6 +302,8 @@ export const CHAIN_REGISTRY: Record<NetworkId, ChainMetadata> = {
     nativeToken: { symbol: "BTC", decimals: 18 },
     tokens: {
       MUSD: { address: "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503", decimals: 18 },
+      // SuperPage MockUSDC deployed on matsnet (6 decimals, mintable, for testing)
+      USDC: { address: "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c", decimals: 6 },
     },
     defaultPaymentToken: "MUSD",
     isTestnet: true,

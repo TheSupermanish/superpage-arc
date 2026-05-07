@@ -2,13 +2,25 @@
  * ERC-8004 Viem Client Factory
  *
  * Provides singleton PublicClient and WalletClient for interacting
- * with ERC-8004 contracts on Flow EVM Testnet (chainId: 545).
+ * with ERC-8004 contracts on Mezo Testnet / matsnet (chainId: 31611).
  */
 
-import { createPublicClient, createWalletClient, http } from "viem";
+import { createPublicClient, createWalletClient, http, defineChain } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { flowTestnet } from "viem/chains";
 import { ERC8004_RPC_URL } from "./config.js";
+
+const mezoTestnet = defineChain({
+  id: 31611,
+  name: "Mezo Testnet (matsnet)",
+  nativeCurrency: { decimals: 18, name: "Bitcoin", symbol: "BTC" },
+  rpcUrls: { default: { http: ["https://rpc.test.mezo.org"] } },
+  blockExplorers: { default: { name: "Mezo Testnet Explorer", url: "https://explorer.test.mezo.org" } },
+  testnet: true,
+});
+
+function normalizeKey(raw: string): `0x${string}` {
+  return (raw.startsWith("0x") ? raw : `0x${raw}`) as `0x${string}`;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _publicClient: any = null;
@@ -16,7 +28,7 @@ let _publicClient: any = null;
 export function getERC8004PublicClient() {
   if (!_publicClient) {
     _publicClient = createPublicClient({
-      chain: flowTestnet,
+      chain: mezoTestnet,
       transport: http(ERC8004_RPC_URL),
     });
   }
@@ -29,10 +41,10 @@ export function getERC8004WalletClient() {
     throw new Error("No private key configured for ERC-8004 transactions (set WALLET_PRIVATE_KEY or ETH_PRIVATE_KEY)");
   }
 
-  const account = privateKeyToAccount(privateKey as `0x${string}`);
+  const account = privateKeyToAccount(normalizeKey(privateKey));
   return createWalletClient({
     account,
-    chain: flowTestnet,
+    chain: mezoTestnet,
     transport: http(ERC8004_RPC_URL),
   });
 }
@@ -42,5 +54,5 @@ export function getERC8004Account() {
   if (!privateKey) {
     throw new Error("No private key configured for ERC-8004 transactions");
   }
-  return privateKeyToAccount(privateKey as `0x${string}`);
+  return privateKeyToAccount(normalizeKey(privateKey));
 }
