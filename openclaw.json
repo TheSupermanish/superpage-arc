@@ -9,8 +9,8 @@
       "env": {
         "SUPERPAGE_SERVER": "http://localhost:3001",
         "WALLET_PRIVATE_KEY": "REDACTED_WALLET_PRIVATE_KEY",
-        "X402_CHAIN": "base",
-        "X402_CURRENCY": "USDC",
+        "X402_CHAIN": "mezo-testnet",
+        "X402_CURRENCY": "MUSD",
         "MAX_AUTO_PAYMENT": "10.00"
       },
       "status": "active"

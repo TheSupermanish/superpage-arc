@@ -7,13 +7,13 @@
 *An OpenClaw skill that lets autonomous AI agents discover, preview, confirm, and pay for digital resources and physical products using on-chain USDC micro-payments.*
 
 [![Coinbase x402 Winner](https://img.shields.io/badge/Coinbase_x402-Winner-0052FF)](https://x402.org)
-[![Flow Testnet](https://img.shields.io/badge/Flow-Testnet-00EF8B)](https://flow.com)
+[![Mezo Testnet](https://img.shields.io/badge/Mezo-matsnet-F7931A)](https://mezo.org)
 [![x402 Protocol](https://img.shields.io/badge/x402-Enabled-blue)](https://x402.org)
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-Skill-orange)](https://openclaw.ai)
 [![MCP Protocol](https://img.shields.io/badge/MCP-Integrated-purple)](https://modelcontextprotocol.io)
 
 **Coinbase x402 Track Winner — SURGE x OpenClaw Hackathon 2026**
-**Now targeting PL Genesis Flow Hackathon — Flow Track + Existing Code + ERC-8004**
+**Now running on Mezo — Bitcoin economic layer with MUSD micro-payments + ERC-8004 trust**
 
 [Live Demo](https://superpa.ge) · [Telegram Bot](https://t.me/HeySuperioBot) · [Documentation](#documentation)
 
@@ -25,12 +25,12 @@
 
 **Track:** Autonomous Payments & Monetized Skills
 
-**What it is:** An OpenClaw skill + marketplace platform that gives any AI agent the ability to spend USDC to access premium APIs, digital content, and Shopify products — all through a trustless x402 payment flow running on Flow EVM Testnet.
+**What it is:** An OpenClaw skill + marketplace platform that gives any AI agent the ability to spend MUSD (Mezo's BTC-backed stablecoin) to access premium APIs, digital content, and Shopify products — all through a trustless x402 payment flow running on Mezo testnet (matsnet).
 
 **Built With:**
 - **OpenClaw** — Local-first agent runtime (Telegram bot + skill system)
 - **x402 Protocol** — HTTP 402 payment-gated resources
-- **Flow EVM** — EVM L2 for on-chain USDC payments
+- **Mezo** — Bitcoin economic layer (EVM-compatible L2) for on-chain MUSD payments
 - **A2A Protocol** — Agent-to-agent communication (JSON-RPC 2.0)
 - **AP2** — Google's Agent Payments Protocol (mandate-based shopping)
 - **MCP** — Model Context Protocol (Claude Desktop integration)
@@ -130,10 +130,12 @@ This works across three surfaces:
                             │
                             ▼
                 ┌───────────────────────┐
-                │  Flow EVM Testnet     │
+                │  Mezo Testnet         │
+                │  (matsnet)            │
                 │                       │
-                │  • USDC payments      │
-                │  • Chain ID: 545      │
+                │  • MUSD payments      │
+                │  • BTC gas (18 dec)   │
+                │  • Chain ID: 31611    │
                 │  • ~1s block time     │
                 │  • On-chain receipts  │
                 └───────────────────────┘
@@ -214,7 +216,7 @@ pnpm agent "buy me a weather API"   # One-shot mode
 
 - **Explore** — Browse all resources with prices
 - **Creator Dashboard** — Manage resources, view orders, analytics
-- **Faucet** — Mint test USDC on Flow EVM
+- **Faucet** — Request testnet BTC from `https://faucet.test.mezo.org`; mint MockUSDC or borrow MUSD on Mezo
 - **Wallet Connect** — RainbowKit integration
 - **Creator Profiles** — Public pages with tipping
 
@@ -244,7 +246,7 @@ superpage/
 - Node.js 22+
 - pnpm 8+
 - MongoDB
-- A wallet private key with USDC on Flow EVM Testnet
+- A wallet private key funded with testnet BTC on Mezo matsnet (faucet: `https://faucet.test.mezo.org`)
 
 ### 1. Clone & Install
 
@@ -267,10 +269,12 @@ Key environment variables:
 PORT=3001
 MONGODB_URI=mongodb://localhost:27017/x402
 
-# Flow EVM Testnet
-X402_CHAIN=flow-testnet
-RPC_URL=https://sepolia.base.org
-USDC_ADDRESS=0xa059e27967e5a573a14a62c706ebd1be75333f9a
+# Mezo Testnet (matsnet)
+X402_CHAIN=mezo-testnet
+X402_CURRENCY=MUSD
+RPC_URL=https://rpc.test.mezo.org
+MUSD_ADDRESS=0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503
+USDC_ADDRESS=0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c  # SuperPage MockUSDC on matsnet
 
 # Wallet
 WALLET_PRIVATE_KEY=0x...
@@ -322,8 +326,8 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
       "env": {
         "SUPERPAGE_SERVER": "http://localhost:3001",
         "WALLET_PRIVATE_KEY": "0x...",
-        "X402_CHAIN": "flow-testnet",
-        "X402_CURRENCY": "USDC",
+        "X402_CHAIN": "mezo-testnet",
+        "X402_CURRENCY": "MUSD",
         "MAX_AUTO_PAYMENT": "10.00"
       }
     }
@@ -345,7 +349,7 @@ pnpm agent "show me all resources"  # One-shot
 ## x402 Payment Flow
 
 ```
-Agent                    SuperPage                 Flow EVM
+Agent                    SuperPage                 Mezo
   │                         │                          │
   │  GET /x402/resource/X   │                          │
   │────────────────────────>│                          │
@@ -424,7 +428,7 @@ Returns the agent's on-chain identity, service endpoints (A2A, MCP, Web), and tr
 | **MCP Client** | Node.js, viem | Claude Desktop integration (12 tools) |
 | **AI Agent** | Vercel AI SDK | Multi-LLM CLI agent (Anthropic/OpenAI/Google) |
 | **SDK** | @super-x402/sdk | Payment verification middleware |
-| **Blockchain** | Flow EVM, viem | USDC payments, on-chain verification |
+| **Blockchain** | Mezo (Bitcoin economic layer), viem | MUSD payments, BTC gas, on-chain verification |
 | **E-commerce** | Shopify Admin API | Product sync, order creation |
 | **Identity** | ERC-8004 | Agent identity, reputation, validation |
 | **Wallet** | RainbowKit, wagmi | Browser wallet connection |
@@ -445,13 +449,16 @@ Returns the agent's on-chain identity, service endpoints (A2A, MCP, Web), and tr
 
 | Property | Value |
 |----------|-------|
-| **Network** | Flow EVM Testnet |
-| **Chain ID** | 545 |
-| **RPC URL** | `https://testnet.evm.nodes.onflow.org` |
-| **USDC Contract** | `0x291b030d596cf505f774426d8de7c946ce5af7a5` |
-| **Token** | USDC (6 decimals) |
+| **Network** | Mezo Testnet (matsnet) |
+| **Chain ID** | 31611 |
+| **RPC URL** | `https://rpc.test.mezo.org` |
+| **Native Gas** | BTC (18 decimals — *not* 8, this is Mezo's EVM accounting) |
+| **MUSD Contract** | `0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503` (18 dec, BTC-backed) |
+| **MockUSDC Contract** | `0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c` (6 dec, mintable test token) |
+| **Default Payment Token** | MUSD |
 | **Block Time** | ~1 second |
-| **Explorer** | `https://evm-testnet.flowscan.io` |
+| **Explorer** | `https://explorer.test.mezo.org` |
+| **Faucet** | `https://faucet.test.mezo.org` |
 
 ---
 
@@ -517,7 +524,7 @@ $ pnpm agent "buy me a weather API"
   SuperPage Agent v1.0.0
   Wallet: 0x20a0...4F72  |  1,009,894.98 USDC
   Model: anthropic/claude-sonnet-4-20250514
-  Network: flow-testnet
+  Network: mezo-testnet
 
   > buy me a weather API
 
@@ -554,7 +561,7 @@ SuperPage is an **x402-integrated OpenClaw skill** that charges USDC fees per re
 - **Spending caps** — `MAX_AUTO_PAYMENT` limits per-transaction spend
 - **Confirmation flow** — agent previews price and asks before paying
 - **Non-custodial** — agent controls its own private key
-- **On-chain verification** — every payment verified against Flow EVM
+- **On-chain verification** — every payment verified against Mezo RPC
 - **Time-bounded** — 15-minute payment windows
 - **Audit trail** — transaction hash, amount, timestamp, recipient logged
 
@@ -586,7 +593,8 @@ SuperPage is an **x402-integrated OpenClaw skill** that charges USDC fees per re
 | **MCP Docs** | [modelcontextprotocol.io](https://modelcontextprotocol.io) |
 | **ERC-8004** | [EIP-8004](https://eips.ethereum.org/EIPS/eip-8004) |
 | **AP2 Spec** | [google-agentic-commerce/ap2](https://github.com/google-agentic-commerce/ap2) |
-| **Flow EVM** | [base.org](https://base.org) |
+| **Mezo** | [mezo.org](https://mezo.org) |
+| **Flow EVM** *(prior chain)* | [flow.com](https://flow.com) |
 
 ---
 

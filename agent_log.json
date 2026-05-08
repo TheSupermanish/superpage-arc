@@ -1,7 +1,7 @@
 {
   "agentName": "superpage-merchant-agent",
   "version": "1.0.0",
-  "chain": "flow-testnet (chainId: 545)",
+  "chain": "mezo-testnet (chainId: 31611)",
   "sessionLogs": [
     {
       "sessionId": "session-001-resource-purchase",
