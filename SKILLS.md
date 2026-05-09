@@ -4,7 +4,7 @@ SuperPage is an AI-native marketplace where agents can discover, purchase, and a
 
 **Base URL:** `http://localhost:3001` (local) | `http://20.168.79.130` (production)
 
-**Payment:** USDC on Flow EVM Testnet (chain ID 545)
+**Payment:** MUSD on Mezo Testnet/matsnet (chain ID 31611)
 
 ---
 
@@ -347,7 +347,7 @@ Send a message to the agent (JSON-RPC 2.0)
 
 ## 🌐 Blockchain Details
 
-**Network:** Flow EVM Testnet
+**Network:** Mezo Testnet (matsnet)
 - **Chain ID:** 545
 - **RPC:** `https://testnet.evm.nodes.onflow.org`
 - **Explorer:** `https://evm-testnet.flowscan.io`
@@ -494,8 +494,8 @@ Add to `claude_desktop_config.json`:
       "env": {
         "SUPERPAGE_SERVER": "http://localhost:3001",
         "WALLET_PRIVATE_KEY": "0x...",
-        "X402_CHAIN": "flow-testnet",
-        "X402_CURRENCY": "USDC",
+        "X402_CHAIN": "mezo-testnet",
+        "X402_CURRENCY": "MUSD",
         "MAX_AUTO_PAYMENT": "10.00"
       }
     }
@@ -544,5 +544,5 @@ const response = await fetch('http://localhost:3001/a2a', {
 
 **Platform:** SuperPage - AI-Native Web3 Commerce
 **Protocol:** HTTP 402 Payment Required + x402 SDK
-**Blockchain:** Flow EVM (chain ID 545)
+**Blockchain:** Mezo (Bitcoin economic layer, chain ID 31611)
 **Currency:** USDC (stablecoin)

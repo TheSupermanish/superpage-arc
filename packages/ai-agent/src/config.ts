@@ -67,12 +67,14 @@ export function loadConfig(): AgentConfig {
     llmApiKey,
     merchantUrl: process.env.MERCHANT_URL || "http://localhost:1337",
     walletPrivateKey: walletPrivateKey as `0x${string}`,
-    network: process.env.X402_CHAIN || "flow-testnet",
-    chainId: parseInt(process.env.CHAIN_ID || "545", 10),
+    network: process.env.X402_CHAIN || "mezo-testnet",
+    chainId: parseInt(process.env.CHAIN_ID || "31611", 10),
     rpcUrl:
-      process.env.RPC_URL || "https://testnet.evm.nodes.onflow.org",
+      process.env.RPC_URL || "https://rpc.test.mezo.org",
+    // Default to the SuperPage MockUSDC deployed on Mezo testnet (6 dec).
+    // For MUSD payments, set USDC_ADDRESS=0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503.
     usdcAddress:
-      (process.env.USDC_ADDRESS || "0x291b030d596cf505f774426d8de7c946ce5af7a5") as `0x${string}`,
+      (process.env.USDC_ADDRESS || "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c") as `0x${string}`,
     erc8004AgentId: process.env.ERC8004_AGENT_ID || undefined,
     maxSteps: parseInt(process.env.MAX_STEPS || "20", 10),
     autoApprovePayments: process.env.AUTO_APPROVE_PAYMENTS === "true",

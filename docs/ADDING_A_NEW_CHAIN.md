@@ -430,7 +430,7 @@ Replace the `0x000...000` placeholder with the actual deployed address.
 ### 5.1 — `packages/x402-sdk-eth/src/__tests__/chains.test.ts`
 
 ```ts
-// Update network count (currently 16)
+// Update network count (currently 18 after Mezo)
 expect(networks.length).toBe(18); // +2 for mainnet + testnet
 
 // Add assertions
@@ -442,13 +442,13 @@ expect(networks).toContain("your-chain-testnet");
 
 ```ts
 // Update CHAINS count
-expect(Object.keys(CHAINS).length).toBe(16); // increment
+expect(Object.keys(CHAINS).length).toBe(18); // increment
 ```
 
 ### 5.3 — `packages/backend/src/__tests__/config/chain-config.test.ts`
 
 ```ts
-// Update network count (currently 16)
+// Update network count (currently 18 after Mezo)
 expect(networks.length).toBe(18);
 
 // Add assertions
