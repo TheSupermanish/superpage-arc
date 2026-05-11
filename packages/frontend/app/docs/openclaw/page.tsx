@@ -53,8 +53,8 @@ export default function OpenClawPage() {
 name: superpage-x402
 description: >
   Discover, browse, and purchase digital resources and physical
-  products from the SuperPage marketplace using x402 USDC payments
-  on Base
+  products from the SuperPage marketplace using x402 MUSD payments
+  on Mezo
 version: 2.0.0
 metadata:
   openclaw:
@@ -189,12 +189,12 @@ metadata:
                   <tr className="border-b border-border/50">
                     <td className="py-2 pr-4"><code className="bg-muted px-1.5 py-0.5 rounded text-primary">WALLET_PRIVATE_KEY</code></td>
                     <td className="py-2 pr-4">Yes</td>
-                    <td className="py-2">Ethereum private key (0x-prefixed) with USDC on Base</td>
+                    <td className="py-2">EVM private key (0x-prefixed) with MUSD on Mezo testnet (or testnet BTC for gas)</td>
                   </tr>
                   <tr className="border-b border-border/50">
                     <td className="py-2 pr-4"><code className="bg-muted px-1.5 py-0.5 rounded text-primary">X402_CHAIN</code></td>
                     <td className="py-2 pr-4">No</td>
-                    <td className="py-2">Network name (default: <code className="bg-muted px-1 rounded">base</code>)</td>
+                    <td className="py-2">Network name (default: <code className="bg-muted px-1 rounded">mezo-testnet</code>)</td>
                   </tr>
                   <tr className="border-b border-border/50">
                     <td className="py-2 pr-4"><code className="bg-muted px-1.5 py-0.5 rounded text-primary">X402_CURRENCY</code></td>

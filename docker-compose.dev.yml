@@ -1,0 +1,29 @@
+# Dev-only services: MongoDB (and friends) for local development.
+# Run alongside `pnpm dev` or `./dev.sh`.
+#
+# Usage:
+#   docker compose -f docker-compose.dev.yml up -d
+#   docker compose -f docker-compose.dev.yml down
+#
+# Then set MONGODB_URI=mongodb://localhost:27017/x402 in packages/backend/.env
+# (already the default in .env.production.example).
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: superpage-mongo-dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-dev-data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  mongo-dev-data:
+    driver: local

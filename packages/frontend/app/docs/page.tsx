@@ -15,7 +15,7 @@ export default function DocsPage() {
             Learn how to build with SuperPage.
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl">
-            From your first payment-gated API to AI agent integration, we've got everything you need to monetize with HTTP 402 and USDC.
+            From your first payment-gated API to AI agent integration, we've got everything you need to monetize with HTTP 402 and MUSD on Mezo.
           </p>
         </div>
       </section>
@@ -91,7 +91,7 @@ app.get('/api/premium',
 );`}</code>
         </pre>
           <p className="text-muted-foreground mb-8">
-            This creates a payment-gated endpoint that returns HTTP 402 with payment requirements. Clients using the SDK automatically pay with USDC and receive the content. The transaction is verified on-chain instantly.
+            This creates a payment-gated endpoint that returns HTTP 402 with payment requirements. Clients using the SDK automatically pay with MUSD (or USDC) and receive the content. The transaction is verified on-chain instantly.
           </p>
           <div className="p-8 rounded-2xl bg-muted border border-border flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex flex-col gap-1 text-center md:text-left">
@@ -119,7 +119,7 @@ app.get('/api/premium',
             It enables automatic, programmable payments for AI agents, APIs, and digital commerce.
           </p>
           <p>
-            Built on Base with <strong className="text-primary">USDC stablecoin</strong>, SuperPage makes it easy to:
+            Built on Mezo (Bitcoin economic layer) with <strong className="text-primary">MUSD stablecoin</strong>, SuperPage makes it easy to:
           </p>
           <ul className="list-disc list-inside space-y-2 ml-4">
             <li>Create payment-gated APIs and content</li>
@@ -165,7 +165,7 @@ app.get('/api/premium',
             <div>
               <h4 className="font-semibold text-foreground mb-1">Client Sends Payment</h4>
               <p className="text-muted-foreground text-sm">
-                Client automatically sends USDC payment on Ethereum blockchain.
+                Client automatically sends MUSD payment on Mezo (or any supported EVM chain).
               </p>
             </div>
           </div>

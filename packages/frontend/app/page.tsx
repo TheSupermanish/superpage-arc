@@ -68,7 +68,7 @@ export default function LandingPage() {
 
           {/* Subtitle */}
           <p className="animate-fade-in-up animate-fade-in-up-3 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Paywall your APIs, files, articles, and stores. Instant USDC payments on Base.
+            Paywall your APIs, files, articles, and stores. Instant MUSD payments on Mezo (Bitcoin economic layer).
             No middlemen. AI-agent ready.
           </p>
 
@@ -144,7 +144,7 @@ export default function LandingPage() {
                 <CircleDollarSign className="h-7 w-7" />
               </div>
               <h3 className="text-2xl font-bold mb-3">Earn</h3>
-              <p className="text-muted-foreground leading-relaxed">Instant USDC on Base. No waiting, no fees, no middlemen.</p>
+              <p className="text-muted-foreground leading-relaxed">Instant MUSD on Mezo. No waiting, no fees, no middlemen.</p>
             </div>
           </div>
         </div>
@@ -298,7 +298,7 @@ if (response.status === 402) {
   const paymentInfo = response.headers
     .get("X-PAYMENT");
 
-  // Sign USDC payment on Base
+  // Sign MUSD payment on Mezo
   const payment = await signPayment(paymentInfo);
 
   // Retry with payment header
@@ -473,10 +473,10 @@ if (response.status === 402) {
                 <span className="text-xl font-bold tracking-tight">SuperPage</span>
               </div>
               <p className="text-muted-foreground max-w-sm leading-relaxed">
-                The web&apos;s native payment protocol. Monetize APIs, files, articles, and stores with HTTP 402 on Base.
+                The web&apos;s native payment protocol. Monetize APIs, files, articles, and stores with HTTP 402 on Mezo.
               </p>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sp-blue/10 text-sp-blue text-xs font-bold">
-                Built on Base
+                Built on Mezo (Bitcoin L2)
               </div>
             </div>
             <div className="space-y-5">
