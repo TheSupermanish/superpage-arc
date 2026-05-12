@@ -27,6 +27,7 @@
     "overrides": {
       "@reown/appkit-controllers": "1.7.8",
       "signal-exit": "^4.1.0",
+      "express>path-to-regexp": "0.1.12",
       "path-to-regexp": "^8.4.0",
       "picomatch": "^4.0.4",
       "flatted": "^3.4.2",
