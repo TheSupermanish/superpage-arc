@@ -15,18 +15,18 @@
     {
       "id": "resource-access",
       "name": "Resource Access via x402",
-      "description": "Access payment-gated resources (APIs, files, articles) with USDC micro-payments. Agent receives HTTP 402, extracts payment requirements, executes on-chain transfer, and gains access.",
+      "description": "Access payment-gated resources (APIs, files, articles) with MUSD micro-payments on Mezo. Agent receives HTTP 402, extracts payment requirements, executes on-chain transfer, and gains access.",
       "tags": ["x402", "payment", "resources", "pay-per-use"],
       "examples": [
         "Access a premium weather API endpoint",
-        "Unlock a gated research article for 0.50 USDC",
+        "Unlock a gated research article for 0.50 MUSD",
         "Download a dataset behind an x402 paywall"
       ]
     },
     {
       "id": "purchase",
       "name": "Shopify Product Purchase",
-      "description": "Purchase physical and digital products from Shopify stores using on-chain USDC payments. Supports product browsing, cart creation, and checkout.",
+      "description": "Purchase physical and digital products from Shopify stores using on-chain MUSD payments on Mezo. Supports product browsing, cart creation, and checkout.",
       "tags": ["shopping", "e-commerce", "shopify"],
       "examples": [
         "Buy a t-shirt from the x402 shop",

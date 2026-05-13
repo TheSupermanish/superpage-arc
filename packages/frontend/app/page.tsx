@@ -169,7 +169,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-3xl font-bold mb-3">API Proxy</h3>
                 <p className="text-muted-foreground leading-relaxed text-lg mb-6">
-                  Monetize any API endpoint with pay-per-call. LLMs, data feeds, services — every request pays in USDC.
+                  Monetize any API endpoint with pay-per-call. LLMs, data feeds, services — every request pays in MUSD.
                 </p>
               </div>
               <div className="bg-secondary rounded-2xl p-5 font-mono text-sm overflow-x-auto">
@@ -180,7 +180,7 @@ export default function LandingPage() {
                   <span className="text-sp-pink">402</span> Payment Required
                 </div>
                 <div className="text-muted-foreground mt-1">
-                  <span className="text-sp-gold">X-PAYMENT:</span> &lt;signed-usdc-tx&gt;
+                  <span className="text-sp-gold">X-PAYMENT:</span> &lt;signed-musd-tx&gt;
                 </div>
                 <div className="text-sp-blue mt-1">
                   <span className="text-green-500">200</span> OK &#x2713;
@@ -195,7 +195,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-2xl font-bold mb-3">Files & Downloads</h3>
               <p className="text-muted-foreground leading-relaxed">
-                PDFs, images, videos, datasets. Secure downloads with instant USDC payment. No accounts required.
+                PDFs, images, videos, datasets. Secure downloads with instant MUSD payment. No accounts required.
               </p>
             </div>
 
@@ -219,21 +219,21 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-3xl font-bold mb-3">Shopify Integration</h3>
                   <p className="text-muted-foreground leading-relaxed text-lg">
-                    Connect your Shopify store. Sell products with USDC payments. AI agents can browse and purchase automatically.
+                    Connect your Shopify store. Sell products with MUSD payments. AI agents can browse and purchase automatically.
                   </p>
                 </div>
                 <div className="flex-shrink-0 bg-secondary rounded-2xl p-6 space-y-3 min-w-[280px]">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Premium T-Shirt</span>
-                    <span className="font-bold text-sp-blue">+29.99 USDC</span>
+                    <span className="font-bold text-sp-blue">+29.99 MUSD</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Digital Download</span>
-                    <span className="font-bold text-sp-pink">+9.99 USDC</span>
+                    <span className="font-bold text-sp-pink">+9.99 MUSD</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">API Access Key</span>
-                    <span className="font-bold text-sp-gold">+0.50 USDC</span>
+                    <span className="font-bold text-sp-gold">+0.50 MUSD</span>
                   </div>
                 </div>
               </div>
@@ -345,7 +345,7 @@ if (response.status === 402) {
             <div className="p-8 rounded-3xl bg-card border border-border glow-border relative flex flex-col">
               <Quote className="h-8 w-8 text-sp-blue/30 mb-4" />
               <p className="text-foreground leading-relaxed flex-1">
-                &ldquo;Moved my paid newsletter off Substack and onto SuperPage. My readers pay 50 cents per article in USDC. I keep 100%. No platform fees eating my margins.&rdquo;
+                &ldquo;Moved my paid newsletter off Substack and onto SuperPage. My readers pay 50 cents per article in MUSD. I keep 100%. No platform fees eating my margins.&rdquo;
               </p>
               <div className="flex items-center gap-3 mt-6 pt-6 border-t border-border">
                 <div className="size-10 rounded-full bg-sp-pink/20 text-sp-pink flex items-center justify-center font-bold text-sm shrink-0">SK</div>
@@ -412,10 +412,10 @@ if (response.status === 402) {
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
             {[
-              "Powered by Base",
-              "USDC Payments",
+              "Powered by Mezo",
+              "MUSD Payments",
               "HTTP 402",
-              "Zero Gas Fees",
+              "Low Gas Fees",
               "Instant Settlement",
               "AI-Native",
               "Open Protocol",

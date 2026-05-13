@@ -22,6 +22,11 @@ export interface AgentConfig {
   chainId: number;
   rpcUrl: string;
   usdcAddress: `0x${string}`;
+  tokenSymbol: string;
+  tokenDecimals: number;
+  chainName?: string;
+  explorerUrl?: string;
+  nativeCurrency?: { decimals: number; name: string; symbol: string };
 
   // ERC-8004 Trustless Identity
   erc8004AgentId?: string;
@@ -72,9 +77,14 @@ export function loadConfig(): AgentConfig {
     rpcUrl:
       process.env.RPC_URL || "https://rpc.test.mezo.org",
     // Default to the SuperPage MockUSDC deployed on Mezo testnet (6 dec).
-    // For MUSD payments, set USDC_ADDRESS=0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503.
+    // For MUSD payments, set USDC_ADDRESS=0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503 and TOKEN_DECIMALS=18.
     usdcAddress:
       (process.env.USDC_ADDRESS || "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c") as `0x${string}`,
+    tokenSymbol: process.env.TOKEN_SYMBOL || (process.env.USDC_ADDRESS ? "MUSD" : "mUSDC"),
+    tokenDecimals: parseInt(process.env.TOKEN_DECIMALS || (process.env.USDC_ADDRESS ? "18" : "6"), 10),
+    chainName: process.env.CHAIN_NAME || "Mezo Testnet",
+    explorerUrl: process.env.EXPLORER_URL || "https://explorer.test.mezo.org",
+    nativeCurrency: { decimals: 18, name: "Bitcoin", symbol: "BTC" },
     erc8004AgentId: process.env.ERC8004_AGENT_ID || undefined,
     maxSteps: parseInt(process.env.MAX_STEPS || "20", 10),
     autoApprovePayments: process.env.AUTO_APPROVE_PAYMENTS === "true",

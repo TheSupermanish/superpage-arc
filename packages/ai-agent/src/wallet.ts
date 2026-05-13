@@ -1,6 +1,6 @@
 /**
  * On-chain wallet for making ERC20 payments.
- * Uses viem to interact with BITE V2 Sandbox.
+ * Uses viem to interact with Mezo (Bitcoin economic layer).
  */
 import {
   createPublicClient,
@@ -34,6 +34,7 @@ const ERC20_ABI = [
 
 export class Wallet {
   public address: Address;
+  public explorerBase: string;
   private account;
   private publicClient;
   private walletClient;
@@ -41,17 +42,19 @@ export class Wallet {
 
   constructor(config: AgentConfig) {
     this.config = config;
+    this.explorerBase = config.explorerUrl ?? "https://explorer.test.mezo.org";
     this.account = privateKeyToAccount(config.walletPrivateKey);
     this.address = this.account.address;
 
     const chain = defineChain({
       id: config.chainId,
-      name: "BITE V2 Sandbox 2",
+      name: config.chainName ?? "Mezo Testnet",
       network: config.network,
-      nativeCurrency: { decimals: 18, name: "sFUEL", symbol: "sFUEL" },
+      nativeCurrency: config.nativeCurrency ?? { decimals: 18, name: "Bitcoin", symbol: "BTC" },
       rpcUrls: {
         default: { http: [config.rpcUrl] },
       },
+      blockExplorers: config.explorerUrl ? { default: { name: "Explorer", url: config.explorerUrl } } : undefined,
       testnet: true,
     });
 
@@ -74,10 +77,10 @@ export class Wallet {
       functionName: "balanceOf",
       args: [this.address],
     });
-    return formatUnits(balance as bigint, 6);
+    return formatUnits(balance as bigint, this.config.tokenDecimals);
   }
 
-  /** Transfer USDC to a recipient. Amount in base units (6 decimals). */
+  /** Transfer the configured token to a recipient. Amount in base units (token-decimals). */
   async transferUsdc(to: Address, amountBaseUnits: string): Promise<Hash> {
     const amount = BigInt(amountBaseUnits);
 
@@ -104,7 +107,7 @@ export class Wallet {
 
   /** Format base units to display amount */
   formatUsdc(baseUnits: string): string {
-    return formatUnits(BigInt(baseUnits), 6);
+    return formatUnits(BigInt(baseUnits), this.config.tokenDecimals);
   }
 
   /** Sign an arbitrary message with the wallet's private key (EIP-191) */

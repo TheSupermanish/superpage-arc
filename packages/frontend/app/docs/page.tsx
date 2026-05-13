@@ -80,7 +80,7 @@ const x402 = new X402Server({
   network: 'mainnet',
   privateKey: process.env.ETH_PRIVATE_KEY,
   recipientAddress: '0xYourAddress',
-  tokenAddress: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8' // USDC on SKALE
+  tokenAddress: '0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503' // MUSD on Mezo testnet
 });
 
 app.get('/api/premium',

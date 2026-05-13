@@ -10,7 +10,7 @@ export function createMakePaymentTool(
 ) {
   return tool({
     description:
-      "Execute an on-chain USDC payment on BITE V2 Sandbox. Transfers real tokens from the agent's wallet to the merchant. Use after receiving payment requirements. Returns the transaction hash needed for submit_payment_proof. Amounts are in base units (6 decimals: 1000000 = $1.00 USDC).",
+      "Execute an on-chain stablecoin payment on Mezo (Bitcoin economic layer). Transfers real tokens from the agent's wallet to the merchant. Use after receiving payment requirements. Returns the transaction hash needed for submit_payment_proof. Amounts are in base units; the token's decimals come from agent config (MUSD=18, mUSDC=6).",
     parameters: z.object({
       payTo: z
         .string()
@@ -64,7 +64,7 @@ export function createMakePaymentTool(
         );
 
         const confirmed = await wallet.waitForTx(txHash);
-        const explorerUrl = `https://base-sepolia-testnet-explorer.skalenodes.com:10032/tx/${txHash}`;
+        const explorerUrl = `${wallet.explorerBase}/tx/${txHash}`;
 
         if (confirmed) {
           ui.paymentConfirmed(txHash, explorerUrl);
