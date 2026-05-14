@@ -366,7 +366,7 @@ npm install
 npm run dev
 ```
 
-Frontend will run on `http://localhost:3000`
+Frontend will run on `http://localhost:3100`
 
 3. Build for production:
 ```bash

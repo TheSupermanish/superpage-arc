@@ -295,7 +295,7 @@ ANTHROPIC_API_KEY=sk-ant-...
 ```
 
 This starts:
-- **Frontend**: http://localhost:3000
+- **Frontend**: http://localhost:3100
 - **Backend**: http://localhost:3001
 - **Payment Service**: x402 verification
 
@@ -569,7 +569,7 @@ SuperPage is an **x402-integrated OpenClaw skill** that charges USDC fees per re
 
 ## Documentation
 
-- **Docs site**: http://localhost:3000/docs
+- **Docs site**: http://localhost:3100/docs
   - Getting Started
   - SDK Reference
   - API Documentation

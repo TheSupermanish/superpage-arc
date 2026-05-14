@@ -759,7 +759,7 @@ X402_RECIPIENT_ADDRESS=wallet-address
 
 # Server
 PORT=3001
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:3100
 ```
 
 ---

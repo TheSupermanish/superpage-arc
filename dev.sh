@@ -5,7 +5,8 @@
 set -e
 
 # Kill any processes already using our ports
-for port in 3000 3001 3002; do
+# Frontend uses 3100 (not 3000) so we don't clobber co-resident dev servers.
+for port in 3100 3001 3002; do
   pid=$(lsof -ti :"$port" 2>/dev/null || true)
   if [ -n "$pid" ]; then
     echo "  Killing process on port $port (pid $pid)"
@@ -23,7 +24,7 @@ echo ""
 echo "  ┌──────────────────────────────────────┐"
 echo "  │  SuperPage Dev                        │"
 echo "  ├──────────────────────────────────────┤"
-echo "  │  Frontend        http://localhost:3000│"
+echo "  │  Frontend        http://localhost:3100│"
 echo "  │  Backend API     http://localhost:3001│"
 echo "  │  Payment Server  http://localhost:3002│"
 echo "  │  AI Agent        pnpm agent           │"

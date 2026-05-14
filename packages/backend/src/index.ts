@@ -33,8 +33,10 @@ const corsOptions = {
   origin: [
     "http://localhost:3000",
     "http://localhost:3001",
+    "http://localhost:3100", // superpage frontend default (3000 reserved for mimic-markets locally)
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
+    "http://127.0.0.1:3100",
     process.env.FRONTEND_URL,
     process.env.APP_URL,
   ].filter(Boolean),
