@@ -13,143 +13,6 @@ import {
   Transport,
   defineChain,
 } from "viem";
-import {
-  mainnet,
-  sepolia,
-  base,
-  baseSepolia,
-  polygon,
-  polygonAmoy,
-  arbitrum,
-  arbitrumSepolia,
-  optimism,
-  optimismSepolia,
-  flowMainnet,
-  flowTestnet,
-} from "viem/chains";
-
-/**
- * Mantle Sepolia Testnet chain definition
- * Chain ID: 5003
- * RPC: https://rpc.sepolia.mantle.xyz
- */
-export const mantleSepolia = defineChain({
-  id: 5003,
-  name: "Mantle Sepolia",
-  network: "mantle-sepolia",
-  nativeCurrency: {
-    decimals: 18,
-    name: "Mantle",
-    symbol: "MNT",
-  },
-  rpcUrls: {
-    default: {
-      http: ["https://rpc.sepolia.mantle.xyz"],
-    },
-    public: {
-      http: ["https://rpc.sepolia.mantle.xyz"],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: "Mantle Explorer",
-      url: "https://sepolia.mantlescan.xyz",
-    },
-  },
-  testnet: true,
-});
-
-/**
- * Cronos Mainnet chain definition
- * Chain ID: 25
- * RPC: https://evm.cronos.org
- */
-export const cronos = defineChain({
-  id: 25,
-  name: "Cronos",
-  network: "cronos",
-  nativeCurrency: {
-    decimals: 18,
-    name: "Cronos",
-    symbol: "CRO",
-  },
-  rpcUrls: {
-    default: {
-      http: ["https://evm.cronos.org"],
-    },
-    public: {
-      http: ["https://evm.cronos.org"],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: "Cronos Explorer",
-      url: "https://explorer.cronos.org",
-    },
-  },
-  testnet: false,
-});
-
-/**
- * Cronos Testnet chain definition
- * Chain ID: 338
- * RPC: https://cronos-testnet.drpc.org
- */
-export const cronosTestnet = defineChain({
-  id: 338,
-  name: "Cronos Testnet",
-  network: "cronos-testnet",
-  nativeCurrency: {
-    decimals: 18,
-    name: "Test Cronos",
-    symbol: "TCRO",
-  },
-  rpcUrls: {
-    default: {
-      http: ["https://cronos-testnet.drpc.org"],
-    },
-    public: {
-      http: ["https://cronos-testnet.drpc.org"],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: "Cronos Explorer",
-      url: "https://explorer.cronos.org/testnet",
-    },
-  },
-  testnet: true,
-});
-/**
- * BITE V2 Sandbox 2 chain definition (SKALE)
- * Chain ID: 103698795
- * RPC: https://base-sepolia-testnet.skalenodes.com/v1/bite-v2-sandbox
- */
-export const biteV2Sandbox = defineChain({
-  id: 103698795,
-  name: "BITE V2 Sandbox 2",
-  network: "bite-v2-sandbox",
-  nativeCurrency: {
-    decimals: 18,
-    name: "sFUEL",
-    symbol: "sFUEL",
-  },
-  rpcUrls: {
-    default: {
-      http: ["https://base-sepolia-testnet.skalenodes.com/v1/bite-v2-sandbox"],
-    },
-    public: {
-      http: ["https://base-sepolia-testnet.skalenodes.com/v1/bite-v2-sandbox"],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: "BITE Explorer",
-      url: "https://base-sepolia-testnet-explorer.skalenodes.com:10032",
-    },
-  },
-  testnet: true,
-});
 
 /**
  * Mezo Mainnet chain definition
@@ -212,22 +75,6 @@ import {
  * Chain configurations
  */
 export const CHAINS: Record<Network, Chain> = {
-  mainnet,
-  sepolia,
-  base,
-  "base-sepolia": baseSepolia,
-  polygon,
-  "polygon-amoy": polygonAmoy,
-  arbitrum,
-  "arbitrum-sepolia": arbitrumSepolia,
-  optimism,
-  "optimism-sepolia": optimismSepolia,
-  "mantle-sepolia": mantleSepolia,
-  cronos,
-  "cronos-testnet": cronosTestnet,
-  "bite-v2-sandbox": biteV2Sandbox,
-  flow: flowMainnet,
-  "flow-testnet": flowTestnet,
   mezo: mezoMainnet,
   "mezo-testnet": mezoTestnet,
 };
@@ -236,145 +83,30 @@ export const CHAINS: Record<Network, Chain> = {
  * Chain IDs
  */
 export const CHAIN_IDS: Record<Network, number> = {
-  mainnet: 1,
-  sepolia: 11155111,
-  base: 8453,
-  "base-sepolia": 84532,
-  polygon: 137,
-  "polygon-amoy": 80002,
-  arbitrum: 42161,
-  "arbitrum-sepolia": 421614,
-  optimism: 10,
-  "optimism-sepolia": 11155420,
-  "mantle-sepolia": 5003,
-  cronos: 25,
-  "cronos-testnet": 338,
-  "bite-v2-sandbox": 103698795,
-  flow: 747,
-  "flow-testnet": 545,
   mezo: 31612,
   "mezo-testnet": 31611,
 };
 
 /**
- * Token contract addresses for EVM networks
- * Using official USDC addresses from Circle and other verified contracts
- * Note: ETH, CRO, MNT, sFUEL, FLOW, BTC are native gas tokens (not ERC20) and excluded.
- * MUSD is the Mezo native stablecoin (ERC20Permit, 18 decimals).
+ * Token contract addresses on Mezo.
+ * Native gas token: BTC (18 dec) — not an ERC-20, excluded from this map.
+ * MUSD is Mezo's BTC-backed stablecoin (ERC20Permit, 18 dec) and the default x402 payment token.
  */
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000" as Address;
 
-export const TOKEN_ADDRESSES: Record<Network, Record<Exclude<TokenType, "ETH" | "CRO" | "MNT" | "sFUEL" | "FLOW" | "BTC">, Address>> = {
-  mainnet: {
-    USDC: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-    USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-    DAI: "0x6B175474E89094C44Da98b954EescdeCB5f6243C" as Address,
-    MUSD: ZERO_ADDR,
-  },
-  sepolia: {
-    USDC: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", // Circle USDC on Sepolia
-    USDT: "0x7169D38820dfd117C3FA1f22a697dBA58d90BA06" as Address,
-    DAI: "0x68194a729C2450ad26072b3D33ADaCbcef39D574" as Address,
-    MUSD: ZERO_ADDR,
-  },
-  base: {
-    USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // Native USDC on Base
-    USDT: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2" as Address,
-    DAI: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb" as Address,
-    MUSD: ZERO_ADDR,
-  },
-  "base-sepolia": {
-    USDC: "0xa059e27967e5a573a14a62c706ebd1be75333f9a", // SuperPage mUSDC on Base Sepolia
-    USDT: ZERO_ADDR,
-    DAI: ZERO_ADDR,
-    MUSD: ZERO_ADDR,
-  },
-  polygon: {
-    USDC: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359", // Native USDC on Polygon
-    USDT: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-    DAI: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063" as Address,
-    MUSD: ZERO_ADDR,
-  },
-  "polygon-amoy": {
-    USDC: "0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582" as Address,
-    USDT: ZERO_ADDR,
-    DAI: ZERO_ADDR,
-    MUSD: ZERO_ADDR,
-  },
-  arbitrum: {
-    USDC: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", // Native USDC on Arbitrum
-    USDT: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
-    DAI: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1" as Address,
-    MUSD: ZERO_ADDR,
-  },
-  "arbitrum-sepolia": {
-    USDC: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d" as Address,
-    USDT: ZERO_ADDR,
-    DAI: ZERO_ADDR,
-    MUSD: ZERO_ADDR,
-  },
-  optimism: {
-    USDC: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85", // Native USDC on Optimism
-    USDT: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
-    DAI: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1" as Address,
-    MUSD: ZERO_ADDR,
-  },
-  "optimism-sepolia": {
-    USDC: "0x5fd84259d66Cd46123540766Be93DFE6D43130D7" as Address,
-    USDT: ZERO_ADDR,
-    DAI: ZERO_ADDR,
-    MUSD: ZERO_ADDR,
-  },
-  "mantle-sepolia": {
-    USDC: "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as Address, // Circle USDC (same as Base Sepolia)
-    USDT: ZERO_ADDR,
-    DAI: ZERO_ADDR,
-    MUSD: ZERO_ADDR,
-  },
-  cronos: {
-    USDC: "0xc21223249CA28397B4B6541dfFaEcC539BfF0c59" as Address, // USDC on Cronos
-    USDT: "0x66e428c3f67a68878562e79A0234c1F83c208770" as Address, // USDT on Cronos
-    DAI: "0xF2001B145b43032AAF5Ee2884e456CCd805F677D" as Address, // DAI on Cronos
-    MUSD: ZERO_ADDR,
-  },
-  "cronos-testnet": {
-    USDC: "0xc01efAaF7C5C61bEbFAeb358E1161b537b8bC0e0" as Address, // devUSDC.e (Bridged USDC Stargate)
-    USDT: ZERO_ADDR,
-    DAI: ZERO_ADDR,
-    MUSD: ZERO_ADDR,
-  },
-  "bite-v2-sandbox": {
-    USDC: "0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8" as Address,
-    USDT: ZERO_ADDR,
-    DAI: ZERO_ADDR,
-    MUSD: ZERO_ADDR,
-  },
-  flow: {
-    USDC: "0xF1815bd50389c46847f0Bda824eC8da914045D14" as Address,
-    USDT: "0x674843C06FF83502ddb4D37c2E09C01cdA38cbc8" as Address,
-    DAI: ZERO_ADDR,
-    MUSD: ZERO_ADDR,
-  },
-  "flow-testnet": {
-    USDC: "0x291b030d596cf505f774426d8de7c946ce5af7a5" as Address,
-    USDT: ZERO_ADDR,
-    DAI: ZERO_ADDR,
-    MUSD: ZERO_ADDR,
-  },
-  // Mezo (Bitcoin economic layer, EVM-compatible). Native gas token: BTC (18 dec).
-  // MUSD is Mezo's BTC-backed stablecoin (18 dec) and the default x402 payment token.
+export const TOKEN_ADDRESSES: Record<Network, Record<Exclude<TokenType, "BTC">, Address>> = {
   mezo: {
+    MUSD: "0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186" as Address, // MUSD (18 dec)
     USDC: "0x04671C72Aab5AC02A03c1098314b1BB6B560c197" as Address, // mUSDC (Mezo Circle USDC, 6 dec)
     USDT: "0xeB5a5d39dE4Ea42C2Aa6A57EcA2894376683bB8E" as Address, // mUSDT (Mezo Tether, 6 dec)
     DAI: "0x1531b6e3d51BF80f634957dF81A990B92dA4b154" as Address,  // mDAI (Mezo DAI, 18 dec)
-    MUSD: "0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186" as Address, // MUSD (18 dec)
   },
   "mezo-testnet": {
-    // SuperPage MockUSDC deployed on matsnet (6 decimals)
+    MUSD: "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503" as Address, // matsnet MUSD (18 dec)
+    // SuperPage MockUSDC deployed on matsnet (6 decimals, mintable, for testing the faucet)
     USDC: "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c" as Address,
     USDT: ZERO_ADDR,
     DAI: ZERO_ADDR,
-    MUSD: "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503" as Address, // matsnet MUSD (18 dec)
   },
 };
 
@@ -382,16 +114,11 @@ export const TOKEN_ADDRESSES: Record<Network, Record<Exclude<TokenType, "ETH" | 
  * Token decimals
  */
 export const TOKEN_DECIMALS: Record<TokenType, number> = {
-  ETH: 18,
-  CRO: 18, // Cronos native token
-  MNT: 18, // Mantle native token
-  sFUEL: 18, // SKALE native token (zero gas fees)
-  FLOW: 18, // Flow native token
-  BTC: 18, // Mezo native gas token (18 dec on Mezo, not 8 like real BTC)
+  BTC: 18, // Mezo native gas (18 dec on Mezo, not 8 like real BTC)
+  MUSD: 18, // Mezo USD stablecoin (verified on-chain: 18 decimals)
   USDC: 6,
   USDT: 6,
   DAI: 18,
-  MUSD: 18, // Mezo USD stablecoin (verified on-chain: 18 decimals)
 };
 
 /**
@@ -432,22 +159,6 @@ export function getRpcEndpoint(network: Network, customEndpoint?: string): strin
   
   // Default public RPCs (recommend using your own in production)
   const publicRpcs: Record<Network, string> = {
-    mainnet: "https://eth.llamarpc.com",
-    sepolia: "https://rpc.sepolia.org",
-    base: "https://mainnet.base.org",
-    "base-sepolia": "https://sepolia.base.org",
-    polygon: "https://polygon-rpc.com",
-    "polygon-amoy": "https://rpc-amoy.polygon.technology",
-    arbitrum: "https://arb1.arbitrum.io/rpc",
-    "arbitrum-sepolia": "https://sepolia-rollup.arbitrum.io/rpc",
-    optimism: "https://mainnet.optimism.io",
-    "optimism-sepolia": "https://sepolia.optimism.io",
-    "mantle-sepolia": "https://rpc.sepolia.mantle.xyz",
-    cronos: "https://evm.cronos.org",
-    "cronos-testnet": "https://cronos-testnet.drpc.org",
-    "bite-v2-sandbox": "https://base-sepolia-testnet.skalenodes.com/v1/bite-v2-sandbox",
-    flow: "https://mainnet.evm.nodes.onflow.org",
-    "flow-testnet": "https://testnet.evm.nodes.onflow.org",
     mezo: "https://mezo.drpc.org",
     "mezo-testnet": "https://rpc.test.mezo.org",
   };
@@ -583,11 +294,11 @@ export function createPaymentTransaction(
   const recipient = requirements.recipient as Address;
   const amount = BigInt(requirements.amount);
   
-  // Native tokens (ETH on Ethereum, CRO on Cronos, MNT on Mantle, sFUEL on SKALE, etc.)
-  if (requirements.token === "ETH" || requirements.token === "CRO" || requirements.token === "MNT" || requirements.token === "sFUEL" || requirements.token === "FLOW" || requirements.token === "BTC") {
+  // Native gas token (BTC on Mezo)
+  if (requirements.token === "BTC") {
     return createETHPaymentTransaction(recipient, amount);
   } else {
-    const tokenAddress = TOKEN_ADDRESSES[requirements.network][requirements.token as Exclude<TokenType, "ETH" | "CRO" | "MNT" | "sFUEL" | "FLOW" | "BTC">];
+    const tokenAddress = TOKEN_ADDRESSES[requirements.network][requirements.token as Exclude<TokenType, "BTC">];
     if (!tokenAddress || tokenAddress === "0x0000000000000000000000000000000000000000") {
       throw new TransactionFailedError(
         `Token ${requirements.token} is not supported on ${requirements.network}`
@@ -703,11 +414,11 @@ export async function sendPaymentTransaction(
   const recipient = requirements.recipient as Address;
   const amount = BigInt(requirements.amount);
   
-  // Native tokens (ETH on Ethereum, CRO on Cronos, MNT on Mantle, sFUEL on SKALE, etc.)
-  if (requirements.token === "ETH" || requirements.token === "CRO" || requirements.token === "MNT" || requirements.token === "sFUEL" || requirements.token === "FLOW" || requirements.token === "BTC") {
+  // Native gas token (BTC on Mezo)
+  if (requirements.token === "BTC") {
     return sendETHPayment(walletClient, recipient, amount);
   } else {
-    const tokenAddress = TOKEN_ADDRESSES[requirements.network][requirements.token as Exclude<TokenType, "ETH" | "CRO" | "MNT" | "sFUEL" | "FLOW" | "BTC">];
+    const tokenAddress = TOKEN_ADDRESSES[requirements.network][requirements.token as Exclude<TokenType, "BTC">];
     if (!tokenAddress || tokenAddress === "0x0000000000000000000000000000000000000000") {
       throw new TransactionFailedError(
         `Token ${requirements.token} is not supported on ${requirements.network}`
@@ -841,8 +552,8 @@ export async function verifyPaymentTransaction(
     const recipient = requirements.recipient.toLowerCase() as Address;
     const expectedAmount = BigInt(requirements.amount);
     
-    // Verify native token transfers (ETH, MNT, CRO, etc.)
-    if (requirements.token === "ETH" || requirements.token === "MNT" || requirements.token === "CRO" || requirements.token === "sFUEL" || requirements.token === "FLOW" || requirements.token === "BTC") {
+    // Verify native gas token transfers (BTC on Mezo)
+    if (requirements.token === "BTC") {
       console.log(`[verifyPaymentTransaction] Verifying native ${requirements.token} transfer`);
       console.log(`[verifyPaymentTransaction] tx.to: ${tx.to}, expected: ${recipient}`);
       console.log(`[verifyPaymentTransaction] tx.value: ${tx.value}, expected: ${expectedAmount}`);

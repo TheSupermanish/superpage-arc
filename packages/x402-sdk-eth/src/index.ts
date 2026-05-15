@@ -161,10 +161,9 @@ export {
   CHAIN_REGISTRY,
   
   // Chain definitions
-  mantleSepolia,
-  cronos,
-  cronosTestnet,
-  
+  mezoMainnet,
+  mezoTestnet,
+
   // Helper functions
   getSupportedNetworks,
   isValidNetwork,

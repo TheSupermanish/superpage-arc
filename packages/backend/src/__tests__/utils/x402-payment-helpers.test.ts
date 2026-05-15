@@ -19,13 +19,13 @@ describe("createPaymentRequirements", () => {
   };
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
-  it("should create stablecoin requirements by default", () => {
+  it("creates MUSD (stablecoin) requirements by default", () => {
     const reqs = createPaymentRequirements("order-1", amounts, expiresAt);
     expect(reqs).toHaveLength(1);
     const req = reqs[0] as Record<string, any>;
-    expect(req.token).toBe("USDC");
-    // 13.00 * 1_000_000 = 13000000
-    expect(req.amount).toBe("13000000");
+    expect(req.token).toBe("MUSD");
+    // 13.00 * 1e18 (MUSD = 18 decimals)
+    expect(req.amount).toBe("13000000000000000000");
     expect(req.scheme).toBe("spay");
     expect(req.chainId).toBeTypeOf("number");
     expect(req).toHaveProperty("recipient");
@@ -33,46 +33,48 @@ describe("createPaymentRequirements", () => {
     expect(req.metadata.amounts).toEqual(amounts);
   });
 
-  it("should create native token requirements when specified", () => {
+  it("creates native BTC requirements when specified", () => {
     const reqs = createPaymentRequirements(
       "order-2",
       amounts,
       expiresAt,
       undefined,
-      "ETH"
+      "BTC"
     );
     expect(reqs).toHaveLength(1);
-    expect(reqs[0].token).toBe("ETH");
-    // 13.00 * 1e18 = 13000000000000000000
+    expect(reqs[0].token).toBe("BTC");
+    // 13.00 * 1e18 = 13000000000000000000 (BTC on Mezo = 18 decimals)
     expect(reqs[0].amount).toBe("13000000000000000000");
     expect(reqs[0].scheme).toBe("spay");
   });
 
-  it("should create other native token requirements (MNT)", () => {
+  it("creates MockUSDC (6-decimal) requirements when specified", () => {
     const reqs = createPaymentRequirements(
       "order-3",
       amounts,
       expiresAt,
       undefined,
-      "MNT"
+      "USDC"
     );
-    expect(reqs[0].token).toBe("MNT");
+    expect(reqs[0].token).toBe("USDC");
+    // 13.00 * 1e6 = 13000000
+    expect(reqs[0].amount).toBe("13000000");
     expect(reqs[0].scheme).toBe("spay");
   });
 
-  it("should include expiresAt", () => {
+  it("includes expiresAt", () => {
     const reqs = createPaymentRequirements("order-4", amounts, expiresAt);
     expect(reqs[0].expiresAt).toBe(expiresAt.toISOString());
   });
 
-  it("should use custom network when provided", () => {
+  it("uses custom Mezo network when provided", () => {
     const reqs = createPaymentRequirements(
       "order-5",
       amounts,
       expiresAt,
-      "base-sepolia"
+      "mezo"
     );
-    expect(reqs[0].network).toBe("base-sepolia");
+    expect(reqs[0].network).toBe("mezo");
   });
 });
 
@@ -170,16 +172,16 @@ describe("isOrderIntentExpired", () => {
 });
 
 describe("parsePaymentHeader", () => {
-  it("should parse valid JSON header", () => {
+  it("parses a valid JSON header on matsnet", () => {
     const header = JSON.stringify({
       transactionHash: "0xabc",
-      network: "bite-v2-sandbox",
-      chainId: 103698795,
+      network: "mezo-testnet",
+      chainId: 31611,
     });
     const parsed = parsePaymentHeader(header);
     expect(parsed.transactionHash).toBe("0xabc");
-    expect(parsed.network).toBe("bite-v2-sandbox");
-    expect(parsed.chainId).toBe(103698795);
+    expect(parsed.network).toBe("mezo-testnet");
+    expect(parsed.chainId).toBe(31611);
   });
 
   it("should support txHash alias", () => {
@@ -201,23 +203,22 @@ describe("parsePaymentHeader", () => {
     expect(parsed.timestamp).toBeGreaterThanOrEqual(before);
   });
 
-  it("should derive chainId from network", () => {
+  it("derives chainId from network (mezo mainnet)", () => {
     const header = JSON.stringify({
       transactionHash: "0xabc",
-      network: "mainnet",
+      network: "mezo",
     });
     const parsed = parsePaymentHeader(header);
-    expect(parsed.chainId).toBe(1);
+    expect(parsed.chainId).toBe(31612);
   });
 
-  it("should fallback chainId to default network for unknown network", () => {
+  it("falls back to DEFAULT_NETWORK chain ID (mezo-testnet = 31611) for unknown network", () => {
     const header = JSON.stringify({
       transactionHash: "0xabc",
       network: "unknown-net",
     });
     const parsed = parsePaymentHeader(header);
-    // Falls back to DEFAULT_NETWORK chain ID (base-sepolia = 84532)
-    expect(parsed.chainId).toBe(84532);
+    expect(parsed.chainId).toBe(31611);
   });
 
   it("should throw for invalid JSON", () => {

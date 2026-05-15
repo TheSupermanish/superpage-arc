@@ -20,8 +20,8 @@ describe("toAP2Requirements", () => {
   it("should convert x402 PaymentRequirements to AP2 format", () => {
     const x402Req = {
       scheme: "exact" as const,
-      network: "bite-v2-sandbox" as const,
-      chainId: 103698795,
+      network: "mezo-testnet" as const,
+      chainId: 31611,
       amount: "1000000",
       token: "USDC" as const,
       recipient: "0x1234",
@@ -31,8 +31,8 @@ describe("toAP2Requirements", () => {
 
     expect(result.extensionUri).toBe(X402_EXTENSION_URI);
     expect(result.networks).toHaveLength(1);
-    expect(result.networks[0].network).toBe("bite-v2-sandbox");
-    expect(result.networks[0].chainId).toBe(103698795);
+    expect(result.networks[0].network).toBe("mezo-testnet");
+    expect(result.networks[0].chainId).toBe(31611);
     expect(result.networks[0].rpcUrl).toBeTruthy(); // should look up from registry
     expect(result.asset).toBe("USDC");
     expect(result.amount).toBe("1000000");
@@ -45,10 +45,10 @@ describe("toAP2Requirements", () => {
   it("should use requestId from x402 if not provided explicitly", () => {
     const x402Req = {
       scheme: "exact" as const,
-      network: "mainnet" as const,
-      chainId: 1,
+      network: "mezo" as const,
+      chainId: 31612,
       amount: "500",
-      token: "ETH" as const,
+      token: "BTC" as const,
       recipient: "0xabc",
       requestId: "original-req",
     };
@@ -62,8 +62,8 @@ describe("fromAP2Payload", () => {
   it("should convert AP2PaymentPayload to x402 PaymentProof", () => {
     const payload: AP2PaymentPayload = {
       transactionHash: "0xdeadbeef",
-      network: "bite-v2-sandbox",
-      chainId: 103698795,
+      network: "mezo-testnet",
+      chainId: 31611,
       timestamp: 1700000000,
       requestId: "req-1",
     };
@@ -71,8 +71,8 @@ describe("fromAP2Payload", () => {
     const proof = fromAP2Payload(payload);
 
     expect(proof.transactionHash).toBe("0xdeadbeef");
-    expect(proof.network).toBe("bite-v2-sandbox");
-    expect(proof.chainId).toBe(103698795);
+    expect(proof.network).toBe("mezo-testnet");
+    expect(proof.chainId).toBe(31611);
     expect(proof.timestamp).toBe(1700000000);
     expect(proof.requestId).toBe("req-1");
   });
@@ -82,16 +82,16 @@ describe("toAP2Receipt", () => {
   it("should build receipt with explorer URL for known network", () => {
     const receipt = toAP2Receipt(
       "0xabc",
-      "bite-v2-sandbox",
-      103698795,
+      "mezo-testnet",
+      31611,
       "0xpayer",
       "12345"
     );
 
     expect(receipt.success).toBe(true);
     expect(receipt.transactionHash).toBe("0xabc");
-    expect(receipt.network).toBe("bite-v2-sandbox");
-    expect(receipt.chainId).toBe(103698795);
+    expect(receipt.network).toBe("mezo-testnet");
+    expect(receipt.chainId).toBe(31611);
     expect(receipt.payer).toBe("0xpayer");
     expect(receipt.blockNumber).toBe("12345");
     expect(receipt.explorerUrl).toContain("/tx/0xabc");
@@ -107,7 +107,7 @@ describe("fromAP2Requirements", () => {
   it("should convert AP2 format back to x402", () => {
     const ap2: AP2PaymentRequirements = {
       extensionUri: X402_EXTENSION_URI,
-      networks: [{ network: "bite-v2-sandbox", chainId: 103698795 }],
+      networks: [{ network: "mezo-testnet", chainId: 31611 }],
       asset: "USDC",
       amount: "1000000",
       payTo: "0x1234",
@@ -119,8 +119,8 @@ describe("fromAP2Requirements", () => {
     const result = fromAP2Requirements(ap2);
 
     expect(result.scheme).toBe("exact");
-    expect(result.network).toBe("bite-v2-sandbox");
-    expect(result.chainId).toBe(103698795);
+    expect(result.network).toBe("mezo-testnet");
+    expect(result.chainId).toBe(31611);
     expect(result.amount).toBe("1000000");
     expect(result.token).toBe("USDC");
     expect(result.recipient).toBe("0x1234");
@@ -234,8 +234,8 @@ describe("extractX402ProofFromPaymentResponse", () => {
       method_name: "https://www.x402.org/",
       details: {
         transactionHash: "0xabc",
-        network: "bite-v2-sandbox",
-        chainId: 103698795,
+        network: "mezo-testnet",
+        chainId: 31611,
         timestamp: 1700000000,
       },
     };
@@ -243,8 +243,8 @@ describe("extractX402ProofFromPaymentResponse", () => {
     const proof = extractX402ProofFromPaymentResponse(response);
     expect(proof).not.toBeNull();
     expect(proof!.transactionHash).toBe("0xabc");
-    expect(proof!.network).toBe("bite-v2-sandbox");
-    expect(proof!.chainId).toBe(103698795);
+    expect(proof!.network).toBe("mezo-testnet");
+    expect(proof!.chainId).toBe(31611);
   });
 
   it("should return null when no details", () => {

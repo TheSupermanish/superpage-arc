@@ -1,6 +1,6 @@
 import { x402Config } from "./x402-config";
 import { Amounts } from "../types";
-import { isNativeToken, isValidNetwork, getChainId, DEFAULT_NETWORK, SPAY_SCHEME } from "../config/chain-config";
+import { isNativeToken, isValidNetwork, getChainId, getTokenDecimalsForNetwork, DEFAULT_NETWORK, SPAY_SCHEME, type NetworkId, type TokenSymbol } from "../config/chain-config";
 import crypto from "crypto";
 
 /**
@@ -15,39 +15,24 @@ export function createPaymentRequirements(
 ) {
   const usdAmount = parseFloat(amounts.total);
   const selectedNetwork = network || x402Config.network;
-  const selectedAsset = asset || "USDC";
-  
-  // For native tokens - use 18 decimals
-  if (isNativeToken(selectedAsset as any)) {
-    const amountInWei = Math.floor(usdAmount * 1e18).toString();
-    const nativeChainId = isValidNetwork(selectedNetwork) ? getChainId(selectedNetwork as any) : 0;
-    return [
-      {
-        scheme: SPAY_SCHEME,
-        network: selectedNetwork,
-        chainId: nativeChainId,
-        token: selectedAsset,
-        amount: amountInWei,
-        recipient: x402Config.recipientAddress,
-        expiresAt: expiresAt.toISOString(),
-        metadata: {
-          orderIntentId,
-          amounts,
-        },
-      },
-    ];
-  }
-  
-  // USDC/stablecoins - 6 decimals
-  const usdcBaseAmount = Math.floor(usdAmount * 1_000_000).toString();
-  const chainId = isValidNetwork(selectedNetwork) ? getChainId(selectedNetwork as any) : 0;
+  // Default to MUSD (Mezo's BTC-backed stablecoin, 18 decimals).
+  const selectedAsset = asset || "MUSD";
+  const chainId = isValidNetwork(selectedNetwork) ? getChainId(selectedNetwork as NetworkId) : 0;
+
+  // Look up decimals from the chain registry. Falls back to 18 for native gas tokens
+  // (BTC on Mezo), 18 for MUSD, 6 for USDC/USDT, 18 for DAI.
+  const decimals = isValidNetwork(selectedNetwork)
+    ? getTokenDecimalsForNetwork(selectedNetwork as NetworkId, selectedAsset as TokenSymbol)
+    : (isNativeToken(selectedAsset as TokenSymbol) ? 18 : 6);
+  const baseAmount = BigInt(Math.floor(usdAmount * 10 ** decimals)).toString();
+
   return [
     {
       scheme: SPAY_SCHEME,
       network: selectedNetwork,
       chainId,
       token: selectedAsset,
-      amount: usdcBaseAmount,
+      amount: baseAmount,
       recipient: x402Config.recipientAddress,
       expiresAt: expiresAt.toISOString(),
       metadata: {

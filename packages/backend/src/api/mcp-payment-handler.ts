@@ -11,10 +11,10 @@ import {
 } from "viem";
 import { z } from "zod";
 import { 
-  getChainConfig, 
-  getChainMetadata, 
+  getChainConfig,
+  getChainMetadata,
   isValidNetwork,
-  getTokenAddress,
+  getTokenAddressForNetwork,
   getAvailableTokens,
   isNativeToken,
   type NetworkId,
@@ -372,7 +372,7 @@ async function handleMakePayment(args: any): Promise<any> {
       });
     } else {
       // ERC20 token transfer (USDC, etc.)
-      const tokenAddress = getTokenAddress(network as NetworkId, token as TokenSymbol);
+      const tokenAddress = getTokenAddressForNetwork(network as NetworkId, token as TokenSymbol);
       if (!tokenAddress) {
         return { success: false, error: `Token ${token} not available on ${network}` };
       }
@@ -500,7 +500,7 @@ async function handleGetBalance(args: any): Promise<any> {
     }
 
     // ERC20 balance
-    const tokenAddress = getTokenAddress(network as NetworkId, token as TokenSymbol);
+    const tokenAddress = getTokenAddressForNetwork(network as NetworkId, token as TokenSymbol);
     if (!tokenAddress) {
       return { success: false, error: `Token ${token} not available on ${network}` };
     }

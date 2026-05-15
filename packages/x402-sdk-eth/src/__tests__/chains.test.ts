@@ -14,348 +14,137 @@ import {
   getTokenAddress,
   getAvailableTokens,
   getDefaultPaymentToken,
-  getCurrencyDisplayName,
   getNetworkByChainId,
   getTestnetNetworks,
   getMainnetNetworks,
-  buildChainsRecord,
-  buildChainIdsRecord,
-  buildTokenAddressesRecord,
   CHAINS,
   CHAIN_IDS,
   TOKEN_ADDRESSES,
   TOKEN_DECIMALS,
-  mantleSepolia,
-  cronos,
-  cronosTestnet,
-  biteV2Sandbox,
-  type NetworkId,
+  mezoMainnet,
+  mezoTestnet,
 } from "../chains";
 
-describe("Chain Registry", () => {
-  it("should have all expected networks", () => {
-    const networks = getSupportedNetworks();
-    expect(networks).toContain("mainnet");
-    expect(networks).toContain("sepolia");
-    expect(networks).toContain("base");
-    expect(networks).toContain("base-sepolia");
-    expect(networks).toContain("polygon");
-    expect(networks).toContain("polygon-amoy");
-    expect(networks).toContain("arbitrum");
-    expect(networks).toContain("arbitrum-sepolia");
-    expect(networks).toContain("optimism");
-    expect(networks).toContain("optimism-sepolia");
-    expect(networks).toContain("mantle-sepolia");
-    expect(networks).toContain("cronos");
-    expect(networks).toContain("cronos-testnet");
-    expect(networks).toContain("bite-v2-sandbox");
-    expect(networks).toContain("flow");
-    expect(networks).toContain("flow-testnet");
-    expect(networks).toContain("mezo");
-    expect(networks).toContain("mezo-testnet");
-    expect(networks.length).toBe(18);
+describe("CHAIN_REGISTRY (Mezo only)", () => {
+  it("contains exactly the two Mezo networks", () => {
+    expect(Object.keys(CHAIN_REGISTRY).sort()).toEqual(["mezo", "mezo-testnet"]);
   });
 
-  it("should have consistent chainId across registry", () => {
-    for (const [id, meta] of Object.entries(CHAIN_REGISTRY)) {
-      expect(meta.viemChain.id).toBe(meta.chainId);
-      expect(meta.id).toBe(id);
-    }
+  it("getSupportedNetworks returns both Mezo networks", () => {
+    expect(getSupportedNetworks().sort()).toEqual(["mezo", "mezo-testnet"]);
   });
 
-  it("should have valid RPC URLs for all chains", () => {
-    for (const meta of Object.values(CHAIN_REGISTRY)) {
-      expect(meta.rpcUrl).toBeTruthy();
-      expect(meta.rpcUrl.startsWith("https://")).toBe(true);
-    }
+  it("isValidNetwork accepts mezo / mezo-testnet, rejects others", () => {
+    expect(isValidNetwork("mezo")).toBe(true);
+    expect(isValidNetwork("mezo-testnet")).toBe(true);
+    expect(isValidNetwork("mainnet")).toBe(false);
+    expect(isValidNetwork("flow")).toBe(false);
   });
 
-  it("should have valid explorer URLs for all chains", () => {
-    for (const meta of Object.values(CHAIN_REGISTRY)) {
-      expect(meta.explorerUrl).toBeTruthy();
-      expect(meta.explorerUrl.startsWith("https://")).toBe(true);
-    }
+  it("getChainMetadata returns Mezo data with BTC as native token", () => {
+    const meta = getChainMetadata("mezo-testnet");
+    expect(meta.chainId).toBe(31611);
+    expect(meta.nativeToken.symbol).toBe("BTC");
+    expect(meta.defaultPaymentToken).toBe("MUSD");
+  });
+
+  it("getChainMetadata throws for unsupported network", () => {
+    expect(() => getChainMetadata("mainnet" as never)).toThrow();
   });
 });
 
-describe("isValidNetwork", () => {
-  it("should return true for valid networks", () => {
-    expect(isValidNetwork("mainnet")).toBe(true);
-    expect(isValidNetwork("base-sepolia")).toBe(true);
-    expect(isValidNetwork("bite-v2-sandbox")).toBe(true);
+describe("chain ID helpers", () => {
+  it("getChainId returns 31612 for mezo mainnet", () => {
+    expect(getChainId("mezo")).toBe(31612);
   });
-
-  it("should return false for invalid networks", () => {
-    expect(isValidNetwork("invalid")).toBe(false);
-    expect(isValidNetwork("")).toBe(false);
-    expect(isValidNetwork("ethereum")).toBe(false);
+  it("getChainId returns 31611 for mezo testnet", () => {
+    expect(getChainId("mezo-testnet")).toBe(31611);
   });
-});
-
-describe("getChainMetadata", () => {
-  it("should return metadata for valid networks", () => {
-    const meta = getChainMetadata("mainnet");
-    expect(meta.chainId).toBe(1);
-    expect(meta.name).toBe("Ethereum Mainnet");
-    expect(meta.isTestnet).toBe(false);
-  });
-
-  it("should return correct BITE V2 metadata", () => {
-    const meta = getChainMetadata("bite-v2-sandbox");
-    expect(meta.chainId).toBe(103698795);
-    expect(meta.isTestnet).toBe(true);
-    expect(meta.nativeToken.symbol).toBe("sFUEL");
-    expect(meta.displayCurrency).toBe("USDC");
-  });
-
-  it("should throw for invalid network", () => {
-    expect(() => getChainMetadata("invalid" as NetworkId)).toThrow(
-      "Unsupported network: invalid"
-    );
+  it("getNetworkByChainId maps both ways", () => {
+    expect(getNetworkByChainId(31612)).toBe("mezo");
+    expect(getNetworkByChainId(31611)).toBe("mezo-testnet");
+    expect(getNetworkByChainId(1)).toBeNull();
   });
 });
 
-describe("getChainId", () => {
-  it("should return correct chain IDs", () => {
-    expect(getChainId("mainnet")).toBe(1);
-    expect(getChainId("sepolia")).toBe(11155111);
-    expect(getChainId("base")).toBe(8453);
-    expect(getChainId("polygon")).toBe(137);
-    expect(getChainId("arbitrum")).toBe(42161);
-    expect(getChainId("optimism")).toBe(10);
-    expect(getChainId("mantle-sepolia")).toBe(5003);
-    expect(getChainId("cronos")).toBe(25);
-    expect(getChainId("bite-v2-sandbox")).toBe(103698795);
+describe("RPC / explorer helpers", () => {
+  it("getRpcUrl returns Mezo RPCs", () => {
+    expect(getRpcUrl("mezo")).toBe("https://mezo.drpc.org");
+    expect(getRpcUrl("mezo-testnet")).toBe("https://rpc.test.mezo.org");
+  });
+  it("getExplorerUrl returns Mezo explorers", () => {
+    expect(getExplorerUrl("mezo")).toBe("https://explorer.mezo.org");
+    expect(getExplorerUrl("mezo-testnet")).toBe("https://explorer.test.mezo.org");
+  });
+  it("getTxExplorerUrl builds a tx-specific URL", () => {
+    expect(getTxExplorerUrl("mezo-testnet", "0xabc")).toBe("https://explorer.test.mezo.org/tx/0xabc");
+  });
+});
+
+describe("token helpers", () => {
+  it("isNativeToken only matches BTC", () => {
+    expect(isNativeToken("BTC")).toBe(true);
+    expect(isNativeToken("MUSD")).toBe(false);
+    expect(isNativeToken("USDC")).toBe(false);
+  });
+
+  it("getTokenDecimals: BTC=18, MUSD=18, USDC=6", () => {
+    expect(getTokenDecimals("mezo-testnet", "BTC")).toBe(18);
+    expect(getTokenDecimals("mezo-testnet", "MUSD")).toBe(18);
+    expect(getTokenDecimals("mezo-testnet", "USDC")).toBe(6);
+  });
+
+  it("getTokenAddress returns null for native BTC, address for ERC-20s", () => {
+    expect(getTokenAddress("mezo-testnet", "BTC")).toBeNull();
+    expect(getTokenAddress("mezo-testnet", "MUSD")).toBe("0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503");
+    expect(getTokenAddress("mezo-testnet", "USDC")).toBe("0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c");
+  });
+
+  it("getAvailableTokens includes BTC + ERC-20s on matsnet", () => {
+    const tokens = getAvailableTokens("mezo-testnet");
+    expect(tokens).toContain("BTC");
+    expect(tokens).toContain("MUSD");
+    expect(tokens).toContain("USDC");
+  });
+
+  it("getDefaultPaymentToken returns MUSD on both Mezo networks", () => {
+    expect(getDefaultPaymentToken("mezo")).toBe("MUSD");
+    expect(getDefaultPaymentToken("mezo-testnet")).toBe("MUSD");
+  });
+});
+
+describe("mainnet / testnet partitions", () => {
+  it("getTestnetNetworks lists matsnet only", () => {
+    expect(getTestnetNetworks()).toEqual(["mezo-testnet"]);
+  });
+  it("getMainnetNetworks lists mezo only", () => {
+    expect(getMainnetNetworks()).toEqual(["mezo"]);
+  });
+});
+
+describe("legacy compatibility exports", () => {
+  it("CHAINS has both viem chains", () => {
+    expect(CHAINS.mezo).toBe(mezoMainnet);
+    expect(CHAINS["mezo-testnet"]).toBe(mezoTestnet);
+  });
+  it("CHAIN_IDS is correct", () => {
+    expect(CHAIN_IDS.mezo).toBe(31612);
+    expect(CHAIN_IDS["mezo-testnet"]).toBe(31611);
+  });
+  it("TOKEN_ADDRESSES contains MUSD entries", () => {
+    expect(TOKEN_ADDRESSES.mezo.MUSD).toBeDefined();
+    expect(TOKEN_ADDRESSES["mezo-testnet"].MUSD).toBe("0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503");
+  });
+  it("TOKEN_DECIMALS records 18 for BTC and MUSD, 6 for USDC", () => {
+    expect(TOKEN_DECIMALS.BTC).toBe(18);
+    expect(TOKEN_DECIMALS.MUSD).toBe(18);
+    expect(TOKEN_DECIMALS.USDC).toBe(6);
   });
 });
 
 describe("getViemChain", () => {
-  it("should return viem chain objects", () => {
-    const chain = getViemChain("mainnet");
-    expect(chain.id).toBe(1);
-    expect(chain.name).toBe("Ethereum");
-  });
-
-  it("should return custom chain for BITE V2", () => {
-    const chain = getViemChain("bite-v2-sandbox");
-    expect(chain.id).toBe(103698795);
-  });
-});
-
-describe("getRpcUrl / getExplorerUrl", () => {
-  it("should return URLs", () => {
-    expect(getRpcUrl("mainnet")).toBe("https://eth.llamarpc.com");
-    expect(getExplorerUrl("mainnet")).toBe("https://etherscan.io");
-  });
-});
-
-describe("getTxExplorerUrl", () => {
-  it("should build correct transaction URLs", () => {
-    const url = getTxExplorerUrl("mainnet", "0xabc123");
-    expect(url).toBe("https://etherscan.io/tx/0xabc123");
-  });
-});
-
-describe("isNativeToken", () => {
-  it("should identify native tokens", () => {
-    expect(isNativeToken("ETH")).toBe(true);
-    expect(isNativeToken("CRO")).toBe(true);
-    expect(isNativeToken("MNT")).toBe(true);
-    expect(isNativeToken("sFUEL")).toBe(true);
-    expect(isNativeToken("FLOW")).toBe(true);
-    expect(isNativeToken("BTC")).toBe(true);
-  });
-
-  it("should identify non-native tokens", () => {
-    expect(isNativeToken("USDC")).toBe(false);
-    expect(isNativeToken("USDT")).toBe(false);
-    expect(isNativeToken("DAI")).toBe(false);
-    expect(isNativeToken("MUSD")).toBe(false);
-  });
-});
-
-describe("getTokenDecimals", () => {
-  it("should return 18 for native tokens", () => {
-    expect(getTokenDecimals("mainnet", "ETH")).toBe(18);
-    expect(getTokenDecimals("mantle-sepolia", "MNT")).toBe(18);
-    expect(getTokenDecimals("cronos", "CRO")).toBe(18);
-    expect(getTokenDecimals("bite-v2-sandbox", "sFUEL")).toBe(18);
-  });
-
-  it("should return 6 for USDC/USDT", () => {
-    expect(getTokenDecimals("mainnet", "USDC")).toBe(6);
-    expect(getTokenDecimals("mainnet", "USDT")).toBe(6);
-    expect(getTokenDecimals("base", "USDC")).toBe(6);
-  });
-
-  it("should return 18 for DAI", () => {
-    expect(getTokenDecimals("mainnet", "DAI")).toBe(18);
-  });
-});
-
-describe("getTokenAddress", () => {
-  it("should return null for native tokens", () => {
-    expect(getTokenAddress("mainnet", "ETH")).toBeNull();
-    expect(getTokenAddress("cronos", "CRO")).toBeNull();
-    expect(getTokenAddress("mantle-sepolia", "MNT")).toBeNull();
-  });
-
-  it("should return addresses for ERC20 tokens", () => {
-    const usdcAddress = getTokenAddress("mainnet", "USDC");
-    expect(usdcAddress).toBe("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
-  });
-
-  it("should return BITE V2 USDC address", () => {
-    const addr = getTokenAddress("bite-v2-sandbox", "USDC");
-    expect(addr).toBe("0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8");
-  });
-});
-
-describe("getAvailableTokens", () => {
-  it("should include native token and ERC20s", () => {
-    const tokens = getAvailableTokens("mainnet");
-    expect(tokens).toContain("ETH");
-    expect(tokens).toContain("USDC");
-    expect(tokens).toContain("USDT");
-    expect(tokens).toContain("DAI");
-  });
-
-  it("should include sFUEL for BITE V2", () => {
-    const tokens = getAvailableTokens("bite-v2-sandbox");
-    expect(tokens).toContain("sFUEL");
-    expect(tokens).toContain("USDC");
-  });
-});
-
-describe("getDefaultPaymentToken", () => {
-  it("should return default tokens", () => {
-    expect(getDefaultPaymentToken("mainnet")).toBe("USDC");
-    expect(getDefaultPaymentToken("sepolia")).toBe("ETH");
-    expect(getDefaultPaymentToken("mantle-sepolia")).toBe("MNT");
-    expect(getDefaultPaymentToken("bite-v2-sandbox")).toBe("USDC");
-  });
-});
-
-describe("getCurrencyDisplayName", () => {
-  it("should return display name for special currencies", () => {
-    expect(getCurrencyDisplayName("cronos-testnet", "USDC")).toBe("devUSDC.e");
-    expect(getCurrencyDisplayName("bite-v2-sandbox", "USDC")).toBe("USDC");
-  });
-
-  it("should return symbol for normal currencies", () => {
-    expect(getCurrencyDisplayName("mainnet", "USDC")).toBe("USDC");
-    expect(getCurrencyDisplayName("mainnet", "ETH")).toBe("ETH");
-  });
-});
-
-describe("getNetworkByChainId", () => {
-  it("should find network by chain ID", () => {
-    expect(getNetworkByChainId(1)).toBe("mainnet");
-    expect(getNetworkByChainId(8453)).toBe("base");
-    expect(getNetworkByChainId(103698795)).toBe("bite-v2-sandbox");
-  });
-
-  it("should return null for unknown chain ID", () => {
-    expect(getNetworkByChainId(99999)).toBeNull();
-  });
-});
-
-describe("getTestnetNetworks / getMainnetNetworks", () => {
-  it("should separate testnets and mainnets", () => {
-    const testnets = getTestnetNetworks();
-    const mainnets = getMainnetNetworks();
-
-    expect(testnets).toContain("sepolia");
-    expect(testnets).toContain("bite-v2-sandbox");
-    expect(testnets).not.toContain("mainnet");
-
-    expect(mainnets).toContain("mainnet");
-    expect(mainnets).toContain("base");
-    expect(mainnets).not.toContain("sepolia");
-
-    // All networks should be accounted for
-    expect(testnets.length + mainnets.length).toBe(getSupportedNetworks().length);
-  });
-});
-
-describe("Legacy compatibility builders", () => {
-  it("buildChainsRecord should match CHAINS", () => {
-    const built = buildChainsRecord();
-    expect(built.mainnet.id).toBe(CHAINS.mainnet.id);
-    expect(Object.keys(built).length).toBe(Object.keys(CHAINS).length);
-  });
-
-  it("buildChainIdsRecord should match CHAIN_IDS", () => {
-    const built = buildChainIdsRecord();
-    expect(built.mainnet).toBe(1);
-    expect(built).toEqual(CHAIN_IDS);
-  });
-
-  it("buildTokenAddressesRecord should match TOKEN_ADDRESSES", () => {
-    const built = buildTokenAddressesRecord();
-    expect(built.mainnet.USDC).toBe(TOKEN_ADDRESSES.mainnet.USDC);
-  });
-});
-
-describe("TOKEN_DECIMALS", () => {
-  it("should have correct decimal values", () => {
-    expect(TOKEN_DECIMALS.ETH).toBe(18);
-    expect(TOKEN_DECIMALS.USDC).toBe(6);
-    expect(TOKEN_DECIMALS.USDT).toBe(6);
-    expect(TOKEN_DECIMALS.DAI).toBe(18);
-    expect(TOKEN_DECIMALS.CRO).toBe(18);
-    expect(TOKEN_DECIMALS.MNT).toBe(18);
-    expect(TOKEN_DECIMALS.sFUEL).toBe(18);
-    expect(TOKEN_DECIMALS.FLOW).toBe(18);
-    expect(TOKEN_DECIMALS.BTC).toBe(18);
-    expect(TOKEN_DECIMALS.MUSD).toBe(18);
-  });
-});
-
-describe("Custom chain definitions", () => {
-  it("mantleSepolia should be correct", () => {
-    expect(mantleSepolia.id).toBe(5003);
-    expect(mantleSepolia.name).toBe("Mantle Sepolia");
-  });
-
-  it("cronos should be correct", () => {
-    expect(cronos.id).toBe(25);
-    expect(cronos.name).toBe("Cronos");
-  });
-
-  it("cronosTestnet should be correct", () => {
-    expect(cronosTestnet.id).toBe(338);
-  });
-
-  it("biteV2Sandbox should be correct", () => {
-    expect(biteV2Sandbox.id).toBe(103698795);
-    expect(biteV2Sandbox.name).toBe("BITE V2 Sandbox 2");
-  });
-});
-
-describe("Mezo registry", () => {
-  it("should have correct mezo metadata", () => {
-    const meta = getChainMetadata("mezo");
-    expect(meta.chainId).toBe(31612);
-    expect(meta.isTestnet).toBe(false);
-    expect(meta.nativeToken.symbol).toBe("BTC");
-    expect(meta.defaultPaymentToken).toBe("MUSD");
-    expect(meta.tokens.MUSD?.address).toBe("0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186");
-    expect(meta.tokens.MUSD?.decimals).toBe(18);
-  });
-
-  it("should have correct mezo-testnet metadata", () => {
-    const meta = getChainMetadata("mezo-testnet");
-    expect(meta.chainId).toBe(31611);
-    expect(meta.isTestnet).toBe(true);
-    expect(meta.nativeToken.symbol).toBe("BTC");
-    expect(meta.defaultPaymentToken).toBe("MUSD");
-    expect(meta.tokens.MUSD?.address).toBe("0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503");
-    expect(meta.tokens.MUSD?.decimals).toBe(18);
-  });
-
-  it("should resolve by chainId", () => {
-    expect(getNetworkByChainId(31611)).toBe("mezo-testnet");
-    expect(getNetworkByChainId(31612)).toBe("mezo");
+  it("returns the viem mezo chain", () => {
+    expect(getViemChain("mezo")).toBe(mezoMainnet);
+    expect(getViemChain("mezo-testnet")).toBe(mezoTestnet);
   });
 });

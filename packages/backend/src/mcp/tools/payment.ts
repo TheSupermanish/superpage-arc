@@ -19,7 +19,7 @@ import {
   getChainConfig,
   getChainMetadata,
   isValidNetwork,
-  getTokenAddress,
+  getTokenAddressForNetwork,
   getAvailableTokens,
   isNativeToken,
   getSupportedNetworks,
@@ -133,7 +133,7 @@ const makePaymentTool = defineTool({
         });
       } else {
         // ERC20 token transfer
-        const tokenAddress = getTokenAddress(network as NetworkId, token as TokenSymbol);
+        const tokenAddress = getTokenAddressForNetwork(network as NetworkId, token as TokenSymbol);
         if (!tokenAddress) {
           return { 
             success: false, 
@@ -263,7 +263,7 @@ const getBalanceTool = defineTool({
       }
 
       // ERC20 balance
-      const tokenAddress = getTokenAddress(network as NetworkId, token as TokenSymbol);
+      const tokenAddress = getTokenAddressForNetwork(network as NetworkId, token as TokenSymbol);
       if (!tokenAddress) {
         return { 
           success: false, 

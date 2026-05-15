@@ -4,29 +4,14 @@ import { ReactNode, useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
 import { RainbowKitProvider, getDefaultConfig, darkTheme } from "@rainbow-me/rainbowkit";
-import { mainnet, sepolia, base, baseSepolia, polygon, arbitrum, optimism, flowMainnet, flowTestnet } from "wagmi/chains";
-import { cronos, cronosTestnet, mantleSepolia, biteV2Sandbox, mezoMainnet, mezoTestnet } from "@/lib/chains";
+import { mezoMainnet, mezoTestnet } from "@/lib/chains";
 import "@rainbow-me/rainbowkit/styles.css";
 
 const queryClient = new QueryClient();
 
-// All supported chains - Mezo testnet first since it's now the default
 const supportedChains = [
-  mezoTestnet,      // Default testnet (x402 payment chain on Mezo matsnet)
-  mezoMainnet,      // Mezo mainnet (Bitcoin economic layer)
-  flowTestnet,      // Flow EVM testnet
-  flowMainnet,      // Flow EVM mainnet
-  baseSepolia,      // Base testnet
-  base,             // Base mainnet
-  mainnet,          // Ethereum mainnet
-  sepolia,          // Ethereum testnet
-  polygon,          // Polygon mainnet
-  arbitrum,         // Arbitrum mainnet
-  optimism,         // Optimism mainnet
-  biteV2Sandbox,    // SKALE testnet
-  cronosTestnet,    // Cronos testnet
-  cronos,           // Cronos mainnet
-  mantleSepolia,    // Mantle testnet
+  mezoTestnet, // Default: Mezo Testnet (matsnet) — x402 payment chain
+  mezoMainnet, // Mezo Mainnet (Bitcoin economic layer L2)
 ] as const;
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;

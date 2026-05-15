@@ -27,7 +27,7 @@ export type PaymentRequirements = {
   network: string;
   chainId: number;
   amount: string;
-  token: "ETH" | "USDC" | "USDT" | "DAI" | "CRO" | "MNT" | "sFUEL" | "FLOW" | "BTC" | "MUSD";
+  token: "BTC" | "MUSD" | "USDC" | "USDT" | "DAI";
   recipient: string;
   memo?: string;
   deadline?: number;
@@ -42,5 +42,5 @@ export type PaymentProof = {
   timestamp: number;
 };
 
-export type Network = "mainnet" | "sepolia" | "base" | "base-sepolia" | "polygon" | "polygon-amoy" | "arbitrum" | "arbitrum-sepolia" | "optimism" | "optimism-sepolia" | "mantle-sepolia" | "cronos" | "cronos-testnet" | "bite-v2-sandbox" | "flow" | "flow-testnet" | "mezo" | "mezo-testnet";
-export type TokenType = "ETH" | "USDC" | "USDT" | "DAI" | "CRO" | "MNT" | "sFUEL" | "FLOW" | "BTC" | "MUSD";
+export type Network = "mezo" | "mezo-testnet";
+export type TokenType = "BTC" | "MUSD" | "USDC" | "USDT" | "DAI";

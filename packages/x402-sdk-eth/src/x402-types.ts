@@ -10,33 +10,17 @@ import { z } from "zod";
 export const PaymentSchemeSchema = z.enum(["exact", "spay", "upto"]);
 export type PaymentScheme = z.infer<typeof PaymentSchemeSchema>;
 
-// Supported EVM networks
+// Supported networks — Mezo (Bitcoin economic layer L2, EVM-compatible)
 export const NetworkSchema = z.enum([
-  "mainnet",       // Ethereum Mainnet
-  "sepolia",       // Ethereum Testnet
-  "base",          // Base Mainnet
-  "base-sepolia",  // Base Testnet
-  "polygon",       // Polygon Mainnet
-  "polygon-amoy",  // Polygon Testnet
-  "arbitrum",      // Arbitrum One
-  "arbitrum-sepolia", // Arbitrum Testnet
-  "optimism",      // Optimism Mainnet
-  "optimism-sepolia", // Optimism Testnet
-  "mantle-sepolia", // Mantle Sepolia Testnet
-  "cronos",        // Cronos Mainnet
-  "cronos-testnet", // Cronos Testnet
-  "bite-v2-sandbox",    // BITE V2 Sandbox 2 (SKALE)
-  "flow",          // Flow EVM Mainnet
-  "flow-testnet",  // Flow EVM Testnet
-  "mezo",          // Mezo (Bitcoin economic layer)
+  "mezo",          // Mezo Mainnet
   "mezo-testnet",  // Mezo Testnet (matsnet)
 ]);
 export type Network = z.infer<typeof NetworkSchema>;
 
-// Token types supported on EVM chains
-// Native gas tokens: ETH, CRO, MNT, sFUEL, FLOW, BTC (on Mezo)
-// ERC20 payment tokens: USDC, USDT, DAI, MUSD (Mezo native stablecoin)
-export const TokenTypeSchema = z.enum(["ETH", "USDC", "USDT", "DAI", "CRO", "MNT", "sFUEL", "FLOW", "BTC", "MUSD"]);
+// Token types on Mezo.
+// Native gas token: BTC (18 decimals).
+// ERC20 payment tokens: MUSD (BTC-backed stablecoin, default), USDC, USDT, DAI.
+export const TokenTypeSchema = z.enum(["BTC", "MUSD", "USDC", "USDT", "DAI"]);
 export type TokenType = z.infer<typeof TokenTypeSchema>;
 
 /**

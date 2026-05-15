@@ -3,8 +3,8 @@ import { X402Client, type X402ClientConfig } from "../client";
 
 describe("X402Client", () => {
   const config: X402ClientConfig = {
-    network: "bite-v2-sandbox",
-    rpcEndpoint: "https://base-sepolia-testnet.skalenodes.com/v1/bite-v2-sandbox",
+    network: "mezo-testnet",
+    rpcEndpoint: "https://rpc.test.mezo.org",
   };
 
   describe("constructor", () => {
@@ -60,7 +60,7 @@ describe("X402Client", () => {
 
       // Without a mock server we can't fully test fetch, but we can verify
       // the client was created properly for when it's used
-      expect(client.getConfig().network).toBe("bite-v2-sandbox");
+      expect(client.getConfig().network).toBe("mezo-testnet");
     });
   });
 });

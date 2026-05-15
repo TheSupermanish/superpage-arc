@@ -6,9 +6,7 @@
   "type": "module",
   "scripts": {
     "compile": "hardhat compile",
-    "deploy:skale": "npx tsx scripts/deploy-musdc.ts",
-    "deploy:erc8004": "npx tsx scripts/deploy-erc8004.ts",
-    "mint": "npx tsx scripts/mint-musdc.ts",
+    "deploy:mezo": "npx tsx scripts/deploy-mezo.ts",
     "clean": "hardhat clean"
   },
   "dependencies": {
