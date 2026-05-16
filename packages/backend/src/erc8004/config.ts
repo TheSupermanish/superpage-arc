@@ -25,7 +25,7 @@ export interface ERC8004Config {
 }
 
 export function getERC8004Config(): ERC8004Config {
-  const baseUrl = process.env.APP_URL || "http://localhost:3001";
+  const baseUrl = process.env.APP_URL || "http://localhost:2337";
   return {
     agentId: process.env.ERC8004_AGENT_ID ? BigInt(process.env.ERC8004_AGENT_ID) : null,
     registrationUri: process.env.ERC8004_REGISTRATION_URI || `${baseUrl}/.well-known/agent-registration.json`,

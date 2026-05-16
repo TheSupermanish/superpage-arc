@@ -27,16 +27,14 @@ import storeRoutes from "./routes/storeRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 2337;
 
 const corsOptions = {
   origin: [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:3100", // superpage frontend default (3000 reserved for mimic-markets locally)
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-    "http://127.0.0.1:3100",
+    "http://localhost:1337", // superpage frontend
+    "http://localhost:2337", // superpage backend
+    "http://127.0.0.1:1337",
+    "http://127.0.0.1:2337",
     process.env.FRONTEND_URL,
     process.env.APP_URL,
   ].filter(Boolean),

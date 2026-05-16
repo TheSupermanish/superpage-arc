@@ -7,17 +7,17 @@ import { handleMCPPaymentRequest } from "./api/mcp-payment-handler";
 configDotenv();
 
 const app = express();
-const PORT = process.env.PAYMENT_SERVER_PORT || 3002;
+const PORT = process.env.PAYMENT_SERVER_PORT || 3337;
 
 // CORS Configuration
 const corsOptions = {
     origin: [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:3002",
-      "http://127.0.0.1:3000",
-      "http://127.0.0.1:3001",
-      "http://127.0.0.1:3002",
+      "http://localhost:1337",
+      "http://localhost:2337",
+      "http://localhost:3337",
+      "http://127.0.0.1:1337",
+      "http://127.0.0.1:2337",
+      "http://127.0.0.1:3337",
       process.env.FRONTEND_URL,
     ].filter(Boolean),
     credentials: true,

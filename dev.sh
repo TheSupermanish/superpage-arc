@@ -5,8 +5,8 @@
 set -e
 
 # Kill any processes already using our ports
-# Frontend uses 3100 (not 3000) so we don't clobber co-resident dev servers.
-for port in 3100 3001 3002; do
+# Non-default ports (1337/2337/3337) to avoid clobbering co-resident dev servers.
+for port in 1337 2337 3337; do
   pid=$(lsof -ti :"$port" 2>/dev/null || true)
   if [ -n "$pid" ]; then
     echo "  Killing process on port $port (pid $pid)"
@@ -20,13 +20,16 @@ if [ ! -f "packages/x402-sdk-eth/dist/index.js" ]; then
   cd packages/x402-sdk-eth && npx tsup src/index.ts --format cjs,esm && cd ../..
 fi
 
+# Point frontend at the new backend port
+export NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-http://localhost:2337}"
+
 echo ""
 echo "  ┌──────────────────────────────────────┐"
 echo "  │  SuperPage Dev                        │"
 echo "  ├──────────────────────────────────────┤"
-echo "  │  Frontend        http://localhost:3100│"
-echo "  │  Backend API     http://localhost:3001│"
-echo "  │  Payment Server  http://localhost:3002│"
+echo "  │  Frontend        http://localhost:1337│"
+echo "  │  Backend API     http://localhost:2337│"
+echo "  │  Payment Server  http://localhost:3337│"
 echo "  │  AI Agent        pnpm agent           │"
 echo "  └──────────────────────────────────────┘"
 echo ""
