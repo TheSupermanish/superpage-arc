@@ -230,8 +230,10 @@ export async function handleCheckout(req: Request, res: Response) {
         storeAsset
       );
       // Create body hash for request validation
-      // Normalize the body by sorting properties to ensure consistent hashing
-      const normalizedBody = deepSortObject(body);
+      // Strip request-tracking fields that vary between Phase 1 and Phase 2 calls,
+      // then normalize by sorting properties to ensure consistent hashing.
+      const { orderIntentId: _oi, clientReferenceId: _cr, ...bodyCore } = body;
+      const normalizedBody = deepSortObject(bodyCore);
       const bodyHash = crypto
         .createHash("sha256")
         .update(JSON.stringify(normalizedBody))
@@ -414,11 +416,15 @@ export async function handleCheckout(req: Request, res: Response) {
         });
 
 
-        // Get network display name from the chain registry
-        const networkName = isValidNetwork(storeNetwork)
+        // Get network display name + explorer URL from the chain registry
+        const chainKnown = isValidNetwork(storeNetwork);
+        const networkName = chainKnown
           ? getChainMetadata(storeNetwork as NetworkId).name
           : storeNetwork;
-        
+        const txLink = chainKnown && txHash
+          ? `${getChainMetadata(storeNetwork as NetworkId).explorerUrl}/tx/${txHash}`
+          : (txHash || "unknown");
+
         const orderPayload = {
           order: {
             email,
@@ -443,7 +449,7 @@ export async function handleCheckout(req: Request, res: Response) {
               },
             ],
             tags: "x402",
-            note: `Paid via x402 on ${networkName}\nTransaction: ${txHash || "unknown"}\nOrder Intent: ${orderIntentId}`,
+            note: `Paid via x402 on ${networkName}\nTransaction: ${txLink}\nOrder Intent: ${orderIntentId}`,
           },
         };
 
