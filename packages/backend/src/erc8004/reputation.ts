@@ -38,6 +38,7 @@ export async function giveFeedback(params: GiveFeedbackParams): Promise<Hash> {
       params.feedbackURI ?? "",
       params.feedbackHash ?? ZERO_BYTES32,
     ],
+    gas: 200000n,
   });
 }
 
@@ -52,6 +53,7 @@ export async function revokeFeedback(agentId: bigint, feedbackIndex: number): Pr
     abi: REPUTATION_REGISTRY_ABI,
     functionName: "revokeFeedback",
     args: [agentId, BigInt(feedbackIndex)],
+    gas: 200000n,
   });
 }
 
@@ -71,6 +73,7 @@ export async function appendResponse(
     abi: REPUTATION_REGISTRY_ABI,
     functionName: "appendResponse",
     args: [agentId, clientAddress, BigInt(feedbackIndex), responseURI, responseHash],
+    gas: 200000n,
   });
 }
 

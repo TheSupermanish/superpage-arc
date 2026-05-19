@@ -38,7 +38,7 @@ const AGENTS: AgentDef[] = [
     displayName: "Skill Master",
     bio: "Premium developer tutorials and career resources. Level up your engineering skills with battle-tested guides.",
     website: "https://skillmaster.dev",
-    socialLinks: { twitter: "skillmasterdev", github: "skill-master" },
+    socialLinks: { twitter: "https://twitter.com/skillmasterdev", github: "https://github.com/skill-master" },
     resources: [
       {
         type: "article",
@@ -192,7 +192,7 @@ clicks: url_id | timestamp | ip | referrer | country
     username: "data-oracle",
     displayName: "Data Oracle",
     bio: "Real-time data feeds and premium APIs. Crypto prices, weather, sentiment analysis — pay per call, zero subscriptions.",
-    socialLinks: { twitter: "dataoracleapi", github: "data-oracle" },
+    socialLinks: { twitter: "https://twitter.com/dataoracleapi", github: "https://github.com/data-oracle" },
     resources: [
       {
         type: "api",
@@ -249,7 +249,7 @@ clicks: url_id | timestamp | ip | referrer | country
     displayName: "Code Sage",
     bio: "Deep-dive engineering articles from a staff engineer. Practical wisdom for building production systems that don't break at 3am.",
     website: "https://codesage.io",
-    socialLinks: { twitter: "codesage_io", github: "code-sage", youtube: "codesage" },
+    socialLinks: { twitter: "https://twitter.com/codesage_io", github: "https://github.com/code-sage", youtube: "https://youtube.com/@codesage" },
     resources: [
       {
         type: "article",
@@ -427,7 +427,7 @@ git checkout -b recovered-branch abc1234
     username: "crypto-scholar",
     displayName: "Crypto Scholar",
     bio: "Blockchain research and DeFi strategy. On-chain analytics, smart contract security, and alpha for serious builders.",
-    socialLinks: { twitter: "cryptoscholar_", discord: "cryptoscholar", telegram: "cryptoscholar" },
+    socialLinks: { twitter: "https://twitter.com/cryptoscholar_", discord: "https://discord.com/users/cryptoscholar", telegram: "https://t.me/cryptoscholar" },
     resources: [
       {
         type: "article",
@@ -531,7 +531,7 @@ Maximal Extractable Value (MEV) is profit extracted by reordering, inserting, or
     displayName: "AI Architect",
     bio: "Building the future with AI. Agent frameworks, LLM pipelines, RAG systems, and prompt engineering — from research to production.",
     website: "https://aiarchitect.dev",
-    socialLinks: { twitter: "ai_architect_", github: "ai-architect", linkedin: "aiarchitect" },
+    socialLinks: { twitter: "https://twitter.com/ai_architect_", github: "https://github.com/ai-architect", linkedin: "https://linkedin.com/in/aiarchitect" },
     resources: [
       {
         type: "article",

@@ -27,6 +27,7 @@ export async function registerAgent(agentURI?: string): Promise<AgentRegistratio
       abi: IDENTITY_REGISTRY_ABI,
       functionName: "register",
       args: [agentURI],
+    gas: 200000n,
     });
   } else {
     txHash = await walletClient.writeContract({
@@ -34,6 +35,7 @@ export async function registerAgent(agentURI?: string): Promise<AgentRegistratio
       abi: IDENTITY_REGISTRY_ABI,
       functionName: "register",
       args: [],
+    gas: 200000n,
     });
   }
 
@@ -87,6 +89,7 @@ export async function setAgentURI(agentId: bigint, newURI: string): Promise<Hash
     abi: IDENTITY_REGISTRY_ABI,
     functionName: "setAgentURI",
     args: [agentId, newURI],
+    gas: 200000n,
   });
 }
 
@@ -141,6 +144,7 @@ export async function setAgentMetadata(agentId: bigint, key: string, value: stri
     abi: IDENTITY_REGISTRY_ABI,
     functionName: "setMetadata",
     args: [agentId, key, toHex(value)],
+    gas: 200000n,
   });
 }
 

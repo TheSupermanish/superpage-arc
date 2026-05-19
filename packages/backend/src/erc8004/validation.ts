@@ -27,6 +27,7 @@ export async function requestValidation(
     abi: VALIDATION_REGISTRY_ABI,
     functionName: "validationRequest",
     args: [validatorAddress, agentId, requestURI, requestHash],
+    gas: 200000n,
   });
 }
 
@@ -47,6 +48,7 @@ export async function respondToValidation(
     abi: VALIDATION_REGISTRY_ABI,
     functionName: "validationResponse",
     args: [requestHash, response, responseURI, responseHash, tag],
+    gas: 200000n,
   });
 }
 
