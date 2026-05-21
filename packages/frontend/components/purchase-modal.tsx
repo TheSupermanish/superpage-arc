@@ -381,7 +381,19 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
         {status === "error" && error && (
           <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3">
             <AlertCircle className="text-red-400 flex-shrink-0 mt-0.5" size={18} />
-            <p className="text-sm text-red-400">{error}</p>
+            <div className="text-sm text-red-400">
+              <p>{error}</p>
+              {/MUSD|USDC|faucet|Insufficient|reverted/i.test(error) && (
+                <a
+                  href="/faucet"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-2 underline font-medium hover:text-red-300"
+                >
+                  Open MUSD Faucet →
+                </a>
+              )}
+            </div>
           </div>
         )}
 

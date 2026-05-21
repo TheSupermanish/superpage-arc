@@ -6,7 +6,7 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useEnsureNetwork } from "./use-network-switch";
 import { createPublicClient, http, parseAbi } from "viem";
 import { getDefaultChain, getDefaultChainId, CHAIN_BY_NAME } from "@/lib/chains";
-import { getNetwork, getUsdcAddress, USDC_ADDRESSES } from "@/lib/chain-config";
+import { getNetwork, getMusdAddress, MUSD_ADDRESSES } from "@/lib/chain-config";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -14,7 +14,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const CURRENT_NETWORK = getNetwork();
 const CURRENT_CHAIN_ID = getDefaultChainId();
 const CURRENT_CHAIN = getDefaultChain();
-const USDC_ADDRESS = getUsdcAddress();
+const MUSD_ADDRESS = getMusdAddress();
 
 const ERC20_ABI = parseAbi([
   "function transfer(address to, uint256 amount) returns (bool)",
@@ -140,7 +140,7 @@ function friendlyError(err: any): string {
   // Wagmi / viem short messages
   const short: string = err.shortMessage || "";
   if (/insufficient funds/i.test(short) || /insufficient funds/i.test(err.message || ""))
-    return `Insufficient USDC balance. Make sure you have enough tokens on ${CURRENT_CHAIN.name}.`;
+    return `Insufficient MUSD balance. Make sure you have enough tokens on ${CURRENT_CHAIN.name}.`;
   if (/user rejected/i.test(short))
     return "You rejected the transaction in your wallet.";
   if (/connector not connected/i.test(short))
@@ -195,13 +195,13 @@ export function useX402Payment() {
 
       // Determine USDC address — use from requirements chain or current default
       const reqNetwork = requirements.network || CURRENT_NETWORK;
-      const usdcAddr = USDC_ADDRESSES[reqNetwork] || USDC_ADDRESS;
+      const musdAddr = MUSD_ADDRESSES[reqNetwork] || MUSD_ADDRESS;
 
       // Send ERC-20 transfer
       setStatus("awaiting-approval");
       const hash = await writeContractAsync({
         abi: ERC20_ABI,
-        address: usdcAddr,
+        address: musdAddr,
         functionName: "transfer",
         args: [requirements.recipient as `0x${string}`, BigInt(requirements.amount)],
         chainId: requirements.chainId || CURRENT_CHAIN_ID,
@@ -216,7 +216,7 @@ export function useX402Payment() {
 
       if (receipt.status === "reverted") {
         throw new Error(
-          "Transaction reverted — you may not have enough USDC. " +
+          "Transaction reverted — you may not have enough MUSD. " +
           "Get test tokens from the faucet."
         );
       }

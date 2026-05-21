@@ -8,11 +8,11 @@ import { getDefaultChain, getDefaultChainId } from "@/lib/chains";
 import { useEnsureNetwork } from "@/hooks/use-network-switch";
 import { PublicNavbar } from "@/components/public-navbar";
 import { Droplets, Wallet, Loader2, CheckCircle2, AlertCircle, ExternalLink, Copy, Check } from "lucide-react";
-import { getTxUrl, getUsdcAddress } from "@/lib/chain-config";
+import { getTxUrl, getMusdAddress } from "@/lib/chain-config";
 
 const PAYMENT_CHAIN_ID = getDefaultChainId();
 const PAYMENT_CHAIN = getDefaultChain();
-const USDC_ADDRESS = getUsdcAddress();
+const MUSD_ADDRESS = getMusdAddress();
 
 const USDC_ABI = parseAbi([
   "function mint(address to, uint256 amount) external",
@@ -24,11 +24,12 @@ const faucetClient = createPublicClient({
   transport: http(),
 });
 
+// MUSD has 18 decimals on Mezo testnet
 const AMOUNTS = [
-  { label: "10", value: BigInt(10_000_000) },
-  { label: "50", value: BigInt(50_000_000) },
-  { label: "100", value: BigInt(100_000_000) },
-  { label: "1,000", value: BigInt(1_000_000_000) },
+  { label: "10", value: 10n * 10n ** 18n },
+  { label: "50", value: 50n * 10n ** 18n },
+  { label: "100", value: 100n * 10n ** 18n },
+  { label: "1,000", value: 1_000n * 10n ** 18n },
 ];
 
 type FaucetStatus = "idle" | "switching" | "minting" | "confirming" | "success" | "error";
@@ -51,7 +52,7 @@ export default function FaucetPage() {
     if (!address) { setBalance(null); return; }
     try {
       const raw = await faucetClient.readContract({
-        address: USDC_ADDRESS,
+        address: MUSD_ADDRESS,
         abi: USDC_ABI,
         functionName: "balanceOf",
         args: [address],
@@ -78,7 +79,7 @@ export default function FaucetPage() {
       setStatus("minting");
       const hash = await writeContractAsync({
         abi: USDC_ABI,
-        address: USDC_ADDRESS,
+        address: MUSD_ADDRESS,
         functionName: "mint",
         args: [address!, AMOUNTS[selectedAmount].value],
         chainId: PAYMENT_CHAIN_ID,
@@ -103,7 +104,7 @@ export default function FaucetPage() {
   };
 
   const handleCopyAddress = () => {
-    navigator.clipboard.writeText(USDC_ADDRESS);
+    navigator.clipboard.writeText(MUSD_ADDRESS);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -120,9 +121,9 @@ export default function FaucetPage() {
           <div className="size-16 rounded-2xl bg-primary/15 flex items-center justify-center mx-auto mb-4">
             <Droplets className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">USDC Faucet</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">MUSD Faucet</h1>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">
-            Get free test mUSDC tokens on {PAYMENT_CHAIN.name}. Mint as much as you need for testing SuperPage.
+            Get free test MUSD tokens on {PAYMENT_CHAIN.name}. Mint as much as you need for testing SuperPage.
           </p>
         </div>
 
@@ -135,7 +136,7 @@ export default function FaucetPage() {
               {!isConnected
                 ? "—"
                 : balance !== null
-                  ? `${Number(balance).toLocaleString()} USDC`
+                  ? `${Number(balance).toLocaleString()} MUSD`
                   : "Loading..."}
             </span>
           </div>
@@ -187,7 +188,7 @@ export default function FaucetPage() {
               <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 flex items-center gap-3">
                 <CheckCircle2 className="h-5 w-5 text-primary" />
                 <span className="text-sm font-medium">
-                  {AMOUNTS[selectedAmount].label} USDC minted successfully!
+                  {AMOUNTS[selectedAmount].label} MUSD minted successfully!
                 </span>
               </div>
               {txHash && (
@@ -230,7 +231,7 @@ export default function FaucetPage() {
               ) : (
                 <Droplets className="h-4 w-4" />
               )}
-              {isProcessing ? "Minting..." : `Mint ${AMOUNTS[selectedAmount].label} USDC`}
+              {isProcessing ? "Minting..." : `Mint ${AMOUNTS[selectedAmount].label} MUSD`}
             </button>
           )}
         </div>
@@ -241,7 +242,7 @@ export default function FaucetPage() {
           <div className="space-y-3 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Token</span>
-              <span className="font-medium">USDC (Test USDC)</span>
+              <span className="font-medium">MUSD (Test MUSD)</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Network</span>
@@ -261,7 +262,7 @@ export default function FaucetPage() {
                 onClick={handleCopyAddress}
                 className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                {USDC_ADDRESS.slice(0, 6)}...{USDC_ADDRESS.slice(-4)}
+                {MUSD_ADDRESS.slice(0, 6)}...{MUSD_ADDRESS.slice(-4)}
                 {copied ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
               </button>
             </div>
