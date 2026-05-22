@@ -31,11 +31,11 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { parseUnits } from "viem";
 import { PublicNavbar } from "@/components/public-navbar";
 import { PurchaseModal, type PurchaseItem } from "@/components/purchase-modal";
-import { getTxUrl, getChainId, getUsdcAddress } from "@/lib/chain-config";
+import { getTxUrl, getChainId, getMusdAddress } from "@/lib/chain-config";
 import { getDefaultChainId } from "@/lib/chains";
 
 const TIP_CHAIN_ID = getDefaultChainId();
-const USDC_ADDRESS = getUsdcAddress();
+const MUSD_ADDRESS = getMusdAddress();
 const ERC20_ABI = [
   {
     name: "transfer",
@@ -67,6 +67,8 @@ interface Profile {
     instagram?: string;
     telegram?: string;
   };
+  isAgent?: boolean;
+  erc8004AgentId?: number | null;
   stats?: {
     totalSales: number;
     totalRevenue: number;
@@ -160,7 +162,7 @@ export default function PublicProfilePage() {
       // Send USDC transfer
       setTipStatus("sending");
       const hash = await writeContractAsync({
-        address: USDC_ADDRESS,
+        address: MUSD_ADDRESS,
         abi: ERC20_ABI,
         functionName: "transfer",
         args: [
@@ -312,7 +314,20 @@ export default function PublicProfilePage() {
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2 flex items-center justify-center gap-2">
             {profile.displayName || profile.username}
           </h1>
-          <p className="text-primary font-mono text-sm mb-4">@{profile.username}</p>
+          <p className="text-primary font-mono text-sm mb-2">@{profile.username}</p>
+
+          {profile.erc8004AgentId != null && profile.erc8004AgentId > 0 && (
+            <a
+              href={`https://explorer.test.mezo.org/address/0x92b19730d0b7416f195600489cd9be29e109ebce`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="View on Mezo Explorer"
+              className="inline-flex items-center gap-1.5 px-3 py-1 mb-4 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+            >
+              <BadgeCheck className="h-3.5 w-3.5" />
+              On-chain Agent #{profile.erc8004AgentId} · ERC-8004
+            </a>
+          )}
 
           {profile.bio && (
             <p className="text-muted-foreground leading-relaxed max-w-md mx-auto text-base">

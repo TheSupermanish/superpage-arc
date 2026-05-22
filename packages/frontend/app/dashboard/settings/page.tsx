@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
-import { useAccount, useDisconnect } from "wagmi";
+import { useAccount, useDisconnect, useWriteContract } from "wagmi";
+import { createPublicClient, http, parseAbi, decodeEventLog } from "viem";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ import {
   Check,
   ExternalLink,
   Loader2,
+  BadgeCheck,
   Twitter,
   Github,
   MessageCircle,
@@ -26,7 +28,19 @@ import {
   Instagram,
   Send,
 } from "lucide-react";
-import { getAddressUrl, getNetwork, isTestnet } from "@/lib/chain-config";
+import { getAddressUrl, getNetwork, isTestnet, getExplorerUrl } from "@/lib/chain-config";
+import { getDefaultChain, getDefaultChainId } from "@/lib/chains";
+import { useEnsureNetwork } from "@/hooks/use-network-switch";
+
+const IDENTITY_REGISTRY_ADDRESS = "0x92b19730d0b7416f195600489cd9be29e109ebce" as const;
+const IDENTITY_REGISTRY_ABI = parseAbi([
+  "function register(string agentURI) returns (uint256)",
+  "event Registered(uint256 indexed agentId, string agentURI, address indexed owner)",
+]);
+const registryClient = createPublicClient({
+  chain: getDefaultChain(),
+  transport: http(),
+});
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -47,6 +61,56 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // ERC-8004 agent registration
+  const { writeContractAsync: writeRegister } = useWriteContract();
+  const { ensureCorrectNetwork } = useEnsureNetwork(getDefaultChainId());
+  const [registering, setRegistering] = useState<"idle" | "switching" | "signing" | "confirming">("idle");
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const [registerTx, setRegisterTx] = useState<string | null>(null);
+
+  const handleRegisterAgent = async () => {
+    setRegisterError(null);
+    try {
+      setRegistering("switching");
+      const switched = await ensureCorrectNetwork();
+      if (!switched) throw new Error(`Please switch to ${getDefaultChain().name}`);
+
+      setRegistering("signing");
+      const agentURI = `${window.location.origin}/.well-known/agent-registration.json`;
+      const txHash = await writeRegister({
+        address: IDENTITY_REGISTRY_ADDRESS,
+        abi: IDENTITY_REGISTRY_ABI,
+        functionName: "register",
+        args: [agentURI],
+        chainId: getDefaultChainId(),
+        gas: 250_000n,
+      });
+      setRegisterTx(txHash);
+
+      setRegistering("confirming");
+      const receipt = await registryClient.waitForTransactionReceipt({ hash: txHash });
+
+      let agentId = 0n;
+      for (const log of receipt.logs) {
+        try {
+          const ev = decodeEventLog({ abi: IDENTITY_REGISTRY_ABI, data: log.data, topics: log.topics });
+          if (ev.eventName === "Registered") {
+            agentId = (ev.args as { agentId: bigint }).agentId;
+            break;
+          }
+        } catch { /* not our event */ }
+      }
+
+      if (agentId === 0n) throw new Error("Registered event not found in receipt");
+
+      await updateProfile({ erc8004AgentId: Number(agentId) });
+      setRegistering("idle");
+    } catch (err: any) {
+      setRegisterError(err.shortMessage || err.message || "Registration failed");
+      setRegistering("idle");
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -351,6 +415,75 @@ export default function SettingsPage() {
               </span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* On-Chain Identity (ERC-8004) */}
+      <div className="bg-card border border-border rounded-2xl">
+        <div className="p-6 border-b border-border">
+          <div className="flex items-center gap-2 mb-2">
+            <BadgeCheck className="h-5 w-5 text-sp-blue" />
+            <h3 className="font-bold text-lg text-foreground">On-Chain Identity (ERC-8004)</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Mint a verifiable agent identity NFT on Mezo. Other agents can look you up, give you reputation, and trust your payments.
+          </p>
+        </div>
+        <div className="p-6 space-y-4">
+          {creator?.erc8004AgentId ? (
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold mb-1">
+                  <BadgeCheck className="h-3.5 w-3.5" />
+                  Registered
+                </div>
+                <p className="font-mono text-foreground text-lg">
+                  Agent #{creator.erc8004AgentId}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  ERC-8004 Identity Registry · {getDefaultChain().name}
+                </p>
+              </div>
+              <a
+                href={`${getExplorerUrl()}/address/${IDENTITY_REGISTRY_ADDRESS}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-sm hover:bg-muted transition-colors"
+              >
+                View Registry
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Not registered yet. Click below to sign a transaction in your wallet — it mints an on-chain identity NFT and links it to your SuperPage profile.
+              </p>
+              <Button
+                onClick={handleRegisterAgent}
+                disabled={registering !== "idle" || !isConnected}
+                className="bg-sp-blue hover:bg-sp-blue/90 text-white"
+              >
+                {registering === "switching" && (<><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Switching network…</>)}
+                {registering === "signing" && (<><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Confirm in your wallet…</>)}
+                {registering === "confirming" && (<><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Waiting for confirmation…</>)}
+                {registering === "idle" && (<><BadgeCheck className="h-4 w-4 mr-2" /> Register as Agent</>)}
+              </Button>
+              {registerTx && registering !== "idle" && (
+                <a
+                  href={`${getExplorerUrl()}/tx/${registerTx}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-sp-blue hover:underline inline-flex items-center gap-1"
+                >
+                  View pending tx <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+              {registerError && (
+                <p className="text-sm text-red-500 mt-2">{registerError}</p>
+              )}
+            </>
+          )}
         </div>
       </div>
 

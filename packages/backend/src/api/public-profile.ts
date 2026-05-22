@@ -59,6 +59,8 @@ export async function handleGetPublicProfile(req: Request, res: Response) {
         website: creator.website,
         walletAddress: creator.walletAddress,
         socialLinks: creator.socialLinks,
+        isAgent: creator.isAgent,
+        erc8004AgentId: creator.erc8004AgentId,
         stats: creator.showStats
           ? {
               totalSales: creator.totalSales,

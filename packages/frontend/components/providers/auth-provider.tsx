@@ -24,6 +24,8 @@ interface Creator {
   isPublic?: boolean;
   accessCount?: number;
   totalEarnings?: number;
+  isAgent?: boolean;
+  erc8004AgentId?: number | null;
   createdAt?: string;
 }
 
