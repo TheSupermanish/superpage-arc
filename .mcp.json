@@ -2,7 +2,7 @@
   "mcpServers": {
     "superpage-backend": {
       "type": "http",
-      "url": "http://localhost:2337/mcp"
+      "url": "http://localhost:2337/mcp/universal"
     },
     "superpage-payment": {
       "type": "http",
