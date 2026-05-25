@@ -58,12 +58,12 @@ const ERC20_ABI = [
 
 const makePaymentTool = defineTool({
   name: "make_payment",
-  description: "Make a payment on EVM chains. Supports native tokens and ERC20 tokens (USDC, USDT, etc).",
+  description: "Make a payment on Mezo. Supports native BTC and MUSD.",
   inputSchema: z.object({
     recipientAddress: z.string().describe("EVM wallet address to send tokens to (0x...)"),
-    amount: z.string().describe("Amount in base units (e.g., 10000 for 0.01 USDC with 6 decimals)"),
-    network: z.string().optional().describe("Network ID (e.g. base-sepolia, bite-v2-sandbox, base, mainnet). Defaults to configured network."),
-    token: z.string().optional().describe("Token symbol: USDC, ETH, etc. Defaults to configured currency."),
+    amount: z.string().describe("Amount in base units (e.g., 1000000000000000 for 0.001 MUSD with 18 decimals)"),
+    network: z.string().optional().describe("Network ID (e.g. mezo, mezo-testnet). Defaults to configured network."),
+    token: z.string().optional().describe("Token symbol: MUSD, BTC. Defaults to MUSD."),
   }),
   handler: async ({ recipientAddress, amount, network: networkArg, token: tokenArg }) => {
     console.log(`[make_payment] 💳 Starting EVM payment...`);
@@ -217,13 +217,13 @@ const makePaymentTool = defineTool({
 
 const getBalanceTool = defineTool({
   name: "get_balance",
-  description: "Check wallet balance for native tokens or ERC20 tokens (USDC, etc)",
+  description: "Check wallet balance for native BTC or MUSD on Mezo.",
   inputSchema: z.object({
     address: z.string().optional().describe("Wallet address to check. Defaults to configured wallet."),
-    token: z.string().optional().describe("Token symbol: USDC, ETH, NATIVE, etc. Defaults to USDC."),
+    token: z.string().optional().describe("Token symbol: MUSD, BTC, NATIVE. Defaults to MUSD."),
     network: z.string().optional().describe("Network to check balance on. Defaults to configured network."),
   }),
-  handler: async ({ address, token = "USDC", network: networkArg }) => {
+  handler: async ({ address, token = "MUSD", network: networkArg }) => {
     const chainConfig = getChainConfig();
     const network = networkArg || chainConfig.network;
 

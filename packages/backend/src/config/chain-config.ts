@@ -24,7 +24,7 @@ export const SPAY_SCHEME = "spay";
 
 export type NetworkId = "mezo" | "mezo-testnet";
 
-export type TokenSymbol = "BTC" | "MUSD" | "USDC" | "USDT" | "DAI";
+export type TokenSymbol = "BTC" | "MUSD";
 
 export type NativeTokenSymbol = "BTC";
 
@@ -57,9 +57,6 @@ export type { ChainMetadata };
 export const TOKEN_DECIMALS: Record<string, number> = {
   BTC: 18,  // Mezo native gas token (18 decimals)
   MUSD: 18, // Mezo USD stablecoin (verified on-chain: 18 decimals)
-  USDC: 6,
-  USDT: 6,
-  DAI: 18,
 };
 
 // ============================================================
@@ -75,9 +72,6 @@ export const CHAIN_REGISTRY: Record<NetworkId, ChainMetadata> = {
     nativeToken: { symbol: "BTC", decimals: 18 },
     tokens: {
       MUSD: { address: "0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186", decimals: 18 },
-      USDC: { address: "0x04671C72Aab5AC02A03c1098314b1BB6B560c197", decimals: 6 }, // mUSDC (bridged)
-      USDT: { address: "0xeB5a5d39dE4Ea42C2Aa6A57EcA2894376683bB8E", decimals: 6 }, // mUSDT (bridged)
-      DAI: { address: "0x1531b6e3d51BF80f634957dF81A990B92dA4b154", decimals: 18 }, // mDAI (bridged)
     },
     defaultPaymentToken: "MUSD",
     isTestnet: false,
@@ -90,8 +84,6 @@ export const CHAIN_REGISTRY: Record<NetworkId, ChainMetadata> = {
     nativeToken: { symbol: "BTC", decimals: 18 },
     tokens: {
       MUSD: { address: "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503", decimals: 18 },
-      // SuperPage MockUSDC deployed on matsnet (6 decimals, mintable, for testing)
-      USDC: { address: "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c", decimals: 6 },
     },
     defaultPaymentToken: "MUSD",
     isTestnet: true,
@@ -149,8 +141,7 @@ export function getDefaultPaymentToken(networkId: NetworkId): TokenSymbol {
 
 export function getCurrencyDisplayName(networkId: NetworkId, symbol: TokenSymbol): string {
   const chain = getChainMetadata(networkId);
-  if (chain.displayCurrency && symbol === "USDC") return chain.displayCurrency;
-  return symbol;
+  return chain.displayCurrency ?? symbol;
 }
 
 export function getSupportedNetworks(): NetworkId[] {
