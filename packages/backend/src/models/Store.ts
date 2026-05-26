@@ -50,7 +50,7 @@ const StoreSchema = new Schema<IStore>(
     },
     networks: {
       type: [String],
-      default: [process.env.X402_CHAIN || 'base-sepolia'],
+      default: [process.env.X402_CHAIN || 'mezo-testnet'],
     },
     asset: {
       type: String,

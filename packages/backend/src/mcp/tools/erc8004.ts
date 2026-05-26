@@ -36,7 +36,7 @@ import type { Address } from "viem";
 const registerAgentTool = defineTool({
   name: "register_agent",
   description:
-    "Register a new agent on the ERC-8004 Identity Registry (Base Sepolia). Mints an on-chain identity NFT and returns the agentId.",
+    "Register a new agent on the ERC-8004 Identity Registry (Mezo). Mints an on-chain identity NFT and returns the agentId.",
   inputSchema: z.object({
     agentURI: z
       .string()

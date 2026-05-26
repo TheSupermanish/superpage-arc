@@ -2,7 +2,7 @@
  * ERC-8004 Validation Registry Module
  *
  * Provides functions to request and query validation results
- * via the ValidationRegistry contract on Base Sepolia.
+ * via the ValidationRegistry contract on Mezo.
  */
 
 import type { Address, Hash } from "viem";

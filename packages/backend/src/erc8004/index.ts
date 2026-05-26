@@ -2,7 +2,7 @@
  * ERC-8004 Trustless Agents Module
  *
  * On-chain identity, reputation, and validation for AI agents
- * via the ERC-8004 registries on Base Sepolia.
+ * via the ERC-8004 registries on Mezo.
  */
 
 // Config

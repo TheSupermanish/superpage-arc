@@ -2,7 +2,7 @@
  * ERC-8004 Identity Registry Module
  *
  * Provides functions to register agents, manage on-chain identity,
- * and interact with the IdentityRegistry contract on Base Sepolia.
+ * and interact with the IdentityRegistry contract on Mezo.
  */
 
 import type { Address, Hash } from "viem";

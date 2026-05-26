@@ -138,7 +138,7 @@ MockUSDC remains wired in as the `USDC` slot for `mezo-testnet` for users who wa
 
 ## Switching back to Flow / another chain
 
-Setting `X402_CHAIN=flow-testnet` (or any other registered network) switches everything — registry, MCP, frontend wallet provider all read from the same config. No code changes required.
+Setting `X402_CHAIN=mezo` (mainnet) or any other registered network switches everything — registry, MCP, frontend wallet provider all read from the same config. No code changes required.
 
 ## Troubleshooting
 

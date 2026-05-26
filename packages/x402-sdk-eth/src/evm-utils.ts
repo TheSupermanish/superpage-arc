@@ -530,7 +530,7 @@ export async function verifyPaymentTransaction(
     const txConfirmations = Number(currentBlock) - Number(receipt.blockNumber);
     
     // Handle 0 or negative confirmations — if receipt exists with success status,
-    // the transaction was included in a block. On fast chains (SKALE, etc.) or due to
+    // the transaction was included in a block. On fast chains (Mezo, etc.) or due to
     // RPC sync timing, confirmations may be 0 or negative even though the tx is valid.
     if (txConfirmations < 0) {
       console.warn(`[verifyPayment] Negative confirmations (${txConfirmations}) - RPC sync issue. Transaction has valid receipt, allowing.`);

@@ -594,7 +594,7 @@ SuperPage is an **x402-integrated OpenClaw skill** that charges USDC fees per re
 | **ERC-8004** | [EIP-8004](https://eips.ethereum.org/EIPS/eip-8004) |
 | **AP2 Spec** | [google-agentic-commerce/ap2](https://github.com/google-agentic-commerce/ap2) |
 | **Mezo** | [mezo.org](https://mezo.org) |
-| **Flow EVM** *(prior chain)* | [flow.com](https://flow.com) |
+| **Mezo Explorer** | [explorer.mezo.org](https://explorer.mezo.org) |
 
 ---
 

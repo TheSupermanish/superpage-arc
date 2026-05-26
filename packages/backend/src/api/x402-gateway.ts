@@ -207,7 +207,7 @@ export async function handleResourceAccess(req: Request, res: Response) {
 
     console.log(`[x402-gateway] Verifying payment (amount: ${amountMicroUsdc}, network: ${network})`);
 
-    // Verify with retries — fast chains like SKALE may need a moment for RPC sync
+    // Verify with retries — fast chains like Mezo may need a moment for RPC sync
     let verified = false;
     const maxRetries = 3;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {

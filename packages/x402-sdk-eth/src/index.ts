@@ -5,7 +5,7 @@
  * 
  * Supported Networks:
  * - Ethereum (mainnet, sepolia)
- * - Base (base, base-sepolia)
+ * - Mezo (mezo, mezo-testnet)
  * - Polygon (polygon, polygon-amoy)
  * - Arbitrum (arbitrum, arbitrum-sepolia)
  * - Optimism (optimism, optimism-sepolia)

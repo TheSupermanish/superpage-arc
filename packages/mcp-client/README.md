@@ -1,6 +1,6 @@
 # SUPERPAGE x402 - MCP Client for AI Agents
 
-An MCP (Model Context Protocol) client that enables AI agents like Claude to shop and pay using USDC stablecoin on SKALE (zero gas fees).
+An MCP (Model Context Protocol) client that enables AI agents like Claude to shop and pay using MUSD (BTC-backed stablecoin) on Mezo — the Bitcoin economic layer with ~1-second blocks and BTC-denominated gas.
 
 ## Features
 
@@ -182,14 +182,17 @@ Here's the content: [article content]
 
 ## Token Information
 
-**USDC** is a USD-backed stablecoin:
-- Contract: `0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8`
-- Decimals: 6
-- Network: SKALE BITE V2 Sandbox
-- Chain ID: 103698795
-- RPC: `https://base-sepolia-testnet.skalenodes.com/v1/bite-v2-sandbox`
-- Explorer: `https://base-sepolia-testnet.explorer.skalenodes.com`
-- Gas: **FREE** (zero gas fees on SKALE)
+**MUSD** — Mezo's BTC-overcollateralized stablecoin, default x402 payment token:
+- Decimals: 18
+- Network: Mezo Testnet (matsnet) / Mezo Mainnet
+- Chain ID: 31611 (testnet) / 31612 (mainnet)
+- Testnet contract: `0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503`
+- Mainnet contract: `0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186`
+- RPC: `https://rpc.test.mezo.org` (testnet) · `https://mezo.drpc.org` (mainnet)
+- Explorer: `https://explorer.test.mezo.org` · `https://explorer.mezo.org`
+- Native gas: BTC (18 decimals), ~1-second blocks via Ignite consensus
+
+**MockUSDC** (testnet only) — open-mint 6-decimal test token at `0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c` for users who don't want to borrow MUSD against BTC.
 
 ---
 

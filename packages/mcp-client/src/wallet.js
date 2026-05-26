@@ -39,27 +39,10 @@ export function log(message) {
 // Get blockchain explorer URL based on network
 export function getExplorerUrl(txHash) {
   const explorers = {
-    'mainnet': `https://etherscan.io/tx/${txHash}`,
-    'sepolia': `https://sepolia.etherscan.io/tx/${txHash}`,
-    'base': `https://basescan.org/tx/${txHash}`,
-    'base-sepolia': `https://sepolia.basescan.org/tx/${txHash}`,
-    'polygon': `https://polygonscan.com/tx/${txHash}`,
-    'polygon-amoy': `https://amoy.polygonscan.com/tx/${txHash}`,
-    'arbitrum': `https://arbiscan.io/tx/${txHash}`,
-    'arbitrum-sepolia': `https://sepolia.arbiscan.io/tx/${txHash}`,
-    'optimism': `https://optimistic.etherscan.io/tx/${txHash}`,
-    'optimism-sepolia': `https://sepolia-optimism.etherscan.io/tx/${txHash}`,
-    'mantle-sepolia': `https://sepolia.mantlescan.xyz/tx/${txHash}`,
-    'mantle': `https://mantlescan.xyz/tx/${txHash}`,
-    'cronos-testnet': `https://explorer.cronos.org/testnet/tx/${txHash}`,
-    'cronos': `https://explorer.cronos.org/tx/${txHash}`,
-    'bite-v2-sandbox': `https://base-sepolia-testnet.explorer.skalenodes.com/tx/${txHash}`,
-    'flow': `https://evm.flowscan.io/tx/${txHash}`,
-    'flow-testnet': `https://evm-testnet.flowscan.io/tx/${txHash}`,
     'mezo': `https://explorer.mezo.org/tx/${txHash}`,
     'mezo-testnet': `https://explorer.test.mezo.org/tx/${txHash}`,
   };
-  return explorers[NETWORK] || `https://base-sepolia-testnet.explorer.skalenodes.com/tx/${txHash}`;
+  return explorers[NETWORK] || `https://explorer.test.mezo.org/tx/${txHash}`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

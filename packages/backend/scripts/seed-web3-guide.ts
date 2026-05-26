@@ -43,7 +43,7 @@ Autonomous AI agents can finally *transact*. With protocols like x402 and ERC-80
 ## Where to start
 
 - Get a wallet (MetaMask, Rabby, or a smart wallet).
-- Fund it on a cheap testnet (Mezo matsnet, Base Sepolia).
+- Fund it on a cheap testnet (Mezo matsnet).
 - Send your first transaction. Read the explorer. The mental model clicks fast once you do it once.
 `,
     },
