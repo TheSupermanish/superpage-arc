@@ -1,33 +1,65 @@
 services:
+  mongo:
+    image: mongo:7
+    container_name: superpage-mongo
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    # No external port — only the app container reaches it on the internal network
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   superpage:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${APP_URL:-https://superpa.ge}
-        NEXT_PUBLIC_X402_CHAIN: ${X402_CHAIN:-flow-testnet}
-        NEXT_PUBLIC_X402_CURRENCY: ${X402_CURRENCY:-USDC}
+        NEXT_PUBLIC_X402_CHAIN: ${X402_CHAIN:-mezo-testnet}
+        NEXT_PUBLIC_X402_CURRENCY: ${X402_CURRENCY:-MUSD}
         NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${WALLETCONNECT_PROJECT_ID}
     container_name: superpage-app
     restart: always
-    ports:
-      - "1337:1337"
-      - "3000:3000"
+    # No external ports — Caddy reaches the container on the internal network
+    expose:
+      - "1337"  # frontend
+      - "2337"  # backend
+      - "3337"  # payment server
     env_file:
       - .env.production
+    environment:
+      # Force the Mongo URI to use the compose service name regardless of .env.production
+      MONGODB_URI: mongodb://mongo:27017/x402
+    depends_on:
+      mongo:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1337/health"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:2337/health || exit 1"]
       interval: 30s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 60s
 
-  nginx:
-    image: nginx:alpine
-    container_name: nginx-proxy
+  caddy:
+    image: caddy:2-alpine
+    container_name: superpage-caddy
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      SUPERPAGE_DOMAIN: ${SUPERPAGE_DOMAIN:-superpa.ge}
     depends_on:
       - superpage
+
+volumes:
+  mongo-data:
+  caddy-data:
+  caddy-config:

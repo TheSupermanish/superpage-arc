@@ -2,10 +2,11 @@
 set -euo pipefail
 
 # =============================================================================
-# deploy.sh — Build and deploy with Docker Compose
+# deploy.sh — Build and deploy SuperPage (monolith + Mongo + Caddy)
 # =============================================================================
 
 ENV_FILE=".env.production"
+COMPOSE="docker compose -f docker-compose.prod.yml"
 
 # ── Validate env file ─────────────────────────────────────────
 if [ ! -f "$ENV_FILE" ]; then
@@ -14,24 +15,30 @@ if [ ! -f "$ENV_FILE" ]; then
   exit 1
 fi
 
-# Source env file so docker compose can interpolate build args
+# Source env file so docker compose can interpolate build args + Caddyfile vars
 set -a
 source "$ENV_FILE"
 set +a
 
+if [ -z "${SUPERPAGE_DOMAIN:-}" ]; then
+  echo "ERROR: SUPERPAGE_DOMAIN is not set in $ENV_FILE."
+  echo "Caddy needs it to provision Let's Encrypt SSL."
+  exit 1
+fi
+
 echo "Building images..."
-docker compose build
+$COMPOSE build
 
 echo "Starting services..."
-docker compose up -d
+$COMPOSE up -d
 
 # ── Health check ──────────────────────────────────────────────
 echo "Waiting for backend to become healthy..."
-MAX_WAIT=60
+MAX_WAIT=120
 ELAPSED=0
 
 while [ $ELAPSED -lt $MAX_WAIT ]; do
-  STATUS=$(docker compose ps backend-api --format json 2>/dev/null | grep -o '"Health":"[^"]*"' | head -1 || true)
+  STATUS=$($COMPOSE ps superpage --format json 2>/dev/null | grep -o '"Health":"[^"]*"' | head -1 || true)
   if echo "$STATUS" | grep -q "healthy"; then
     echo "Backend is healthy!"
     break
@@ -43,14 +50,17 @@ done
 
 if [ $ELAPSED -ge $MAX_WAIT ]; then
   echo "WARNING: Backend did not become healthy within ${MAX_WAIT}s"
-  echo "Check logs: docker compose logs backend-api"
+  echo "Check logs: $COMPOSE logs superpage"
 fi
 
 # ── Summary ───────────────────────────────────────────────────
 echo ""
 echo "=== Deployment Summary ==="
-docker compose ps
+$COMPOSE ps
 echo ""
-echo "Health:   curl http://localhost/health"
-echo "MCP:      curl -X POST http://localhost/mcp/universal"
-echo "Frontend: http://localhost"
+echo "Public URL:  https://${SUPERPAGE_DOMAIN}"
+echo "Health:      curl https://${SUPERPAGE_DOMAIN}/health"
+echo "MCP:         curl -X POST https://${SUPERPAGE_DOMAIN}/mcp/universal"
+echo ""
+echo "If SSL is slow on first start, watch Caddy logs:"
+echo "  $COMPOSE logs -f caddy"

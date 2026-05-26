@@ -1,0 +1,42 @@
+# SuperPage reverse proxy — auto Let's Encrypt SSL.
+# {$SUPERPAGE_DOMAIN} is supplied by docker-compose from .env.production.
+{$SUPERPAGE_DOMAIN}, www.{$SUPERPAGE_DOMAIN} {
+    encode gzip
+
+    # Backend API endpoints
+    @backend {
+        path /api/* /x402/* /a2a /.well-known/*
+    }
+    handle @backend {
+        reverse_proxy superpage:2337
+    }
+
+    # MCP endpoints — backend serves /mcp, /mcp/*, /mcp-handler etc.
+    # but the standalone payment MCP runs on the payment server.
+    handle /mcp-payment {
+        reverse_proxy superpage:3337
+    }
+    handle /mcp* {
+        reverse_proxy superpage:2337
+    }
+
+    # Static uploads served by backend
+    handle /files/* {
+        reverse_proxy superpage:2337
+    }
+    handle /uploads/* {
+        reverse_proxy superpage:2337
+    }
+
+    # Everything else → Next.js frontend
+    handle {
+        reverse_proxy superpage:1337
+    }
+
+    # Sensible request headers for proxied apps
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+}

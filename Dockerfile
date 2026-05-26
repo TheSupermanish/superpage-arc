@@ -24,8 +24,8 @@ RUN cd packages/x402-sdk-eth && npx tsup src/index.ts --format cjs,esm --dts
 
 # Build Next.js frontend (env vars baked at build time)
 ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_X402_CHAIN=flow-testnet
-ARG NEXT_PUBLIC_X402_CURRENCY=USDC
+ARG NEXT_PUBLIC_X402_CHAIN=mezo-testnet
+ARG NEXT_PUBLIC_X402_CURRENCY=MUSD
 ARG NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_X402_CHAIN=$NEXT_PUBLIC_X402_CHAIN \
@@ -34,9 +34,9 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
 
 RUN cd packages/frontend && NODE_OPTIONS="--max-old-space-size=3072" npx next build
 
-EXPOSE 1337 3000
+EXPOSE 1337 2337 3337
 
-# PM2 runtime config
-RUN echo '{"apps":[{"name":"backend","script":"packages/backend/src/index.ts","interpreter":"tsx","env":{"NODE_ENV":"production"}},{"name":"frontend","script":"npx","args":"next start -p 3000","cwd":"packages/frontend","env":{"NODE_ENV":"production"}}]}' > ecosystem.config.json
+# PM2 runtime config: backend (2337), payment (3337), frontend (1337) — matches dev ports
+RUN echo '{"apps":[{"name":"backend","script":"packages/backend/src/index.ts","interpreter":"tsx","env":{"NODE_ENV":"production"}},{"name":"payment","script":"packages/backend/src/payment-service.ts","interpreter":"tsx","env":{"NODE_ENV":"production"}},{"name":"frontend","script":"npx","args":"next start -p 1337","cwd":"packages/frontend","env":{"NODE_ENV":"production"}}]}' > ecosystem.config.json
 
 CMD ["pm2-runtime", "ecosystem.config.json"]
