@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SuperPage — SURGE × OpenClaw Hackathon 2026</title>
+<title>SuperPage — Bitcoin-Native Agent Commerce on Mezo</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
@@ -491,39 +491,36 @@
   <!-- SLIDE 1: Title -->
   <div class="slide active" id="slide-1">
     <img class="title-logo-img" src="packages/frontend/public/logo.png" alt="SuperPage Logo">
-    <div class="title-logo">PL Genesis Flow Hackathon 2026</div>
+    <div class="title-logo">Built on Mezo · Bitcoin-Backed Agent Commerce</div>
     <h1 style="font-size: 4rem;">
       <span class="gradient-text">SuperPage</span>
     </h1>
     <p class="subtitle" style="font-size: 1.8rem; max-width: 800px;">
       The x402 Payment Skill for the Agent Internet
     </p>
-    <p style="font-size: 1.15rem; color: var(--text-dim); max-width: 700px; margin-bottom: 40px;">
-      An OpenClaw skill that lets autonomous AI agents discover, preview, confirm, and pay for digital resources and physical products using on-chain USDC micro-payments on Flow EVM.
+    <p style="font-size: 1.15rem; color: var(--text-dim); max-width: 720px; margin-bottom: 40px;">
+      Autonomous AI agents discover, preview, confirm, and pay for digital resources and physical products — settled in <strong style="color:var(--text);">MUSD</strong>, the BTC-backed stablecoin, on Mezo's Bitcoin economic layer.
     </p>
-    <div style="margin-bottom: 16px;">
-      <span class="tag" style="background:linear-gradient(135deg,#0052FF,#3B82F6);color:white;font-size:0.95rem;padding:8px 18px;">Coinbase x402 Track Winner</span>
-    </div>
     <div>
+      <span class="tag tag-orange">Mezo</span>
+      <span class="tag tag-green">MUSD</span>
       <span class="tag tag-blue">x402 Protocol</span>
-      <span class="tag tag-purple">OpenClaw</span>
-      <span class="tag tag-green">Flow EVM</span>
-      <span class="tag tag-orange">MCP</span>
-      <span class="tag tag-pink">A2A / AP2 / ERC-8004</span>
+      <span class="tag tag-purple">MCP</span>
+      <span class="tag tag-pink">A2A · AP2 · ERC-8004</span>
     </div>
   </div>
 
   <!-- SLIDE 2: The Problem -->
   <div class="slide" id="slide-2">
     <h3>The Problem</h3>
-    <h2 style="max-width: 700px;">AI Agents Are Locked Out of Commerce</h2>
+    <h2 style="max-width: 820px;">Agents Are Locked Out — and So Is Bitcoin</h2>
     <div class="grid-2" style="margin-top: 32px;">
       <div>
         <div class="big-quote">
-          Agents can research, write, and plan — but they can't buy or sell anything.
+          Agents can research, write, and plan — but they can't buy, sell, or move money.
         </div>
         <p style="margin-top: 16px; font-size: 1.1rem;">
-          Premium APIs, digital content, and e-commerce are all trapped behind human checkout flows. There's no standard way for an agent to discover a resource, pay for it, or monetize its own creations.
+          Premium APIs, digital content, and e-commerce all sit behind human checkout flows. And the world's largest pool of digital capital — Bitcoin, ~$1.5T market cap — has been agent-inaccessible because BTC isn't EVM-native.
         </p>
       </div>
       <div>
@@ -534,7 +531,7 @@
           </tr>
           <tr><td class="yes">Write code</td><td class="no">Pay for cloud compute</td></tr>
           <tr><td class="yes">Research products</td><td class="no">Purchase products</td></tr>
-          <tr><td class="yes">Analyze data</td><td class="no">Subscribe to data APIs</td></tr>
+          <tr><td class="yes">Analyze markets</td><td class="no">Hold or spend BTC</td></tr>
           <tr><td class="yes">Plan trips</td><td class="no">Book & pay for hotels</td></tr>
           <tr><td class="yes">Compare prices</td><td class="no">Complete checkout</td></tr>
         </table>
@@ -545,30 +542,76 @@
   <!-- SLIDE 3: The Solution -->
   <div class="slide" id="slide-3">
     <h3>The Solution</h3>
-    <h2 style="max-width: 750px;">Agents as Buyers AND Sellers</h2>
-    <p style="max-width: 700px; margin-bottom: 32px;">
-      SuperPage is an AI-native commerce platform where agents and humans coexist as both buyers and sellers. Agents buy resources, and AI creators generate content, list it, set a price, and earn USDC autonomously.
+    <h2 style="max-width: 800px;">Bitcoin-Native Agent Commerce. Both Sides.</h2>
+    <p style="max-width: 740px; margin-bottom: 32px;">
+      SuperPage is the agent-internet commerce layer where agents and humans coexist as buyers and sellers — settled in <strong style="color:var(--text);">MUSD</strong>, Mezo's BTC-overcollateralized stablecoin, on a chain with ~1-second blocks and sub-cent BTC gas.
     </p>
     <div class="flow-row" style="margin: 32px 0;">
       <div class="flow-step">1. Discover<br><span style="color:var(--text-dim);font-size:0.8rem;">list-resources / search</span></div>
       <div class="flow-arrow">→</div>
       <div class="flow-step">2. Preview<br><span style="color:var(--text-dim);font-size:0.8rem;">price check (free)</span></div>
       <div class="flow-arrow">→</div>
-      <div class="flow-step">3. Confirm<br><span style="color:var(--text-dim);font-size:0.8rem;">"Buy for $0.50?"</span></div>
+      <div class="flow-step">3. Confirm<br><span style="color:var(--text-dim);font-size:0.8rem;">"Buy for 0.50 MUSD?"</span></div>
       <div class="flow-arrow">→</div>
-      <div class="flow-step">4. Pay<br><span style="color:var(--text-dim);font-size:0.8rem;">USDC on Base</span></div>
+      <div class="flow-step">4. Pay<br><span style="color:var(--text-dim);font-size:0.8rem;">MUSD on Mezo</span></div>
       <div class="flow-arrow">→</div>
       <div class="flow-step">5. Deliver<br><span style="color:var(--text-dim);font-size:0.8rem;">content + receipt</span></div>
     </div>
     <p style="margin-top: 24px; font-size: 1.05rem;">
-      Works across <strong style="color:var(--text);">three surfaces</strong>: Telegram (OpenClaw), Claude Desktop (MCP), and CLI — all powered by the same <code style="background:var(--surface);padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:0.9rem;">superpage-x402.js</code> engine.
+      Same engine runs across <strong style="color:var(--text);">three surfaces</strong>: Telegram (OpenClaw), Claude Desktop (MCP), and CLI — powered by <code style="background:var(--surface);padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:0.9rem;">superpage-x402.js</code>.
     </p>
   </div>
 
-  <!-- SLIDE 4: Architecture -->
+  <!-- SLIDE 4: Why Mezo -->
   <div class="slide" id="slide-4">
+    <h3>Why Mezo</h3>
+    <h2>Bitcoin Is Where Capital Lives. <span style="color: var(--orange);">Mezo Is Where Agents Spend It.</span></h2>
+    <div class="grid-2" style="margin-top: 28px;">
+      <div>
+        <p style="font-size: 1.1rem; margin-bottom: 20px;">
+          Mezo is the Bitcoin economic layer — EVM-compatible, ~1-second blocks, native BTC gas, and the home of <strong style="color:var(--text);">MUSD</strong>, a BTC-overcollateralized stablecoin. It's the first chain where an autonomous agent can settle a sub-cent invoice and have that value backed by Bitcoin reserves.
+        </p>
+        <table class="vs-table">
+          <tr><th>Property</th><th>Mezo</th></tr>
+          <tr><td style="color:var(--text);">Settlement asset</td><td>MUSD — BTC-overcollateralized</td></tr>
+          <tr><td style="color:var(--text);">Native gas</td><td>BTC (18-dec EVM)</td></tr>
+          <tr><td style="color:var(--text);">Block time</td><td>~1 second (Ignite consensus)</td></tr>
+          <tr><td style="color:var(--text);">Chain ID</td><td>31611 testnet · 31612 mainnet</td></tr>
+          <tr><td style="color:var(--text);">Liquidity reach</td><td>~$1.5T BTC market cap</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="card" style="border-color:var(--brand-pink);background:rgba(232,160,191,0.05);">
+          <h3 style="color:var(--brand-pink);">The Four Unlocks</h3>
+          <ul style="margin-top: 8px;">
+            <li><strong style="color:var(--text);">Stable UX, Bitcoin-backed value</strong> — agents quote in dollars; reserves live in BTC.</li>
+            <li><strong style="color:var(--text);">Sub-second settlement</strong> — ~1s blocks beat L2 cadence; agent-rate commerce actually works.</li>
+            <li><strong style="color:var(--text);">Native BTC gas</strong> — true Bitcoin settlement with EVM ergonomics; no bridge dance.</li>
+            <li><strong style="color:var(--text);">Aligned vision</strong> — Mezo is the economic layer for human Bitcoin commerce. SuperPage is the agent layer on top.</li>
+          </ul>
+        </div>
+        <div class="stat-row" style="margin-top:20px;">
+          <div class="stat">
+            <div class="stat-number gradient-text">~1s</div>
+            <div class="stat-label">Block Time</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number gradient-text">18</div>
+            <div class="stat-label">BTC Decimals (EVM)</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number gradient-text">4</div>
+            <div class="stat-label">Contracts Live on matsnet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: Architecture -->
+  <div class="slide" id="slide-5">
     <h3>Architecture</h3>
-    <h2>Full-Stack AI-Native Commerce</h2>
+    <h2>Full-Stack Bitcoin-Native Agent Commerce</h2>
     <div style="margin-top: 24px;">
       <!-- Agent Surfaces Row -->
       <div class="grid-3" style="margin-bottom: 8px;">
@@ -585,7 +628,7 @@
         <div class="arch-box">
           <div style="font-size:1.5rem;margin-bottom:6px;">⌨️</div>
           <div style="font-weight:600;">CLI Agent</div>
-          <div style="font-size:0.8rem;color:var(--text-dim);">Anthropic / OpenAI / Google</div>
+          <div style="font-size:0.8rem;color:var(--text-dim);">Anthropic · OpenAI · Google</div>
         </div>
       </div>
       <div class="arch-arrow">↓</div>
@@ -603,7 +646,7 @@
         </div>
         <div class="arch-box">
           <div style="font-weight:600;">Marketplace</div>
-          <div style="font-size:0.8rem;color:var(--text-dim);">43 resources + Shopify</div>
+          <div style="font-size:0.8rem;color:var(--text-dim);">Resources + Shopify checkout</div>
         </div>
         <div class="arch-box">
           <div style="font-weight:600;">A2A / AP2 Server</div>
@@ -612,15 +655,15 @@
       </div>
       <div class="arch-arrow">↓</div>
       <!-- Blockchain -->
-      <div class="arch-box" style="border-color: var(--green); background: rgba(34,197,94,0.05);">
-        <div style="font-weight:700;font-size:1.1rem;">Flow EVM Testnet</div>
-        <div style="font-size:0.85rem;color:var(--text-dim);">USDC payments · Chain ID 545 · ~1s blocks · On-chain receipts</div>
+      <div class="arch-box" style="border-color: var(--orange); background: rgba(229,186,115,0.08);">
+        <div style="font-weight:700;font-size:1.1rem;">Mezo · Bitcoin Economic Layer</div>
+        <div style="font-size:0.85rem;color:var(--text-dim);">MUSD (BTC-backed) · BTC gas · Chain ID 31611 / 31612 · ~1s blocks · ERC-8004 on-chain identity</div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 5: Agent Surfaces -->
-  <div class="slide" id="slide-5">
+  <!-- SLIDE 6: Agent Surfaces -->
+  <div class="slide" id="slide-6">
     <h3>Agent Surfaces</h3>
     <h2>One Skill, Three Surfaces</h2>
     <div class="grid-3" style="margin-top: 32px;">
@@ -632,7 +675,7 @@
         </p>
         <div style="font-size:0.85rem;color:var(--text-dim);font-style:italic;">
           "Buy the Weather API"<br>
-          → "It costs $0.50 USDC. Proceed?"<br>
+          → "It costs 0.50 MUSD. Proceed?"<br>
           → "Yes"<br>
           → Paid! Here's the data...
         </div>
@@ -659,19 +702,19 @@
         <div class="code-block" style="font-size:0.8rem;padding:14px;">
 <span class="comment">$ pnpm agent "buy weather API"</span>
 
-Found Weather API for <span class="number">$0.50</span> USDC.
+Found Weather API for <span class="number">0.50</span> MUSD.
 Confirm? <span class="string">yes</span>
-Paid <span class="number">0.50</span> USDC — tx: <span class="fn">0x01e5...</span>
+Paid <span class="number">0.50</span> MUSD — tx: <span class="fn">0x9eab1d...</span>
 Here's the data: { temp: 72 }
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 6: x402 Payment Flow -->
-  <div class="slide" id="slide-6">
+  <!-- SLIDE 7: x402 Payment Flow on Mezo -->
+  <div class="slide" id="slide-7">
     <h3>x402 Protocol</h3>
-    <h2>HTTP 402 Payment Flow</h2>
+    <h2>HTTP 402 Payment Flow — Settled on Mezo</h2>
     <div class="two-col" style="margin-top: 24px;">
       <div>
         <div class="demo-step">
@@ -685,28 +728,28 @@ Here's the data: { temp: 72 }
           <div class="step-num" style="background:var(--orange);">2</div>
           <div class="step-content">
             <h4>Server Returns 402</h4>
-            <p>Payment requirements: amount, currency, recipient, chainId</p>
+            <p>Payment requirements — MUSD amount, chainId 31611, recipient, 15-min expiry</p>
           </div>
         </div>
         <div class="demo-step">
           <div class="step-num" style="background:var(--accent2);">3</div>
           <div class="step-content">
             <h4>Preview Mode (Stops Here)</h4>
-            <p>Returns price to user — "Buy for $0.50 USDC?"</p>
+            <p>Returns price to user — "Buy for 0.50 MUSD?"</p>
           </div>
         </div>
         <div class="demo-step">
           <div class="step-num" style="background:var(--green);">4</div>
           <div class="step-content">
             <h4>User Confirms → Agent Pays</h4>
-            <p>USDC transfer on Flow EVM Testnet, ~1s confirmation</p>
+            <p>MUSD ERC-20 transfer on Mezo matsnet, ~1s confirmation</p>
           </div>
         </div>
         <div class="demo-step">
           <div class="step-num" style="background:var(--pink);">5</div>
           <div class="step-content">
             <h4>Retry with Proof → Content Delivered</h4>
-            <p>X-PAYMENT header with tx hash, on-chain verification, resource served</p>
+            <p>X-PAYMENT header, on-chain verification via Mezo RPC, resource served</p>
           </div>
         </div>
       </div>
@@ -717,15 +760,17 @@ Here's the data: { temp: 72 }
 
 <span class="comment">// 2. Server responds: 402</span>
 {
-  <span class="string">"amount"</span>: <span class="string">"0.50"</span>,
-  <span class="string">"currency"</span>: <span class="string">"USDC"</span>,
-  <span class="string">"recipient"</span>: <span class="string">"0x..."</span>,
-  <span class="string">"chainId": 545</span>
+  <span class="string">"scheme"</span>:    <span class="string">"spay"</span>,
+  <span class="string">"network"</span>:   <span class="string">"mezo-testnet"</span>,
+  <span class="string">"chainId"</span>:   <span class="number">31611</span>,
+  <span class="string">"token"</span>:     <span class="string">"MUSD"</span>,
+  <span class="string">"amount"</span>:    <span class="string">"500000000000000000"</span>,
+  <span class="string">"recipient"</span>: <span class="string">"0x..."</span>
 }
 
-<span class="comment">// 3. Agent pays USDC on Base</span>
-<span class="keyword">await</span> <span class="fn">sendUSDC</span>(recipient, <span class="string">"0.50"</span>)
-<span class="comment">// tx: 0x9eab1d...</span>
+<span class="comment">// 3. Agent transfers MUSD on Mezo</span>
+<span class="keyword">await</span> <span class="fn">sendMUSD</span>(recipient, <span class="string">"0.50"</span>)
+<span class="comment">// tx: 0x9eab1d... (~1s confirmation)</span>
 
 <span class="comment">// 4. Retry with payment proof</span>
 <span class="fn">GET</span> /x402/resource/weather-api
@@ -740,11 +785,11 @@ Here's the data: { temp: 72 }
     </div>
   </div>
 
-  <!-- SLIDE 7: Five Protocols -->
-  <div class="slide" id="slide-7">
+  <!-- SLIDE 8: Five Protocols -->
+  <div class="slide" id="slide-8">
     <h3>Protocol Stack</h3>
     <h2>Five Protocols, One Platform</h2>
-    <p style="max-width: 600px; margin-bottom: 8px;">SuperPage is the first platform to combine all five agent protocols into a single commerce infrastructure.</p>
+    <p style="max-width: 640px; margin-bottom: 8px;">SuperPage combines the five protocols that define the agent internet into a single Bitcoin-settled commerce stack.</p>
     <div class="proto-grid">
       <div class="proto-card" style="border-color:var(--accent);">
         <div class="proto-name" style="color:var(--accent);">x402</div>
@@ -764,7 +809,7 @@ Here's the data: { temp: 72 }
       </div>
       <div class="proto-card" style="border-color:var(--pink);">
         <div class="proto-name" style="color:var(--pink);">ERC-8004</div>
-        <div class="proto-desc">On-chain agent identity, reputation scoring, and trust validation.</div>
+        <div class="proto-desc">On-chain agent identity, reputation scoring, trust validation — all on Mezo.</div>
       </div>
     </div>
     <div style="margin-top: 32px;">
@@ -774,15 +819,15 @@ Here's the data: { temp: 72 }
         <div class="flow-arrow">→</div>
         <div class="flow-step" style="border-color:var(--orange);">CartMandate<br><span style="font-size:0.75rem;color:var(--text-dim);">Itemized cart</span></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step" style="border-color:var(--orange);">PaymentMandate<br><span style="font-size:0.75rem;color:var(--text-dim);">On-chain tx</span></div>
+        <div class="flow-step" style="border-color:var(--orange);">PaymentMandate<br><span style="font-size:0.75rem;color:var(--text-dim);">MUSD on Mezo</span></div>
         <div class="flow-arrow">→</div>
         <div class="flow-step" style="border-color:var(--orange);">PaymentReceipt<br><span style="font-size:0.75rem;color:var(--text-dim);">Verified settlement</span></div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 8: Marketplace & Shopify -->
-  <div class="slide" id="slide-8">
+  <!-- SLIDE 9: Marketplace & Shopify -->
+  <div class="slide" id="slide-9">
     <h3>Platform Features</h3>
     <h2>Two-Sided AI-Native Marketplace</h2>
     <div class="grid-2" style="margin-top: 24px;">
@@ -793,13 +838,13 @@ Here's the data: { temp: 72 }
           <li>Other agents and humans discover, pay, and access the content</li>
           <li>Connect Shopify store in 3 clicks — products auto-sync</li>
           <li>Creator dashboard with analytics and order management</li>
-          <li>Set prices in USDC — receive payments directly on-chain</li>
+          <li>Set prices in MUSD — receive payments directly on-chain</li>
           <li>Fully autonomous creator economy — no human needed</li>
         </ul>
         <div class="stat-row" style="margin-top:24px;">
           <div class="stat">
-            <div class="stat-number gradient-text">26+</div>
-            <div class="stat-label">Digital Resources</div>
+            <div class="stat-number gradient-text">MUSD</div>
+            <div class="stat-label">Default Settlement</div>
           </div>
           <div class="stat">
             <div class="stat-number gradient-text">12</div>
@@ -822,7 +867,7 @@ Here's the data: { temp: 72 }
 <span class="comment">// Returns products with variants</span>
 [{
   <span class="string">"title"</span>: <span class="string">"Example T-Shirt"</span>,
-  <span class="string">"price"</span>: <span class="string">"0.01 USDC"</span>,
+  <span class="string">"price"</span>: <span class="string">"0.01 MUSD"</span>,
   <span class="string">"variantId"</span>: <span class="string">"gid://shopify/..."</span>
 }]
 
@@ -835,14 +880,14 @@ Here's the data: { temp: 72 }
   }],
   <span class="string">"shippingAddress"</span>: { ... }
 }
-<span class="comment">// → Order created + USDC paid</span>
+<span class="comment">// → Order created + MUSD paid on Mezo</span>
         </div>
         <div style="margin-top: 16px;">
           <h3 style="color:var(--text);font-size:1.2rem;">Resource Types</h3>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-            <span class="tag tag-blue">API — $0.01-$1</span>
-            <span class="tag tag-purple">File — $0.50-$50</span>
-            <span class="tag tag-green">Article — $0.10-$10</span>
+            <span class="tag tag-blue">API — 0.01-1 MUSD</span>
+            <span class="tag tag-purple">File — 0.50-50 MUSD</span>
+            <span class="tag tag-green">Article — 0.10-10 MUSD</span>
             <span class="tag tag-orange">Shopify — varies</span>
           </div>
         </div>
@@ -850,15 +895,15 @@ Here's the data: { temp: 72 }
     </div>
   </div>
 
-  <!-- SLIDE 9: Safety & Security -->
-  <div class="slide" id="slide-9">
+  <!-- SLIDE 10: Safety & Security -->
+  <div class="slide" id="slide-10">
     <h3>Safety & Security</h3>
     <h2>Trust Built Into Every Layer</h2>
     <div class="safety-grid">
       <div class="safety-item">
         <div class="safety-icon">🔒</div>
         <h4>Spending Caps</h4>
-        <p>MAX_AUTO_PAYMENT limits per-transaction spend. Default $10 USDC max.</p>
+        <p>MAX_AUTO_PAYMENT limits per-transaction spend. Default 10 MUSD max.</p>
       </div>
       <div class="safety-item">
         <div class="safety-icon">👁️</div>
@@ -873,7 +918,7 @@ Here's the data: { temp: 72 }
       <div class="safety-item">
         <div class="safety-icon">⛓️</div>
         <h4>On-Chain Verification</h4>
-        <p>Every payment cryptographically verified against Flow EVM Testnet before content is served.</p>
+        <p>Every payment cryptographically verified against Mezo RPC before content is served.</p>
       </div>
       <div class="safety-item">
         <div class="safety-icon">⏱️</div>
@@ -883,26 +928,27 @@ Here's the data: { temp: 72 }
       <div class="safety-item">
         <div class="safety-icon">📋</div>
         <h4>Full Audit Trail</h4>
-        <p>Transaction hash, amount, timestamp, recipient — everything logged and verifiable.</p>
+        <p>Tx hash, amount, timestamp, recipient — everything logged and verifiable on Mezo Explorer.</p>
       </div>
     </div>
     <div style="margin-top: 32px;">
-      <div class="code-block" style="font-size: 0.9rem; max-width: 600px;">
+      <div class="code-block" style="font-size: 0.9rem; max-width: 660px;">
 <span class="comment">// Every transaction receipt includes:</span>
 {
   <span class="string">"txHash"</span>:    <span class="string">"0x9eab1d..."</span>,
-  <span class="string">"amount"</span>:    <span class="string">"0.50 USDC"</span>,
+  <span class="string">"amount"</span>:    <span class="string">"0.50 MUSD"</span>,
   <span class="string">"to"</span>:        <span class="string">"0x5163..."</span>,
-  <span class="string">"chainId": 545</span>,
+  <span class="string">"network"</span>:   <span class="string">"mezo-testnet"</span>,
+  <span class="string">"chainId"</span>:   <span class="number">31611</span>,
   <span class="string">"verified"</span>:  <span class="keyword">true</span>,
-  <span class="string">"timestamp"</span>: <span class="number">1709312400</span>
+  <span class="string">"timestamp"</span>: <span class="number">1748259780</span>
 }
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 10: Tech Stack -->
-  <div class="slide" id="slide-10">
+  <!-- SLIDE 11: Tech Stack -->
+  <div class="slide" id="slide-11">
     <h3>Technology</h3>
     <h2>Monorepo Architecture</h2>
     <div class="grid-2" style="margin-top: 24px;">
@@ -914,9 +960,9 @@ Here's the data: { temp: 72 }
           <tr><td style="color:var(--text);font-weight:500;">MCP Client</td><td>Node.js, viem, JSON-RPC</td></tr>
           <tr><td style="color:var(--text);font-weight:500;">AI Agent</td><td>Vercel AI SDK (multi-LLM)</td></tr>
           <tr><td style="color:var(--text);font-weight:500;">SDK</td><td>@super-x402/sdk (payment verification)</td></tr>
-          <tr><td style="color:var(--text);font-weight:500;">Blockchain</td><td>Flow EVM, viem, USDC, ERC-8004</td></tr>
+          <tr><td style="color:var(--text);font-weight:500;">Blockchain</td><td>Mezo (EVM), viem, MUSD, ERC-8004</td></tr>
           <tr><td style="color:var(--text);font-weight:500;">E-Commerce</td><td>Shopify Admin API</td></tr>
-          <tr><td style="color:var(--text);font-weight:500;">Identity</td><td>ERC-8004</td></tr>
+          <tr><td style="color:var(--text);font-weight:500;">Identity</td><td>ERC-8004 (on Mezo)</td></tr>
           <tr><td style="color:var(--text);font-weight:500;">Wallet</td><td>RainbowKit, wagmi</td></tr>
           <tr><td style="color:var(--text);font-weight:500;">Agent Runtime</td><td>OpenClaw (Telegram gateway)</td></tr>
         </table>
@@ -938,10 +984,10 @@ superpage/
 │   │   <span class="comment">Standalone AI agent (multi-LLM)</span>
 │   │
 │   ├── x402-sdk-eth/
-│   │   <span class="comment">Payment verification SDK</span>
+│   │   <span class="comment">Mezo + EVM payment verification SDK</span>
 │   │
 │   └── contracts/
-│       <span class="comment">Smart contract ABIs</span>
+│       <span class="comment">ERC-8004 + MockUSDC (deployed on matsnet)</span>
 │
 ├── dev.sh
 └── package.json  <span class="comment">pnpm workspace</span>
@@ -950,55 +996,51 @@ superpage/
     </div>
   </div>
 
-  <!-- SLIDE 11: Track Alignment -->
-  <div class="slide" id="slide-11">
-    <h3>Hackathon Tracks</h3>
-    <h2>Track Alignment</h2>
-    <div style="margin-top: 16px;">
-      <div class="track-card primary" style="border-color:var(--green);position:relative;">
-        <div style="position:absolute;top:8px;right:12px;font-size:0.75rem;background:var(--green);color:#000;padding:3px 10px;border-radius:8px;font-weight:700;">PREV. WINNER</div>
-        <h4><span style="color:var(--green);">Coinbase:</span> x402 Autonomous Payments Track</h4>
-        <p>Won the Coinbase x402 track at SURGE x OpenClaw Hackathon. Full x402 payment skill with 29 MCP tools, micro-payments, Shopify integration, and direct creator revenue.</p>
+  <!-- SLIDE 12: Live on Mezo -->
+  <div class="slide" id="slide-12">
+    <h3>Already Shipped</h3>
+    <h2>Live on Mezo matsnet</h2>
+    <p style="max-width: 760px; margin-bottom: 24px;">
+      SuperPage isn't a slide — it's deployed. ERC-8004 identity / reputation / validation registries and a MockUSDC test token are live on Mezo Testnet (matsnet), wired into the SDK, backend, frontend, MCP client, and AI agent.
+    </p>
+    <div class="grid-2" style="margin-top: 16px;">
+      <div>
+        <h3 style="color:var(--text);font-size:1.15rem;margin-bottom: 8px;">Deployed Contracts</h3>
+        <table class="vs-table" style="font-size: 0.9rem;">
+          <tr><th>Contract</th><th>Address</th></tr>
+          <tr><td style="color:var(--text);font-weight:500;">IdentityRegistry</td><td><code style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent);">0x92b19730…09ebce</code></td></tr>
+          <tr><td style="color:var(--text);font-weight:500;">ReputationRegistry</td><td><code style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent);">0x6a81e89f…0e596f</code></td></tr>
+          <tr><td style="color:var(--text);font-weight:500;">ValidationRegistry</td><td><code style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent);">0x70d51baf…6243a1</code></td></tr>
+          <tr><td style="color:var(--text);font-weight:500;">MockUSDC</td><td><code style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent);">0xc2fa1cff…d503c</code></td></tr>
+          <tr><td style="color:var(--text);font-weight:500;">MUSD (native)</td><td><code style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent);">0x118917a4…3Ac503</code></td></tr>
+        </table>
+        <p style="font-size: 0.85rem; color:var(--text-dim); margin-top: 12px;">
+          All verifiable at <code style="font-family:'JetBrains Mono',monospace;color:var(--accent);">explorer.test.mezo.org</code>.
+        </p>
       </div>
-      <div class="grid-3" style="margin-top: 12px;">
-        <div class="track-card primary">
-          <h4><span style="color:var(--accent);">Flow:</span> Flow Track</h4>
-          <p>All contracts deployed on Flow EVM Testnet. MockUSDC + ERC-8004 identity/reputation registries. ~1s block time, sub-cent gas.</p>
-        </div>
-        <div class="track-card">
-          <h4><span style="color:var(--accent2);">Flow:</span> Existing Code</h4>
-          <p>Production-grade monorepo: x402 SDK, MCP server, A2A protocol, Shopify checkout, 43 resources, 236 tests passing.</p>
-        </div>
-        <div class="track-card">
-          <h4><span style="color:var(--orange);">Flow:</span> ERC-8004</h4>
-          <p>On-chain agent identity and reputation on Flow. Auto-registration at startup, feedback after purchases, trust-gated commerce.</p>
-        </div>
-      </div>
-    </div>
-    <div style="margin-top: 24px;">
-      <h3 style="font-size: 1.1rem; color: var(--text);">What Makes Us Different</h3>
-      <div class="grid-3" style="margin-top: 12px;">
-        <div style="text-align:center;">
-          <div style="font-size:2rem;margin-bottom:8px;">🏪</div>
-          <div style="font-weight:600;margin-bottom:4px;">Full Platform</div>
-          <div style="font-size:0.85rem;color:var(--text-dim);">Not a demo — real marketplace with 43 resources, Shopify integration, and 17 confirmed orders</div>
-        </div>
-        <div style="text-align:center;">
-          <div style="font-size:2rem;margin-bottom:8px;">🔌</div>
-          <div style="font-weight:600;margin-bottom:4px;">Multi-Surface</div>
-          <div style="font-size:0.85rem;color:var(--text-dim);">Telegram + Claude Desktop + CLI — same engine, three interfaces</div>
-        </div>
-        <div style="text-align:center;">
-          <div style="font-size:2rem;margin-bottom:8px;">🤝</div>
-          <div style="font-weight:600;margin-bottom:4px;">5 Protocols</div>
-          <div style="font-size:0.85rem;color:var(--text-dim);">x402, A2A, AP2, MCP, ERC-8004 — most comprehensive agent commerce stack</div>
+      <div>
+        <h3 style="color:var(--text);font-size:1.15rem;margin-bottom: 8px;">Network Details</h3>
+        <table class="vs-table" style="font-size: 0.9rem;">
+          <tr><th>Property</th><th>Value</th></tr>
+          <tr><td style="color:var(--text);">Network</td><td>Mezo Testnet (matsnet)</td></tr>
+          <tr><td style="color:var(--text);">Chain ID</td><td>31611 (<code>0x7b7b</code>)</td></tr>
+          <tr><td style="color:var(--text);">Native gas</td><td>BTC (18 decimals)</td></tr>
+          <tr><td style="color:var(--text);">Payment token</td><td>MUSD (18 dec, BTC-backed)</td></tr>
+          <tr><td style="color:var(--text);">RPC</td><td>rpc.test.mezo.org</td></tr>
+          <tr><td style="color:var(--text);">Faucet</td><td>faucet.test.mezo.org</td></tr>
+          <tr><td style="color:var(--text);">Block time</td><td>~1 second (Ignite)</td></tr>
+          <tr><td style="color:var(--text);">Mainnet ID</td><td>31612 (<code>0x7b7c</code>) — same configs apply</td></tr>
+        </table>
+        <div style="margin-top: 16px; padding: 14px; background: rgba(229,186,115,0.08); border: 1px solid rgba(229,186,115,0.3); border-radius: 8px;">
+          <div style="font-size: 0.9rem; color: var(--text);"><strong>Switch to mainnet in one env var:</strong></div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--orange); margin-top: 4px;">X402_CHAIN=mezo</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 12: Demo -->
-  <div class="slide" id="slide-12">
+  <!-- SLIDE 13: Demo -->
+  <div class="slide" id="slide-13">
     <h3>Live Demo</h3>
     <h2>See It In Action</h2>
     <div class="grid-2" style="margin-top: 24px;">
@@ -1008,21 +1050,21 @@ superpage/
           <div class="step-num">1</div>
           <div class="step-content">
             <h4>"What resources are available?"</h4>
-            <p>Lists all 43 resources with names, descriptions, prices</p>
+            <p>Lists all resources with names, descriptions, prices in MUSD</p>
           </div>
         </div>
         <div class="demo-step">
           <div class="step-num" style="background:var(--accent2);">2</div>
           <div class="step-content">
             <h4>"Buy the Weather API"</h4>
-            <p>Previews price → asks "Buy for $0.50?" → waits for yes</p>
+            <p>Previews price → asks "Buy for 0.50 MUSD?" → waits for yes</p>
           </div>
         </div>
         <div class="demo-step">
           <div class="step-num" style="background:var(--green);">3</div>
           <div class="step-content">
             <h4>"Yes"</h4>
-            <p>Pays USDC on-chain → delivers content → shows tx receipt</p>
+            <p>Pays MUSD on Mezo → ~1s confirmation → delivers content → tx receipt</p>
           </div>
         </div>
         <div class="demo-step">
@@ -1032,6 +1074,15 @@ superpage/
             <p>Browses products → selects variant → full checkout with shipping</p>
           </div>
         </div>
+        <div style="margin-top: 28px;">
+          <h3 style="color:var(--text);font-size:1.15rem;">First Tx in 90 Seconds</h3>
+          <table class="vs-table" style="margin-top:8px;font-size:0.9rem;">
+            <tr><td style="color:var(--text);width:48%;">1. Get test BTC</td><td>faucet.test.mezo.org</td></tr>
+            <tr><td style="color:var(--text);">2. Mint MockUSDC (open mint)</td><td>or borrow MUSD against BTC</td></tr>
+            <tr><td style="color:var(--text);">3. Buy a resource</td><td>Telegram / Claude / CLI</td></tr>
+            <tr><td style="color:var(--text);">4. Receipt verified</td><td>explorer.test.mezo.org</td></tr>
+          </table>
+        </div>
       </div>
       <div>
         <h3 style="color:var(--text);font-size:1.15rem;margin-bottom:16px;">Try It Now</h3>
@@ -1039,7 +1090,7 @@ superpage/
           <div class="link-card">
             <div class="link-label">Live Demo</div>
             <div style="font-weight:600;">superpa.ge</div>
-            <div class="link-url">Browse marketplace, connect wallet, mint test USDC</div>
+            <div class="link-url">Browse marketplace, connect wallet, mint test MUSD</div>
           </div>
           <div class="link-card">
             <div class="link-label">Telegram Bot</div>
@@ -1053,44 +1104,33 @@ superpage/
           </div>
           <div class="link-card">
             <div class="link-label">GitHub</div>
-            <div style="font-weight:600;">AIProjects402/superpage</div>
-            <div class="link-url">Full source code — MIT license</div>
+            <div style="font-weight:600;">TheSupermanish/superpage-mezo</div>
+            <div class="link-url">Full source — Mezo-only build</div>
           </div>
-        </div>
-        <div style="margin-top: 24px;">
-          <h3 style="color:var(--text);font-size:1.15rem;">Network Details</h3>
-          <table class="vs-table" style="margin-top:8px;">
-            <tr><td style="color:var(--text);">Network</td><td>Flow EVM Testnet</td></tr>
-            <tr><td style="color:var(--text);">Chain ID</td><td>545</td></tr>
-            <tr><td style="color:var(--text);">Currency</td><td>USDC (6 decimals)</td></tr>
-            <tr><td style="color:var(--text);">Block Time</td><td>~1 second</td></tr>
-          </table>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 13: Thank You -->
-  <div class="slide" id="slide-13">
-    <div style="text-align: center; max-width: 700px; margin: 0 auto;">
+  <!-- SLIDE 14: Thank You -->
+  <div class="slide" id="slide-14">
+    <div style="text-align: center; max-width: 720px; margin: 0 auto;">
       <img src="packages/frontend/public/logo.png" alt="SuperPage" style="width:100px;height:100px;margin-bottom:16px;">
       <h1 style="font-size: 3.5rem; margin-bottom: 16px;">
         <span class="gradient-text">SuperPage</span>
       </h1>
-      <p class="subtitle" style="font-size: 1.6rem;">The x402 Payment Skill for the Agent Internet</p>
+      <p class="subtitle" style="font-size: 1.6rem;">Bitcoin-Native Agent Commerce, on Mezo</p>
       <div class="big-quote" style="border:none;text-align:center;padding:0;font-size:1.4rem;margin:32px 0;">
-        Where AI agents and humans coexist as buyers and sellers.
+        Where AI agents and humans coexist as buyers and sellers — settled in BTC-backed MUSD.
       </div>
       <div style="margin: 40px 0;">
         <span class="tag tag-blue" style="font-size:1rem;padding:10px 20px;">superpa.ge</span>
         <span class="tag tag-purple" style="font-size:1rem;padding:10px 20px;">@HeySuperioBot</span>
+        <span class="tag tag-orange" style="font-size:1rem;padding:10px 20px;">Mezo matsnet</span>
         <span class="tag tag-green" style="font-size:1rem;padding:10px 20px;">GitHub</span>
       </div>
-      <p style="color:var(--text-dim);font-size:1.1rem;margin-top:24px;">
-        <span style="background:linear-gradient(135deg,#0052FF,#3B82F6);color:white;padding:6px 16px;border-radius:8px;font-weight:700;font-size:0.9rem;">Coinbase x402 Track Winner — SURGE x OpenClaw 2026</span>
-      </p>
-      <p style="color:var(--text-dim);font-size:1rem;margin-top:16px;">
-        Now targeting <strong style="color:var(--text);">PL Genesis Flow Hackathon</strong> — Flow Track + Existing Code + ERC-8004
+      <p style="color:var(--text-dim);font-size:1.05rem;margin-top:24px;">
+        Bitcoin-native via <strong style="color:var(--text);">Mezo</strong> — MUSD settlement, BTC gas, ERC-8004 identity, ~1s blocks
       </p>
       <div style="margin-top: 16px;">
         <span class="tag tag-blue">x402</span>
@@ -1104,7 +1144,7 @@ superpage/
 
 </div>
 
-<div class="slide-number" id="slideNum">1 / 13</div>
+<div class="slide-number" id="slideNum">1 / 14</div>
 <div class="nav-hint">← → arrow keys to navigate</div>
 
 <script>
