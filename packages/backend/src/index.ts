@@ -29,6 +29,11 @@ import { errorHandler } from "./middleware/errorHandler.js";
 const app = express();
 const PORT = process.env.PORT || 2337;
 
+// Trust the single reverse-proxy hop (Caddy) so express-rate-limit can read
+// the real client IP from X-Forwarded-For instead of throwing
+// ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set("trust proxy", 1);
+
 const corsOptions = {
   origin: [
     "http://localhost:1337", // superpage frontend
