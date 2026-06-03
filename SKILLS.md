@@ -239,21 +239,21 @@ const hash = await walletClient.writeContract({
 ## 🔑 Authentication Skills
 
 ### connect_wallet
-Authenticate using Ethereum wallet
-
-**Method:** `POST /api/auth/wallet`
+Authenticate using your wallet (nonce → sign → JWT)
 
 **Process:**
-1. Get nonce: `GET /api/auth/nonce?address={walletAddress}`
-2. Sign message with wallet
-3. Submit signature: `POST /api/auth/wallet`
+1. Get nonce: `POST /api/auth/nonce` with `{ "walletAddress": "0x..." }` → `{ nonce, message }`
+2. Sign the returned `message` with your wallet's private key
+3. Verify: `POST /api/auth/verify` with the body below → `{ token }`
+
+**Method:** `POST /api/auth/verify`
 
 **Body:**
 ```json
 {
-  "address": "0x...",
+  "walletAddress": "0x...",
   "signature": "0x...",
-  "message": "nonce_message"
+  "nonce": "nonce_from_step_1"
 }
 ```
 
