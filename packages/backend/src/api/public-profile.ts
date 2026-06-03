@@ -6,6 +6,7 @@
 
 import { Request, Response } from "express";
 import { Creator, Store, StoreProduct, Resource } from "../models/index.js";
+import { stripHtml } from "../utils/utils.js";
 
 /**
  * GET /@:username
@@ -81,7 +82,7 @@ export async function handleGetPublicProfile(req: Request, res: Response) {
           id: p.variantId,
           storeId: p.storeId,
           name: p.name,
-          description: p.description,
+          description: stripHtml(p.description),
           image: p.image,
           price: p.price,
           currency: p.currency,
@@ -154,7 +155,7 @@ export async function handleGetStorefront(req: Request, res: Response) {
         _id: p._id.toString(),
         id: p.variantId,
         name: p.name,
-        description: p.description,
+        description: stripHtml(p.description),
         image: p.image,
         price: p.price,
         currency: p.currency,

@@ -3,6 +3,7 @@ import { Store, StoreProduct, findStoreById } from "../models/index.js";
 import { ApiResponse } from "../middleware/response.js";
 import { asyncHandler, AppError } from "../middleware/errorHandler.js";
 import { AuthenticatedRequest } from "../api/wallet-auth.js";
+import { stripHtml } from "../utils/utils.js";
 
 /**
  * List all stores (public endpoint)
@@ -85,7 +86,7 @@ export const listAllStoreProducts = asyncHandler(async (req: Request, res: Respo
     id: p.variantId || p._id.toString(),
     storeId: p.storeId,
     name: p.name,
-    description: p.description || null,
+    description: stripHtml(p.description),
     image: p.image || null,
     price: p.price,
     currency: p.currency || "USD",

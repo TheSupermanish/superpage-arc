@@ -37,6 +37,27 @@ export function hashRequestBody(
   return crypto.createHash("sha256").update(normalized).digest("hex");
 }
 
+/**
+ * Strip HTML tags and decode common entities from a string.
+ * Shopify product descriptions arrive as `body_html` (e.g. "<p>A premium…</p>"),
+ * but the UI renders them as plain truncated text — so the raw tags leak through.
+ * Returns null for empty/nullish input so callers can keep `?? null` semantics.
+ */
+export function stripHtml(input: unknown): string | null {
+  if (input == null) return null;
+  const text = String(input)
+    .replace(/<[^>]*>/g, " ") // drop tags
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > 0 ? text : null;
+}
+
 export function normalizePriceString(price: any): string {
   const priceVal = price;
   const priceStr =

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Resource, Creator, Store, StoreProduct } from "../models/index.js";
 import { ApiResponse } from "../middleware/response.js";
 import { asyncHandler } from "../middleware/errorHandler.js";
+import { stripHtml } from "../utils/utils.js";
 
 /**
  * Get all data needed for the explore page
@@ -105,7 +106,7 @@ export const getExploreData = asyncHandler(async (req: Request, res: Response) =
     id: p.variantId || p._id.toString(),
     storeId: p.storeId,
     name: p.name,
-    description: p.description || null,
+    description: stripHtml(p.description),
     image: p.image || null,
     price: p.price,
     currency: p.currency || "USD",

@@ -4,8 +4,9 @@
     encode gzip
 
     # Backend API endpoints
+    # /@* covers public creator profiles + storefronts (GET /@:username[/store/:slug])
     @backend {
-        path /api/* /x402/* /a2a /.well-known/*
+        path /api/* /x402/* /a2a /.well-known/* /@*
     }
     handle @backend {
         reverse_proxy superpage:2337
