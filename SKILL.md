@@ -50,7 +50,7 @@ SUPERPAGE_SERVER=$SUPERPAGE_SERVER WALLET_PRIVATE_KEY=$WALLET_PRIVATE_KEY X402_C
 This is the most important command. It makes an HTTP request. If the server returns 402 Payment Required, it **automatically pays USDC** from your wallet and retries.
 
 ```bash
-SUPERPAGE_SERVER=$SUPERPAGE_SERVER WALLET_PRIVATE_KEY=$WALLET_PRIVATE_KEY X402_CHAIN=mezo-testnet X402_CURRENCY=MUSD node /Users/beyond/Desktop/projects/superpage/packages/mcp-client/superpage-x402.js request '{"url":"http://localhost:3001/x402/resource/SLUG-HERE"}'
+SUPERPAGE_SERVER=$SUPERPAGE_SERVER WALLET_PRIVATE_KEY=$WALLET_PRIVATE_KEY X402_CHAIN=mezo-testnet X402_CURRENCY=MUSD node /Users/beyond/Desktop/projects/superpage/packages/mcp-client/superpage-x402.js request '{"url":"https://superpa.ge/x402/resource/SLUG-HERE"}'
 ```
 
 Get the URL from `list-resources` output — use the `url` field directly.
@@ -105,7 +105,7 @@ SUPERPAGE_SERVER=$SUPERPAGE_SERVER WALLET_PRIVATE_KEY=$WALLET_PRIVATE_KEY X402_C
 
 ### User asks "get me the Weather API"
 1. Run `list-resources` to find the URL
-2. Run `request '{"url":"http://localhost:3001/x402/resource/weather-api"}'` → auto-pays and returns data
+2. Run `request '{"url":"https://superpa.ge/x402/resource/weather-api"}'` → auto-pays and returns data
 
 ### User asks "check my balance"
 1. Run `wallet` → show ETH and USDC balances

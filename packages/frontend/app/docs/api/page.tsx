@@ -30,7 +30,7 @@ export default function APIDocsPage() {
             </CardHeader>
             <CardContent>
               <code className="block px-6 py-4 bg-muted rounded-xl text-primary font-mono border border-border">
-                http://localhost:3001
+                https://superpa.ge
               </code>
               <p className="text-muted-foreground text-sm mt-4">
                 Replace with your production URL when deploying

@@ -67,7 +67,7 @@ pnpm install`} language="bash" />
         "/path/to/USDC/packages/mcp-client/superpage-x402.js"
       ],
       "env": {
-        "SUPERPAGE_SERVER": "http://localhost:3001",
+        "SUPERPAGE_SERVER": "https://superpa.ge",
         "WALLET_PRIVATE_KEY": "0xYourPrivateKey",
         "ETH_NETWORK": "mainnet",
         "MAX_AUTO_PAYMENT": "10.00"
@@ -161,7 +161,7 @@ class AIAgent {
 
   async discoverAPIs() {
     // Find available APIs
-    const response = await fetch('http://localhost:3001/x402/resources');
+    const response = await fetch('https://superpa.ge/x402/resources');
     const resources = await response.json();
     return resources.filter(r => r.type === 'API');
   }
@@ -218,7 +218,7 @@ await agent.run();`} />
 
 class ShoppingAgent {
   private x402: X402Client;
-  private apiUrl = 'http://localhost:3001';
+  private apiUrl = 'https://superpa.ge';
 
   constructor(privateKey: string) {
     this.x402 = new X402Client({

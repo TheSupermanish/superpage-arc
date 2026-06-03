@@ -240,7 +240,7 @@ const client = new X402Client({
 });
 
 const response = await client.fetch(
-  'http://localhost:3001/x402/eth/store/STORE_ID/product/PRODUCT_ID',
+  'https://superpa.ge/x402/eth/store/STORE_ID/product/PRODUCT_ID',
   {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

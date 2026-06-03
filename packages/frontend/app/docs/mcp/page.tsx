@@ -111,7 +111,7 @@ pnpm install`} language="bash" />
         "/absolute/path/to/USDC/packages/mcp-client/superpage-x402.js"
       ],
       "env": {
-        "SUPERPAGE_SERVER": "http://localhost:3001",
+        "SUPERPAGE_SERVER": "https://superpa.ge",
         "WALLET_PRIVATE_KEY": "0xYourPrivateKeyHere",
         "ETH_NETWORK": "mainnet",
         "MAX_AUTO_PAYMENT": "10.00"
@@ -140,7 +140,7 @@ pnpm install`} language="bash" />
                 <div className="border-l-4 border-primary pl-4">
                   <h4 className="font-bold text-foreground mb-2">SUPERPAGE_SERVER</h4>
                   <p className="text-muted-foreground mb-1">URL of your x402 backend server</p>
-                  <code className="text-sm bg-muted px-2 py-1 rounded">http://localhost:3001</code>
+                  <code className="text-sm bg-muted px-2 py-1 rounded">https://superpa.ge</code>
                 </div>
 
                 <div className="border-l-4 border-primary pl-4">

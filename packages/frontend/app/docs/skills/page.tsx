@@ -76,7 +76,7 @@ export default function SkillsPage() {
             <p className="text-sm text-muted-foreground">
               <code className="bg-muted px-2 py-0.5 rounded text-foreground">GET /api/explore</code> &mdash; Get an overview of everything available on SuperPage.
             </p>
-            <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">{`curl http://localhost:3001/api/explore
+            <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">{`curl https://superpa.ge/api/explore
 
 // Response
 {
@@ -108,7 +108,7 @@ export default function SkillsPage() {
                 <li><code className="bg-muted px-1 rounded">limit</code> &mdash; Number of results (default: 50)</li>
               </ul>
             </div>
-            <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">{`curl http://localhost:3001/x402/resources?type=api&limit=10`}</pre>
+            <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">{`curl https://superpa.ge/x402/resources?type=api&limit=10`}</pre>
           </CardContent>
         </Card>
       </section>
@@ -163,13 +163,13 @@ export default function SkillsPage() {
               </div>
             </div>
             <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">{`# Step 1: Request resource
-curl http://localhost:3001/x402/resource/premium-api
+curl https://superpa.ge/x402/resource/premium-api
 # Returns: 402 Payment Required with payment details
 
 # Step 2: Send USDC payment on-chain (via viem/ethers)
 
 # Step 3: Access resource with payment proof
-curl http://localhost:3001/x402/resource/premium-api \\
+curl https://superpa.ge/x402/resource/premium-api \\
   -H "X-Payment-Hash: 0x..."
 # Returns: Resource content`}</pre>
           </CardContent>
@@ -300,7 +300,7 @@ const usdcBalance = await publicClient.readContract({
           </CardHeader>
           <CardContent>
             <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">{`// 1. Discover available APIs
-const resources = await fetch('http://localhost:3001/x402/resources?type=api')
+const resources = await fetch('https://superpa.ge/x402/resources?type=api')
 const apis = await resources.json()
 
 // 2. Select an API

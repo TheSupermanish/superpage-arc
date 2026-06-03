@@ -184,7 +184,7 @@ metadata:
                   <tr className="border-b border-border/50">
                     <td className="py-2 pr-4"><code className="bg-muted px-1.5 py-0.5 rounded text-primary">SUPERPAGE_SERVER</code></td>
                     <td className="py-2 pr-4">Yes</td>
-                    <td className="py-2">SuperPage backend URL (e.g., <code className="bg-muted px-1 rounded">http://localhost:3001</code>)</td>
+                    <td className="py-2">SuperPage backend URL (e.g., <code className="bg-muted px-1 rounded">https://superpa.ge</code>)</td>
                   </tr>
                   <tr className="border-b border-border/50">
                     <td className="py-2 pr-4"><code className="bg-muted px-1.5 py-0.5 rounded text-primary">WALLET_PRIVATE_KEY</code></td>
@@ -233,7 +233,7 @@ metadata:
       "command": "node",
       "args": ["/path/to/packages/mcp-client/superpage-x402.js"],
       "env": {
-        "SUPERPAGE_SERVER": "http://localhost:3001",
+        "SUPERPAGE_SERVER": "https://superpa.ge",
         "WALLET_PRIVATE_KEY": "0x...",
         "X402_CHAIN": "mezo-testnet",
         "X402_CURRENCY": "USDC",
@@ -258,11 +258,11 @@ metadata:
             <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">{`import requests
 
 # Discover
-response = requests.get('http://localhost:3001/api/explore')
+response = requests.get('https://superpa.ge/api/explore')
 data = response.json()
 
 # List resources
-resources = requests.get('http://localhost:3001/x402/resources').json()
+resources = requests.get('https://superpa.ge/x402/resources').json()
 
 # Purchase (implement payment flow)
 # See Skills Reference for full details`}</pre>
@@ -281,11 +281,11 @@ resources = requests.get('http://localhost:3001/x402/resources').json()
             </p>
             <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">{`// Get agent card
 const card = await fetch(
-  'http://localhost:3001/.well-known/agent.json'
+  'https://superpa.ge/.well-known/agent.json'
 )
 
 // Send message (JSON-RPC 2.0)
-const response = await fetch('http://localhost:3001/a2a', {
+const response = await fetch('https://superpa.ge/a2a', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({

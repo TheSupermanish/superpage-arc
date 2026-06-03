@@ -2,7 +2,7 @@
 
 SuperPage is an AI-native marketplace where agents can discover, purchase, and access digital resources and physical products using cryptocurrency payments.
 
-**Base URL:** `http://localhost:3001` (local) | `http://20.168.79.130` (production)
+**Base URL:** `https://superpa.ge` (production) | `http://localhost:2337` (local dev)
 
 **Payment:** MUSD on Mezo Testnet/matsnet (chain ID 31611)
 
@@ -54,7 +54,7 @@ Browse all available digital resources
 
 **Example:**
 ```bash
-curl http://localhost:3001/x402/resources?type=api&limit=10
+curl https://superpa.ge/x402/resources?type=api&limit=10
 ```
 
 ### list_stores
@@ -102,7 +102,7 @@ View a creator's profile and their offerings
 
 **Example:**
 ```bash
-curl http://localhost:3001/@skill-master
+curl https://superpa.ge/@skill-master
 ```
 
 ---
@@ -135,14 +135,14 @@ Buy access to a digital resource (API, file, or article)
 **Example Flow:**
 ```bash
 # Step 1: Request resource
-curl http://localhost:3001/x402/resource/premium-api
+curl https://superpa.ge/x402/resource/premium-api
 # Returns: 402 Payment Required with payment details
 
 # Step 2: Send USDC payment on-chain
 # (Use viem/ethers to send USDC transfer)
 
 # Step 3: Access resource with payment proof
-curl http://localhost:3001/x402/resource/premium-api \
+curl https://superpa.ge/x402/resource/premium-api \
   -H "X-Payment-Hash: 0x..."
 # Returns: Resource content
 ```
@@ -415,14 +415,14 @@ Standard HTTP status codes:
 ### Workflow 1: Discover and Purchase API Access
 ```javascript
 // 1. Discover available APIs
-const resources = await fetch('http://localhost:3001/x402/resources?type=api')
+const resources = await fetch('https://superpa.ge/x402/resources?type=api')
 const apis = await resources.json()
 
 // 2. Select an API
 const weatherAPI = apis.resources.find(r => r.name.includes('Weather'))
 
 // 3. Request access (get payment requirements)
-const response = await fetch(`http://localhost:3001/x402/resource/${weatherAPI.id}`)
+const response = await fetch(`https://superpa.ge/x402/resource/${weatherAPI.id}`)
 // Returns 402 with payment details
 
 // 4. Pay with USDC
@@ -430,7 +430,7 @@ const hash = await sendUSDC(paymentDetails.recipient, paymentDetails.amount)
 
 // 5. Access API with payment proof
 const data = await fetch(
-  `http://localhost:3001/x402/resource/${weatherAPI.id}`,
+  `https://superpa.ge/x402/resource/${weatherAPI.id}`,
   { headers: { 'X-Payment-Hash': hash } }
 )
 ```
@@ -438,13 +438,13 @@ const data = await fetch(
 ### Workflow 2: Browse and Buy Product
 ```javascript
 // 1. List available stores
-const stores = await fetch('http://localhost:3001/x402/stores')
+const stores = await fetch('https://superpa.ge/x402/stores')
 
 // 2. Browse products
-const products = await fetch('http://localhost:3001/x402/store-products?limit=20')
+const products = await fetch('https://superpa.ge/x402/store-products?limit=20')
 
 // 3. Purchase product
-const order = await fetch('http://localhost:3001/x402/purchase/product', {
+const order = await fetch('https://superpa.ge/x402/purchase/product', {
   method: 'POST',
   body: JSON.stringify({
     productId: selectedProduct.id,
@@ -492,7 +492,7 @@ Add to `claude_desktop_config.json`:
       "command": "node",
       "args": ["/path/to/packages/mcp-client/superpage-x402.js"],
       "env": {
-        "SUPERPAGE_SERVER": "http://localhost:3001",
+        "SUPERPAGE_SERVER": "https://superpa.ge",
         "WALLET_PRIVATE_KEY": "0x...",
         "X402_CHAIN": "mezo-testnet",
         "X402_CURRENCY": "MUSD",
@@ -508,11 +508,11 @@ Add to `claude_desktop_config.json`:
 import requests
 
 # Discover
-response = requests.get('http://localhost:3001/api/explore')
+response = requests.get('https://superpa.ge/api/explore')
 data = response.json()
 
 # List resources
-resources = requests.get('http://localhost:3001/x402/resources').json()
+resources = requests.get('https://superpa.ge/x402/resources').json()
 
 # Purchase (implement payment flow)
 ```
@@ -520,10 +520,10 @@ resources = requests.get('http://localhost:3001/x402/resources').json()
 ### Using A2A Protocol (Agent-to-Agent)
 ```javascript
 // Get agent card
-const card = await fetch('http://localhost:3001/.well-known/agent.json')
+const card = await fetch('https://superpa.ge/.well-known/agent.json')
 
 // Send message
-const response = await fetch('http://localhost:3001/a2a', {
+const response = await fetch('https://superpa.ge/a2a', {
   method: 'POST',
   body: JSON.stringify({
     jsonrpc: '2.0',

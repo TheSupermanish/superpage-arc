@@ -57,7 +57,7 @@ app.get('/api/weather',
 );
 
 app.listen(3001, () => {
-  console.log('Server running on http://localhost:3001');
+  console.log('Server running on https://superpa.ge');
 });`} />
               </div>
 
@@ -75,7 +75,7 @@ const client = new X402Client({
 });
 
 async function getWeather() {
-  const response = await client.fetch('http://localhost:3001/api/weather');
+  const response = await client.fetch('https://superpa.ge/api/weather');
   const weather = await response.json();
 
   console.log('Weather:', weather);
