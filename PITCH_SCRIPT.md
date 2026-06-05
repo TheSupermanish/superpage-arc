@@ -31,7 +31,7 @@ Deck = **10 main slides** + a 4-slide appendix for Q&A. Open fullscreen, drive w
 > "It previews **0.05 MUSD**, I confirm — it pays on-chain and returns the data." **(Show tx → click to Mezo explorer.)** "Real money. Real chain. Confirmed in about a second. No card, no account, no human."
 
 ### [2:45–2:55] — Slide 9 (Why us)
-> "[**Your one-liner — Coinbase grant, prior wins**], finalists here, first agent economy on Mezo — and all of it shipped and verifiable on-chain today."
+> "I'm Manish — **Coinbase grant recipient**, and SuperPage is the **first agent economy on Mezo**. Everything I just showed is shipped and verifiable on-chain today."
 
 ### [2:55–3:00] — Slide 10 (Close)
 > "SuperPage. The agent economy, settled in Bitcoin. Live at **superpa.ge**."
