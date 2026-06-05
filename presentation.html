@@ -50,7 +50,7 @@
     display: none;
     flex-direction: column;
     justify-content: center;
-    padding: 60px 80px;
+    padding: 44px 80px;
     opacity: 0;
   }
 
@@ -98,6 +98,19 @@
   @keyframes popIn {
     from { opacity: 0; transform: translateY(10px) scale(0.97); }
     to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Appendix slides — shown after the main pitch, for Q&A */
+  .slide.appendix::before {
+    content: "APPENDIX · FOR Q&A";
+    position: absolute;
+    top: 30px;
+    left: 80px;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    color: var(--text-dim);
+    opacity: 0.55;
   }
 
   /* Top progress bar */
@@ -991,20 +1004,6 @@ Here's the data: { temp: 72 }
         <p>Tx hash, amount, timestamp, recipient — everything logged and verifiable on Mezo Explorer.</p>
       </div>
     </div>
-    <div style="margin-top: 32px;">
-      <div class="code-block" style="font-size: 0.9rem; max-width: 660px;">
-<span class="comment">// Every transaction receipt includes:</span>
-{
-  <span class="string">"txHash"</span>:    <span class="string">"0x9eab1d..."</span>,
-  <span class="string">"amount"</span>:    <span class="string">"0.50 MUSD"</span>,
-  <span class="string">"to"</span>:        <span class="string">"0x5163..."</span>,
-  <span class="string">"network"</span>:   <span class="string">"mezo-testnet"</span>,
-  <span class="string">"chainId"</span>:   <span class="number">31611</span>,
-  <span class="string">"verified"</span>:  <span class="keyword">true</span>,
-  <span class="string">"timestamp"</span>: <span class="number">1748259780</span>
-}
-      </div>
-    </div>
   </div>
 
   <!-- SLIDE 11: Tech Stack -->
@@ -1061,7 +1060,7 @@ superpage/
     <h3>Already Shipped</h3>
     <h2>Live on Mezo matsnet</h2>
     <p style="max-width: 760px; margin-bottom: 24px;">
-      SuperPage isn't a slide — it's deployed. ERC-8004 identity / reputation / validation registries and a MockUSDC test token are live on Mezo Testnet (matsnet), wired into the SDK, backend, frontend, MCP client, and AI agent.
+      Not a slide — deployed. ERC-8004 identity / reputation / validation registries + a MockUSDC token are live on Mezo testnet, wired through the SDK, backend, frontend, MCP, and agent.
     </p>
     <div class="grid-2" style="margin-top: 16px;">
       <div>
@@ -1086,8 +1085,6 @@ superpage/
           <tr><td style="color:var(--text);">Chain ID</td><td>31611 (<code>0x7b7b</code>)</td></tr>
           <tr><td style="color:var(--text);">Native gas</td><td>BTC (18 decimals)</td></tr>
           <tr><td style="color:var(--text);">Payment token</td><td>MUSD (18 dec, BTC-backed)</td></tr>
-          <tr><td style="color:var(--text);">RPC</td><td>rpc.test.mezo.org</td></tr>
-          <tr><td style="color:var(--text);">Faucet</td><td>faucet.test.mezo.org</td></tr>
           <tr><td style="color:var(--text);">Block time</td><td>~1 second (Ignite)</td></tr>
           <tr><td style="color:var(--text);">Mainnet ID</td><td>31612 (<code>0x7b7c</code>) — same configs apply</td></tr>
         </table>
@@ -1134,15 +1131,6 @@ superpage/
             <p>Browses products → selects variant → full checkout with shipping</p>
           </div>
         </div>
-        <div style="margin-top: 28px;">
-          <h3 style="color:var(--text);font-size:1.15rem;">First Tx in 90 Seconds</h3>
-          <table class="vs-table" style="margin-top:8px;font-size:0.9rem;">
-            <tr><td style="color:var(--text);width:48%;">1. Get test BTC</td><td>faucet.test.mezo.org</td></tr>
-            <tr><td style="color:var(--text);">2. Mint MockUSDC (open mint)</td><td>or borrow MUSD against BTC</td></tr>
-            <tr><td style="color:var(--text);">3. Buy a resource</td><td>Telegram / Claude / CLI</td></tr>
-            <tr><td style="color:var(--text);">4. Receipt verified</td><td>explorer.test.mezo.org</td></tr>
-          </table>
-        </div>
       </div>
       <div>
         <h3 style="color:var(--text);font-size:1.15rem;margin-bottom:16px;">Proof — On-Chain, Right Now</h3>
@@ -1169,11 +1157,6 @@ superpage/
             <div class="link-label">Three live surfaces</div>
             <div style="font-weight:600;">Web · Claude Desktop · Telegram</div>
             <div class="link-url">superpa.ge · MCP (12 tools) · @HeySuperioBot</div>
-          </div>
-          <div class="link-card">
-            <div class="link-label">Agent discovery & source</div>
-            <div style="font-weight:600;">/.well-known/agent.json · GitHub</div>
-            <div class="link-url">A2A card + ERC-8004 registration · TheSupermanish/superpage-mezo</div>
           </div>
         </div>
       </div>
@@ -1256,19 +1239,42 @@ superpage/
 <div class="nav-hint">← → arrow keys to navigate</div>
 
 <script>
-  const slides = document.querySelectorAll('.slide');
+  // Presentation order: a tight 10-slide main flow for the 3-minute pitch,
+  // followed by an appendix (kept for Q&A) of the deeper protocol/architecture slides.
+  const MAIN = ['slide-1', 'slide-2', 'slide-3', 'slide-4', 'slide-5', 'slide-10', 'slide-12', 'slide-13', 'slide-traction', 'slide-14'];
+  const APPENDIX = ['slide-6', 'slide-7', 'slide-8', 'slide-9', 'slide-11'];
+  const ORDER = [...MAIN, ...APPENDIX];
+
+  // Reorder the DOM to match ORDER (navigation is DOM-order based).
+  const deck = document.querySelector('.deck');
+  ORDER.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) deck.appendChild(el);
+  });
+  APPENDIX.forEach((id) => document.getElementById(id)?.classList.add('appendix'));
+
+  const slides = Array.from(deck.querySelectorAll('.slide'));
   const slideNum = document.getElementById('slideNum');
   const progressBar = document.getElementById('progressBar');
+  const mainCount = MAIN.length;
   let current = 0;
-  const total = slides.length;
+
+  // Start clean: only the first slide active.
+  slides.forEach((s) => s.classList.remove('active'));
+  slides[0].classList.add('active');
 
   function render() {
-    slideNum.textContent = `${current + 1} / ${total}`;
-    progressBar.style.width = `${((current + 1) / total) * 100}%`;
+    if (current < mainCount) {
+      slideNum.textContent = `${current + 1} / ${mainCount}`;
+      progressBar.style.width = `${((current + 1) / mainCount) * 100}%`;
+    } else {
+      slideNum.textContent = `Appendix ${current - mainCount + 1} / ${slides.length - mainCount}`;
+      progressBar.style.width = `100%`;
+    }
   }
 
   function goTo(n) {
-    if (n < 0 || n >= total) return;
+    if (n < 0 || n >= slides.length) return;
     slides[current].classList.remove('active');
     current = n;
     slides[current].classList.add('active');
