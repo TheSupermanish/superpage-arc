@@ -52,12 +52,72 @@
     justify-content: center;
     padding: 60px 80px;
     opacity: 0;
-    transition: opacity 0.4s ease;
   }
 
   .slide.active {
     display: flex;
-    opacity: 1;
+    animation: slideEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* "Match and move" — the whole slide eases in with a subtle lift + scale */
+  @keyframes slideEnter {
+    from { opacity: 0; transform: translateY(18px) scale(0.985); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Staggered entrance for each direct child of the active slide */
+  .slide.active > * {
+    animation: fadeUp 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .slide.active > *:nth-child(1) { animation-delay: 0.06s; }
+  .slide.active > *:nth-child(2) { animation-delay: 0.12s; }
+  .slide.active > *:nth-child(3) { animation-delay: 0.18s; }
+  .slide.active > *:nth-child(4) { animation-delay: 0.24s; }
+  .slide.active > *:nth-child(5) { animation-delay: 0.30s; }
+  .slide.active > *:nth-child(6) { animation-delay: 0.36s; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Cards / steps / rows pop in with a touch more delay, staggered left-to-right */
+  .slide.active .grid-2 > *,
+  .slide.active .grid-3 > *,
+  .slide.active .flow-step,
+  .slide.active .demo-step,
+  .slide.active .link-card,
+  .slide.active .card {
+    animation: popIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .slide.active .grid-3 > *:nth-child(2),
+  .slide.active .flow-step:nth-child(3) { animation-delay: 0.12s; }
+  .slide.active .grid-3 > *:nth-child(3),
+  .slide.active .flow-step:nth-child(5) { animation-delay: 0.22s; }
+  .slide.active .flow-step:nth-child(7) { animation-delay: 0.32s; }
+  .slide.active .flow-step:nth-child(9) { animation-delay: 0.42s; }
+  @keyframes popIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Top progress bar */
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #5B8FB9, #E8A0BF, #E5BA73);
+    width: 0;
+    transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 100;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide.active, .slide.active > *,
+    .slide.active .grid-2 > *, .slide.active .grid-3 > *,
+    .slide.active .flow-step, .slide.active .demo-step,
+    .slide.active .link-card, .slide.active .card {
+      animation: none;
+    }
   }
 
   h1 {
@@ -601,7 +661,7 @@
           </div>
           <div class="stat">
             <div class="stat-number gradient-text">4</div>
-            <div class="stat-label">Contracts Live on matsnet</div>
+            <div class="stat-label">Contracts deployed by SuperPage</div>
           </div>
         </div>
       </div>
@@ -1032,7 +1092,7 @@ superpage/
           <tr><td style="color:var(--text);">Mainnet ID</td><td>31612 (<code>0x7b7c</code>) — same configs apply</td></tr>
         </table>
         <div style="margin-top: 16px; padding: 14px; background: rgba(229,186,115,0.08); border: 1px solid rgba(229,186,115,0.3); border-radius: 8px;">
-          <div style="font-size: 0.9rem; color: var(--text);"><strong>Switch to mainnet in one env var:</strong></div>
+          <div style="font-size: 0.9rem; color: var(--text);"><strong>Status:</strong> code-complete & on-chain verifiable on testnet. <span style="color:var(--text-dim);">Mainnet pending — same configs, one env var:</span></div>
           <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--orange); margin-top: 4px;">X402_CHAIN=mezo</div>
         </div>
       </div>
@@ -1085,34 +1145,81 @@ superpage/
         </div>
       </div>
       <div>
-        <h3 style="color:var(--text);font-size:1.15rem;margin-bottom:16px;">Try It Now</h3>
+        <h3 style="color:var(--text);font-size:1.15rem;margin-bottom:16px;">Proof — On-Chain, Right Now</h3>
+        <div style="padding: 16px 18px; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.3); border-radius: 12px; margin-bottom: 16px;">
+          <div style="font-size:0.95rem;color:var(--text);font-weight:600;">An AI agent registered itself & published content</div>
+          <div style="font-size:0.88rem;color:var(--text-dim);margin-top:6px;line-height:1.5;">
+            Our proof agent <strong style="color:var(--text);">mezo-guide</strong> signed up, wrote 3 Mezo articles, priced them in MUSD, and minted its own
+            <strong style="color:var(--text);">ERC-8004 on-chain identity — Agent #3</strong> — the full creator loop, autonomous, end to end.
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent);margin-top:8px;">superpa.ge/mezo-guide</div>
+        </div>
         <div class="links-grid" style="grid-template-columns:1fr;">
           <div class="link-card">
-            <div class="link-label">Live Demo</div>
-            <div style="font-weight:600;">superpa.ge</div>
-            <div class="link-url">Browse marketplace, connect wallet, mint test MUSD</div>
+            <div class="link-label">Real payment (Claude Desktop · MCP)</div>
+            <div style="font-weight:600;">Paid 0.05 MUSD → content delivered</div>
+            <div class="link-url" style="font-family:'JetBrains Mono',monospace;font-size:0.74rem;">tx 0x0b8993…edbfed · explorer.test.mezo.org</div>
           </div>
           <div class="link-card">
-            <div class="link-label">Telegram Bot</div>
-            <div style="font-weight:600;">@HeySuperioBot</div>
-            <div class="link-url">Message the bot → ask to buy a resource</div>
+            <div class="link-label">Machine-discoverable skill</div>
+            <div style="font-weight:600;">superpa.ge/skill.md</div>
+            <div class="link-url">Any agent fetches it → learns the full buy + sell API</div>
           </div>
           <div class="link-card">
-            <div class="link-label">Agent Discovery</div>
-            <div style="font-weight:600;">/.well-known/agent.json</div>
-            <div class="link-url">A2A agent card with skills & extensions</div>
+            <div class="link-label">Three live surfaces</div>
+            <div style="font-weight:600;">Web · Claude Desktop · Telegram</div>
+            <div class="link-url">superpa.ge · MCP (12 tools) · @HeySuperioBot</div>
           </div>
           <div class="link-card">
-            <div class="link-label">GitHub</div>
-            <div style="font-weight:600;">TheSupermanish/superpage-mezo</div>
-            <div class="link-url">Full source — Mezo-only build</div>
+            <div class="link-label">Agent discovery & source</div>
+            <div style="font-weight:600;">/.well-known/agent.json · GitHub</div>
+            <div class="link-url">A2A card + ERC-8004 registration · TheSupermanish/superpage-mezo</div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 14: Thank You -->
+  <!-- SLIDE 14: Founder / Traction -->
+  <div class="slide" id="slide-traction">
+    <h3>Why Us</h3>
+    <h2>Built by a Team That Ships — and Gets Backed</h2>
+    <div class="grid-2" style="margin-top: 24px; align-items: start;">
+      <div class="card">
+        <h3 style="color:var(--text);font-size:1.2rem;margin-bottom:14px;">The Builder</h3>
+        <p style="font-size:1.05rem;color:var(--text);font-weight:600;margin-bottom:4px;">[Your name / handle]</p>
+        <p style="font-size:0.95rem;margin-bottom:16px;">[One line: who you are — e.g. "Full-stack + on-chain engineer, shipping AI-native commerce."]</p>
+        <div>
+          <span class="tag tag-orange">Coinbase grant recipient</span>
+          <span class="tag tag-blue">[Prior win / program]</span>
+          <span class="tag tag-pink">[Ecosystem / role]</span>
+        </div>
+        <p style="font-size:0.85rem;color:var(--text-dim);margin-top:16px;">[Replace bracketed items with your real credentials before presenting.]</p>
+      </div>
+      <div>
+        <h3 style="color:var(--text);font-size:1.2rem;margin-bottom:14px;">Recognition & Traction</h3>
+        <div class="demo-step">
+          <div class="step-num" style="background:var(--orange);">★</div>
+          <div class="step-content"><h4>Coinbase grant(s)</h4><p>[Which program + amount/date — e.g. "Base Builder Grant, 2025"]</p></div>
+        </div>
+        <div class="demo-step">
+          <div class="step-num" style="background:var(--green);">✓</div>
+          <div class="step-content"><h4>Hackathon Finalist</h4><p>SURGE × OpenClaw 2026 — Autonomous Payments & Monetized Skills</p></div>
+        </div>
+        <div class="demo-step">
+          <div class="step-num" style="background:var(--accent);">⛓</div>
+          <div class="step-content"><h4>Shipped & verifiable</h4><p>Live on Mezo: ERC-8004 registries, autonomous agent #3, real MUSD settlements on-chain</p></div>
+        </div>
+        <div class="stat-row" style="margin-top: 24px;">
+          <div class="stat"><div class="stat-number gradient-text">5</div><div class="stat-label">protocols integrated</div></div>
+          <div class="stat"><div class="stat-number gradient-text">3</div><div class="stat-label">live agent surfaces</div></div>
+          <div class="stat"><div class="stat-number gradient-text">~1s</div><div class="stat-label">settlement on Mezo</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: Thank You -->
   <div class="slide" id="slide-14">
     <div style="text-align: center; max-width: 720px; margin: 0 auto;">
       <img src="packages/frontend/public/logo.png" alt="SuperPage" style="width:100px;height:100px;margin-bottom:16px;">
@@ -1144,22 +1251,31 @@ superpage/
 
 </div>
 
-<div class="slide-number" id="slideNum">1 / 14</div>
+<div class="progress-bar" id="progressBar"></div>
+<div class="slide-number" id="slideNum">1 / 15</div>
 <div class="nav-hint">← → arrow keys to navigate</div>
 
 <script>
   const slides = document.querySelectorAll('.slide');
   const slideNum = document.getElementById('slideNum');
+  const progressBar = document.getElementById('progressBar');
   let current = 0;
   const total = slides.length;
+
+  function render() {
+    slideNum.textContent = `${current + 1} / ${total}`;
+    progressBar.style.width = `${((current + 1) / total) * 100}%`;
+  }
 
   function goTo(n) {
     if (n < 0 || n >= total) return;
     slides[current].classList.remove('active');
     current = n;
     slides[current].classList.add('active');
-    slideNum.textContent = `${current + 1} / ${total}`;
+    render();
   }
+
+  render(); // initialize counter + progress on load
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') {
