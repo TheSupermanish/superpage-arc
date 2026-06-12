@@ -4,13 +4,14 @@ import { ReactNode, useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
 import { RainbowKitProvider, getDefaultConfig, darkTheme } from "@rainbow-me/rainbowkit";
-import { mezoMainnet, mezoTestnet } from "@/lib/chains";
+import { arcTestnet, mezoMainnet, mezoTestnet } from "@/lib/chains";
 import "@rainbow-me/rainbowkit/styles.css";
 
 const queryClient = new QueryClient();
 
 const supportedChains = [
-  mezoTestnet, // Default: Mezo Testnet (matsnet) — x402 payment chain
+  arcTestnet, // Default: Arc Testnet (Circle L1) — x402 payment chain, USDC gas
+  mezoTestnet, // Mezo Testnet (matsnet)
   mezoMainnet, // Mezo Mainnet (Bitcoin economic layer L2)
 ] as const;
 
@@ -46,7 +47,7 @@ export function EthereumWalletProvider({ children }: EthereumWalletProviderProps
             accentColorForeground: "white",
             borderRadius: "medium",
           })}
-          initialChain={mezoTestnet}
+          initialChain={arcTestnet}
         >
           {mounted ? children : null}
         </RainbowKitProvider>

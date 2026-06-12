@@ -62,7 +62,7 @@ const makePaymentTool = defineTool({
   inputSchema: z.object({
     recipientAddress: z.string().describe("EVM wallet address to send tokens to (0x...)"),
     amount: z.string().describe("Amount in base units (e.g., 1000000000000000 for 0.001 MUSD with 18 decimals)"),
-    network: z.string().optional().describe("Network ID (e.g. mezo, mezo-testnet). Defaults to configured network."),
+    network: z.string().optional().describe("Network ID (e.g. arc-testnet, mezo). Defaults to configured network."),
     token: z.string().optional().describe("Token symbol: MUSD, BTC. Defaults to MUSD."),
   }),
   handler: async ({ recipientAddress, amount, network: networkArg, token: tokenArg }) => {

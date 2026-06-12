@@ -191,7 +191,7 @@ const finalizeCheckoutTool = defineTool({
     }),
     paymentProof: z.object({
       transactionHash: z.string().describe("EVM transaction hash (0x...)"),
-      network: z.string().describe("Network ID (e.g. mezo-testnet, mezo)"),
+      network: z.string().describe("Network ID (e.g. arc-testnet, mezo)"),
       chainId: z.number().optional().describe("Chain ID of the network"),
       timestamp: z.number().describe("Unix timestamp of payment"),
     }),

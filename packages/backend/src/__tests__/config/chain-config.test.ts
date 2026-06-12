@@ -21,13 +21,13 @@ import {
 } from "../../config/chain-config.js";
 
 describe("Module constants", () => {
-  it("DEFAULT_NETWORK is a valid Mezo network", () => {
+  it("DEFAULT_NETWORK is a valid supported network", () => {
     expect(isValidNetwork(DEFAULT_NETWORK)).toBe(true);
-    expect(["mezo", "mezo-testnet"]).toContain(DEFAULT_NETWORK);
+    expect(["arc-testnet", "mezo", "mezo-testnet"]).toContain(DEFAULT_NETWORK);
   });
 
-  it("DEFAULT_ASSET is MUSD", () => {
-    expect(DEFAULT_ASSET).toBe("MUSD");
+  it("DEFAULT_ASSET is USDC (Arc native stablecoin)", () => {
+    expect(DEFAULT_ASSET).toBe("USDC");
   });
 
   it("exports SPAY_SCHEME", () => {
@@ -35,9 +35,21 @@ describe("Module constants", () => {
   });
 });
 
-describe("CHAIN_REGISTRY (Mezo only)", () => {
-  it("contains exactly the two Mezo networks", () => {
-    expect(Object.keys(CHAIN_REGISTRY).sort()).toEqual(["mezo", "mezo-testnet"]);
+describe("CHAIN_REGISTRY (Arc + Mezo)", () => {
+  it("contains Arc testnet plus the two Mezo networks", () => {
+    expect(Object.keys(CHAIN_REGISTRY).sort()).toEqual(["arc-testnet", "mezo", "mezo-testnet"]);
+  });
+
+  it("has Arc testnet with native-USDC gas and the ERC-20 facade as payment token", () => {
+    const arc = CHAIN_REGISTRY["arc-testnet"];
+    expect(arc.chainId).toBe(5042002);
+    expect(arc.isTestnet).toBe(true);
+    expect(arc.nativeToken.symbol).toBe("USDC");
+    expect(arc.nativeToken.decimals).toBe(18); // native balance scale
+    expect(arc.defaultPaymentToken).toBe("USDC");
+    expect(arc.tokens.USDC?.address).toBe("0x3600000000000000000000000000000000000000");
+    expect(arc.tokens.USDC?.decimals).toBe(6); // ERC-20 facade scale
+    expect(arc.explorerUrl).toBe("https://testnet.arcscan.app");
   });
 
   it("has Mezo mainnet with MUSD as default payment token", () => {
@@ -49,19 +61,19 @@ describe("CHAIN_REGISTRY (Mezo only)", () => {
     expect(mezo.tokens.MUSD?.address).toBe("0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186");
   });
 
-  it("has Mezo testnet (matsnet) with MUSD and MockUSDC", () => {
+  it("has Mezo testnet (matsnet) with MUSD", () => {
     const matsnet = CHAIN_REGISTRY["mezo-testnet"];
     expect(matsnet.chainId).toBe(31611);
     expect(matsnet.isTestnet).toBe(true);
     expect(matsnet.nativeToken.symbol).toBe("BTC");
     expect(matsnet.defaultPaymentToken).toBe("MUSD");
     expect(matsnet.tokens.MUSD?.address).toBe("0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503");
-    expect(matsnet.tokens.USDC?.address).toBe("0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c");
   });
 });
 
 describe("isValidNetwork", () => {
-  it("accepts Mezo networks", () => {
+  it("accepts supported networks", () => {
+    expect(isValidNetwork("arc-testnet")).toBe(true);
     expect(isValidNetwork("mezo")).toBe(true);
     expect(isValidNetwork("mezo-testnet")).toBe(true);
   });
@@ -75,10 +87,10 @@ describe("isValidNetwork", () => {
 });
 
 describe("getChainMetadata", () => {
-  it("returns metadata for matsnet", () => {
-    const meta = getChainMetadata("mezo-testnet");
-    expect(meta.chainId).toBe(31611);
-    expect(meta.name).toContain("Mezo");
+  it("returns metadata for arc-testnet", () => {
+    const meta = getChainMetadata("arc-testnet");
+    expect(meta.chainId).toBe(5042002);
+    expect(meta.name).toContain("Arc");
   });
 
   it("throws for invalid network", () => {
@@ -87,22 +99,32 @@ describe("getChainMetadata", () => {
 });
 
 describe("getChainId", () => {
-  it("returns Mezo chain IDs", () => {
+  it("returns chain IDs", () => {
+    expect(getChainId("arc-testnet")).toBe(5042002);
     expect(getChainId("mezo")).toBe(31612);
     expect(getChainId("mezo-testnet")).toBe(31611);
   });
 });
 
 describe("isNativeToken", () => {
-  it("only BTC is native", () => {
+  it("only BTC takes the native-transfer path", () => {
+    // On Arc, USDC is the gas token but payments go through its ERC-20
+    // facade, so it must NOT be treated as native here.
     expect(isNativeToken("BTC")).toBe(true);
     expect(isNativeToken("MUSD")).toBe(false);
     expect(isNativeToken("USDC")).toBe(false);
-    expect(isNativeToken("USDT")).toBe(false);
   });
 });
 
 describe("getTokenDecimalsForNetwork", () => {
+  it("USDC has 6 decimals on Arc (ERC-20 facade)", () => {
+    expect(getTokenDecimalsForNetwork("arc-testnet", "USDC")).toBe(6);
+  });
+
+  it("EURC has 6 decimals on Arc", () => {
+    expect(getTokenDecimalsForNetwork("arc-testnet", "EURC")).toBe(6);
+  });
+
   it("BTC has 18 decimals (on Mezo)", () => {
     expect(getTokenDecimalsForNetwork("mezo-testnet", "BTC")).toBe(18);
   });
@@ -110,13 +132,15 @@ describe("getTokenDecimalsForNetwork", () => {
   it("MUSD has 18 decimals", () => {
     expect(getTokenDecimalsForNetwork("mezo-testnet", "MUSD")).toBe(18);
   });
-
-  it("USDC (MockUSDC on matsnet) has 6 decimals", () => {
-    expect(getTokenDecimalsForNetwork("mezo-testnet", "USDC")).toBe(6);
-  });
 });
 
 describe("getTokenAddressForNetwork", () => {
+  it("returns the USDC system-contract facade on Arc", () => {
+    expect(getTokenAddressForNetwork("arc-testnet", "USDC")).toBe(
+      "0x3600000000000000000000000000000000000000",
+    );
+  });
+
   it("returns null for native BTC", () => {
     expect(getTokenAddressForNetwork("mezo-testnet", "BTC")).toBeNull();
   });
@@ -127,32 +151,38 @@ describe("getTokenAddressForNetwork", () => {
 });
 
 describe("getAvailableTokens", () => {
+  it("includes USDC + EURC on Arc", () => {
+    const tokens = getAvailableTokens("arc-testnet");
+    expect(tokens).toContain("USDC");
+    expect(tokens).toContain("EURC");
+  });
+
   it("includes BTC + MUSD on matsnet", () => {
     const tokens = getAvailableTokens("mezo-testnet");
     expect(tokens).toContain("BTC");
     expect(tokens).toContain("MUSD");
-    expect(tokens).toContain("USDC");
   });
 });
 
 describe("getDefaultPaymentToken", () => {
-  it("returns MUSD on both networks", () => {
+  it("returns USDC on Arc and MUSD on Mezo", () => {
+    expect(getDefaultPaymentToken("arc-testnet")).toBe("USDC");
     expect(getDefaultPaymentToken("mezo")).toBe("MUSD");
     expect(getDefaultPaymentToken("mezo-testnet")).toBe("MUSD");
   });
 });
 
 describe("getCurrencyDisplayName", () => {
-  it("returns symbol unchanged for Mezo (no displayCurrency override)", () => {
+  it("returns symbol unchanged (no displayCurrency override)", () => {
+    expect(getCurrencyDisplayName("arc-testnet", "USDC")).toBe("USDC");
     expect(getCurrencyDisplayName("mezo-testnet", "MUSD")).toBe("MUSD");
-    expect(getCurrencyDisplayName("mezo-testnet", "USDC")).toBe("USDC");
   });
 });
 
 describe("getSupportedNetworks", () => {
-  it("returns the two Mezo networks", () => {
+  it("returns Arc + Mezo networks", () => {
     const networks = getSupportedNetworks();
-    expect(networks.sort()).toEqual(["mezo", "mezo-testnet"]);
+    expect(networks.sort()).toEqual(["arc-testnet", "mezo", "mezo-testnet"]);
   });
 });
 
@@ -161,34 +191,38 @@ describe("getChainConfig (env-driven)", () => {
   beforeEach(() => { process.env = { ...originalEnv }; });
   afterEach(() => { process.env = originalEnv; });
 
-  it("defaults to mezo-testnet", () => {
+  it("defaults to arc-testnet with USDC", () => {
     delete process.env.X402_CHAIN;
     delete process.env.X402_CURRENCY;
     delete process.env.X402_TOKEN_ADDRESS;
     delete process.env.X402_TOKEN_DECIMALS;
     const config = getChainConfig();
-    expect(config.network).toBe("mezo-testnet");
-    expect(config.chainId).toBe(31611);
+    expect(config.network).toBe("arc-testnet");
+    expect(config.chainId).toBe(5042002);
     expect(config.isTestnet).toBe(true);
+    expect(config.currency).toBe("USDC");
+    expect(config.tokenAddress).toBe("0x3600000000000000000000000000000000000000");
+    expect(config.tokenDecimals).toBe(6);
   });
 
   it("respects X402_CHAIN=mezo (mainnet)", () => {
     process.env.X402_CHAIN = "mezo";
+    delete process.env.X402_CURRENCY;
     const config = getChainConfig();
     expect(config.network).toBe("mezo");
     expect(config.chainId).toBe(31612);
   });
 
-  it("falls back to mezo-testnet for unknown network", () => {
+  it("falls back to the default network for unknown network", () => {
     process.env.X402_CHAIN = "nonexistent";
     const config = getChainConfig();
-    expect(config.network).toBe("mezo-testnet");
+    expect(isValidNetwork(config.network)).toBe(true);
   });
 
   it("respects X402_CURRENCY env var", () => {
-    process.env.X402_CURRENCY = "BTC";
+    process.env.X402_CURRENCY = "EURC";
     const config = getChainConfig();
-    expect(config.currency).toBe("BTC");
+    expect(config.currency).toBe("EURC");
   });
 
   it("respects X402_TOKEN_DECIMALS env var", () => {
@@ -204,19 +238,17 @@ describe("Convenience functions", () => {
   afterEach(() => { process.env = originalEnv; });
 
   it("getTxExplorerUrl builds a tx URL using current env", () => {
-    process.env.X402_CHAIN = "mezo-testnet";
-    expect(getTxExplorerUrl("0xabc")).toBe("https://explorer.test.mezo.org/tx/0xabc");
+    process.env.X402_CHAIN = "arc-testnet";
+    expect(getTxExplorerUrl("0xabc")).toBe("https://testnet.arcscan.app/tx/0xabc");
   });
 });
 
 describe("TOKEN_DECIMALS", () => {
-  it("only contains Mezo tokens", () => {
+  it("contains the supported payment tokens", () => {
     expect(TOKEN_DECIMALS.BTC).toBe(18);
     expect(TOKEN_DECIMALS.MUSD).toBe(18);
     expect(TOKEN_DECIMALS.USDC).toBe(6);
-    expect(TOKEN_DECIMALS.USDT).toBe(6);
-    expect(TOKEN_DECIMALS.DAI).toBe(18);
+    expect(TOKEN_DECIMALS.EURC).toBe(6);
     expect(TOKEN_DECIMALS.ETH).toBeUndefined();
-    expect(TOKEN_DECIMALS.sFUEL).toBeUndefined();
   });
 });

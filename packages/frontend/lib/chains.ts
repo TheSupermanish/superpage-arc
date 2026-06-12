@@ -1,7 +1,9 @@
 /**
- * Chain Definitions for Frontend — Mezo (Bitcoin economic layer L2).
+ * Chain Definitions for Frontend — Arc (Circle's stablecoin-native L1) + Mezo.
  *
- * Mezo is the only supported chain. Native gas: BTC (18 decimals).
+ * Arc testnet is the default chain. Native gas on Arc: USDC
+ * (18 decimals at the native EVM level; the ERC-20 facade at
+ * 0x3600...0000 uses 6 decimals and is what payments transfer).
  */
 
 import { defineChain, type Chain } from "viem";
@@ -9,6 +11,19 @@ import { defineChain, type Chain } from "viem";
 // ============================================================
 // Chain Definitions
 // ============================================================
+
+export const arcTestnet = defineChain({
+  id: 5042002,
+  name: "Arc Testnet",
+  nativeCurrency: { decimals: 18, name: "USDC", symbol: "USDC" },
+  rpcUrls: {
+    default: { http: [process.env.NEXT_PUBLIC_ARC_RPC_URL || "https://rpc.testnet.arc.network"] },
+  },
+  blockExplorers: {
+    default: { name: "Arcscan", url: "https://testnet.arcscan.app" },
+  },
+  testnet: true,
+});
 
 export const mezoMainnet = defineChain({
   id: 31612,
@@ -40,13 +55,14 @@ export const mezoTestnet = defineChain({
 // Chain Registry
 // ============================================================
 
-export const SUPPORTED_CHAINS: Chain[] = [mezoMainnet, mezoTestnet];
+export const SUPPORTED_CHAINS: Chain[] = [arcTestnet, mezoMainnet, mezoTestnet];
 
 export const CHAIN_BY_ID: Record<number, Chain> = Object.fromEntries(
   SUPPORTED_CHAINS.map(chain => [chain.id, chain])
 );
 
 export const CHAIN_BY_NAME: Record<string, Chain> = {
+  "arc-testnet": arcTestnet,
   mezo: mezoMainnet,
   "mezo-testnet": mezoTestnet,
 };
@@ -175,8 +191,8 @@ export async function ensureNetwork(expectedChainId: number): Promise<boolean> {
 // ============================================================
 
 export function getDefaultChain(): Chain {
-  const networkName = process.env.NEXT_PUBLIC_X402_CHAIN || "mezo-testnet";
-  return CHAIN_BY_NAME[networkName] || mezoTestnet;
+  const networkName = process.env.NEXT_PUBLIC_X402_CHAIN || "arc-testnet";
+  return CHAIN_BY_NAME[networkName] || arcTestnet;
 }
 
 export function getDefaultChainId(): number {

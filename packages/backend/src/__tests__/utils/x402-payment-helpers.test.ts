@@ -212,13 +212,13 @@ describe("parsePaymentHeader", () => {
     expect(parsed.chainId).toBe(31612);
   });
 
-  it("falls back to DEFAULT_NETWORK chain ID (mezo-testnet = 31611) for unknown network", () => {
+  it("falls back to DEFAULT_NETWORK chain ID (arc-testnet = 5042002) for unknown network", () => {
     const header = JSON.stringify({
       transactionHash: "0xabc",
       network: "unknown-net",
     });
     const parsed = parsePaymentHeader(header);
-    expect(parsed.chainId).toBe(31611);
+    expect(parsed.chainId).toBe(5042002);
   });
 
   it("should throw for invalid JSON", () => {

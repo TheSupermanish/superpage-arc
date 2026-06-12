@@ -5,8 +5,8 @@ import { useAccount, useWriteContract } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useEnsureNetwork } from "./use-network-switch";
 import { createPublicClient, http, parseAbi } from "viem";
-import { getDefaultChain, getDefaultChainId, CHAIN_BY_NAME } from "@/lib/chains";
-import { getNetwork, getMusdAddress, MUSD_ADDRESSES } from "@/lib/chain-config";
+import { getDefaultChain, getDefaultChainId } from "@/lib/chains";
+import { getNetwork, getCurrency, getPaymentTokenAddress, PAYMENT_TOKEN_ADDRESSES } from "@/lib/chain-config";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -14,7 +14,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const CURRENT_NETWORK = getNetwork();
 const CURRENT_CHAIN_ID = getDefaultChainId();
 const CURRENT_CHAIN = getDefaultChain();
-const MUSD_ADDRESS = getMusdAddress();
+const CURRENT_CURRENCY = getCurrency();
+const PAYMENT_TOKEN_ADDRESS = getPaymentTokenAddress();
 
 const ERC20_ABI = parseAbi([
   "function transfer(address to, uint256 amount) returns (bool)",
@@ -140,7 +141,7 @@ function friendlyError(err: any): string {
   // Wagmi / viem short messages
   const short: string = err.shortMessage || "";
   if (/insufficient funds/i.test(short) || /insufficient funds/i.test(err.message || ""))
-    return `Insufficient MUSD balance. Make sure you have enough tokens on ${CURRENT_CHAIN.name}.`;
+    return `Insufficient ${CURRENT_CURRENCY} balance. Make sure you have enough tokens on ${CURRENT_CHAIN.name}.`;
   if (/user rejected/i.test(short))
     return "You rejected the transaction in your wallet.";
   if (/connector not connected/i.test(short))
@@ -193,15 +194,18 @@ export function useX402Payment() {
       const switched = await ensureCorrectNetwork();
       if (!switched) throw new Error(`Please switch to ${CURRENT_CHAIN.name} network`);
 
-      // Determine USDC address — use from requirements chain or current default
+      // Determine payment token address — from the requirements' network or current default.
+      // The server can also pin an explicit token address via requirements.token.
       const reqNetwork = requirements.network || CURRENT_NETWORK;
-      const musdAddr = MUSD_ADDRESSES[reqNetwork] || MUSD_ADDRESS;
+      const tokenAddr = (requirements.token && requirements.token.startsWith("0x")
+        ? (requirements.token as `0x${string}`)
+        : undefined) || PAYMENT_TOKEN_ADDRESSES[reqNetwork] || PAYMENT_TOKEN_ADDRESS;
 
       // Send ERC-20 transfer
       setStatus("awaiting-approval");
       const hash = await writeContractAsync({
         abi: ERC20_ABI,
-        address: musdAddr,
+        address: tokenAddr,
         functionName: "transfer",
         args: [requirements.recipient as `0x${string}`, BigInt(requirements.amount)],
         chainId: requirements.chainId || CURRENT_CHAIN_ID,
@@ -216,7 +220,7 @@ export function useX402Payment() {
 
       if (receipt.status === "reverted") {
         throw new Error(
-          "Transaction reverted — you may not have enough MUSD. " +
+          `Transaction reverted — you may not have enough ${CURRENT_CURRENCY}. ` +
           "Get test tokens from the faucet."
         );
       }

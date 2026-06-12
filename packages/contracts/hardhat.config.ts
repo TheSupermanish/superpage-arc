@@ -13,6 +13,12 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
+    arcTestnet: {
+      type: "http",
+      url: process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network",
+      accounts: process.env.DEPLOY_PRIVATE_KEY ? [process.env.DEPLOY_PRIVATE_KEY] : [],
+      chainId: 5042002,
+    },
     mezoTestnet: {
       type: "http",
       url: "https://rpc.test.mezo.org",

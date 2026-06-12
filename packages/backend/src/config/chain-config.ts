@@ -1,8 +1,10 @@
 /**
- * Centralized chain and currency configuration — Mezo.
+ * Centralized chain and currency configuration — Arc (Circle's stablecoin-native L1) first.
  *
- * Mezo (Bitcoin economic layer L2, EVM-compatible) is the only supported chain.
- * Native gas: BTC (18 decimals). Default payment token: MUSD (BTC-backed stablecoin).
+ * Arc testnet: chainId 5042002, USDC is the native gas token (18 decimals at the
+ * native EVM level). Payments use the ERC-20 USDC facade at 0x3600...0000 (6 decimals),
+ * so on-chain verification stays on the standard ERC-20 transfer path.
+ * Mezo kept for back-compat (BTC gas, MUSD payment token).
  */
 
 // ============================================================
@@ -10,10 +12,10 @@
 // ============================================================
 
 /** Default network used when none is specified (env override: X402_CHAIN) */
-export const DEFAULT_NETWORK: NetworkId = (process.env.X402_CHAIN as NetworkId) || "mezo-testnet";
+export const DEFAULT_NETWORK: NetworkId = (process.env.X402_CHAIN as NetworkId) || "arc-testnet";
 
 /** Default payment asset */
-export const DEFAULT_ASSET = "MUSD";
+export const DEFAULT_ASSET = "USDC";
 
 /** SuperPage payment scheme identifier */
 export const SPAY_SCHEME = "spay";
@@ -22,11 +24,11 @@ export const SPAY_SCHEME = "spay";
 // Type Definitions
 // ============================================================
 
-export type NetworkId = "mezo" | "mezo-testnet";
+export type NetworkId = "arc-testnet" | "mezo" | "mezo-testnet";
 
-export type TokenSymbol = "BTC" | "MUSD";
+export type TokenSymbol = "BTC" | "MUSD" | "USDC" | "EURC";
 
-export type NativeTokenSymbol = "BTC";
+export type NativeTokenSymbol = "BTC" | "USDC";
 
 interface TokenConfig {
   address: string;
@@ -57,6 +59,8 @@ export type { ChainMetadata };
 export const TOKEN_DECIMALS: Record<string, number> = {
   BTC: 18,  // Mezo native gas token (18 decimals)
   MUSD: 18, // Mezo USD stablecoin (verified on-chain: 18 decimals)
+  USDC: 6,  // Arc ERC-20 facade decimals (native balance is 18)
+  EURC: 6,
 };
 
 // ============================================================
@@ -64,6 +68,20 @@ export const TOKEN_DECIMALS: Record<string, number> = {
 // ============================================================
 
 export const CHAIN_REGISTRY: Record<NetworkId, ChainMetadata> = {
+  "arc-testnet": {
+    chainId: 5042002,
+    name: "Arc Testnet",
+    rpcUrl: process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network",
+    explorerUrl: "https://testnet.arcscan.app",
+    nativeToken: { symbol: "USDC", decimals: 18 },
+    tokens: {
+      // Native USDC's ERC-20 facade (system contract, 6 decimals)
+      USDC: { address: "0x3600000000000000000000000000000000000000", decimals: 6 },
+      EURC: { address: "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a", decimals: 6 },
+    },
+    defaultPaymentToken: "USDC",
+    isTestnet: true,
+  },
   mezo: {
     chainId: 31612,
     name: "Mezo",
@@ -109,6 +127,8 @@ export function getChainId(networkId: NetworkId): number {
 }
 
 export function isNativeToken(symbol: TokenSymbol): symbol is NativeTokenSymbol {
+  // Deliberately BTC-only: on Arc, USDC is native gas but payments use its
+  // ERC-20 facade (it has an address), so USDC routes through the ERC-20 path.
   return symbol === "BTC";
 }
 

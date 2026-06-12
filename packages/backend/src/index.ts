@@ -184,7 +184,7 @@ async function startServer() {
     // Migrate stale store networks to configured chain
     try {
       const { Store } = await import("./models/Store.js");
-      const target = process.env.X402_CHAIN || "mezo-testnet";
+      const target = process.env.X402_CHAIN || "arc-testnet";
       const result = await Store.updateMany(
         { networks: { $nin: [target] } },
         { $set: { networks: [target] } }

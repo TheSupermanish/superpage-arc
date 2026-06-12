@@ -72,19 +72,18 @@ export function loadConfig(): AgentConfig {
     llmApiKey,
     merchantUrl: process.env.MERCHANT_URL || "http://localhost:1337",
     walletPrivateKey: walletPrivateKey as `0x${string}`,
-    network: process.env.X402_CHAIN || "mezo-testnet",
-    chainId: parseInt(process.env.CHAIN_ID || "31611", 10),
+    network: process.env.X402_CHAIN || "arc-testnet",
+    chainId: parseInt(process.env.CHAIN_ID || "5042002", 10),
     rpcUrl:
-      process.env.RPC_URL || "https://rpc.test.mezo.org",
-    // Default to the SuperPage MockUSDC deployed on Mezo testnet (6 dec).
-    // For MUSD payments, set USDC_ADDRESS=0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503 and TOKEN_DECIMALS=18.
+      process.env.RPC_URL || "https://rpc.testnet.arc.network",
+    // Default to Arc's native USDC via its ERC-20 facade (system contract, 6 dec).
     usdcAddress:
-      (process.env.USDC_ADDRESS || "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c") as `0x${string}`,
-    tokenSymbol: process.env.TOKEN_SYMBOL || (process.env.USDC_ADDRESS ? "MUSD" : "mUSDC"),
-    tokenDecimals: parseInt(process.env.TOKEN_DECIMALS || (process.env.USDC_ADDRESS ? "18" : "6"), 10),
-    chainName: process.env.CHAIN_NAME || "Mezo Testnet",
-    explorerUrl: process.env.EXPLORER_URL || "https://explorer.test.mezo.org",
-    nativeCurrency: { decimals: 18, name: "Bitcoin", symbol: "BTC" },
+      (process.env.USDC_ADDRESS || "0x3600000000000000000000000000000000000000") as `0x${string}`,
+    tokenSymbol: process.env.TOKEN_SYMBOL || "USDC",
+    tokenDecimals: parseInt(process.env.TOKEN_DECIMALS || "6", 10),
+    chainName: process.env.CHAIN_NAME || "Arc Testnet",
+    explorerUrl: process.env.EXPLORER_URL || "https://testnet.arcscan.app",
+    nativeCurrency: { decimals: 18, name: "USDC", symbol: "USDC" },
     erc8004AgentId: process.env.ERC8004_AGENT_ID || undefined,
     maxSteps: parseInt(process.env.MAX_STEPS || "20", 10),
     autoApprovePayments: process.env.AUTO_APPROVE_PAYMENTS === "true",

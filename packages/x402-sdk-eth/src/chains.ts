@@ -1,8 +1,10 @@
 /**
- * Centralized Chain Registry — Mezo (Bitcoin economic layer L2).
+ * Centralized Chain Registry — Arc (Circle's stablecoin-native L1) + Mezo.
  *
- * Mezo is EVM-compatible. Native gas token is BTC (18 decimals).
- * MUSD is Mezo's native BTC-backed stablecoin and the default x402 payment token.
+ * Arc: USDC is the native gas token (18 decimals at the native EVM level).
+ * x402 payments on Arc use the ERC-20 USDC facade at 0x3600...0000 (6 decimals),
+ * so the standard ERC-20 transfer/verification path applies unchanged.
+ * Mezo: BTC native gas, MUSD default payment token.
  */
 
 import { defineChain, type Chain } from "viem";
@@ -11,11 +13,11 @@ import { defineChain, type Chain } from "viem";
 // TYPES
 // ============================================================
 
-export type NetworkId = "mezo" | "mezo-testnet";
+export type NetworkId = "arc-testnet" | "mezo" | "mezo-testnet";
 
-export type TokenSymbol = "BTC" | "MUSD" | "USDC" | "USDT" | "DAI";
+export type TokenSymbol = "BTC" | "MUSD" | "USDC" | "EURC" | "USDT" | "DAI";
 
-export type NativeTokenSymbol = "BTC";
+export type NativeTokenSymbol = "BTC" | "USDC";
 
 export interface TokenConfig {
   symbol: TokenSymbol;
@@ -37,7 +39,7 @@ export interface ChainMetadata {
     name: string;
     decimals: number;
   };
-  tokens: Partial<Record<Exclude<TokenSymbol, NativeTokenSymbol>, TokenConfig>>;
+  tokens: Partial<Record<Exclude<TokenSymbol, "BTC">, TokenConfig>>;
   defaultPaymentToken: TokenSymbol;
   displayCurrency?: string;
 }
@@ -45,6 +47,21 @@ export interface ChainMetadata {
 // ============================================================
 // CHAIN DEFINITIONS
 // ============================================================
+
+export const arcTestnet = defineChain({
+  id: 5042002,
+  name: "Arc Testnet",
+  network: "arc-testnet",
+  nativeCurrency: { decimals: 18, name: "USDC", symbol: "USDC" },
+  rpcUrls: {
+    default: { http: ["https://rpc.testnet.arc.network"] },
+    public: { http: ["https://rpc.testnet.arc.network"] },
+  },
+  blockExplorers: {
+    default: { name: "Arcscan", url: "https://testnet.arcscan.app" },
+  },
+  testnet: true,
+});
 
 export const mezoMainnet = defineChain({
   id: 31612,
@@ -81,6 +98,23 @@ export const mezoTestnet = defineChain({
 // ============================================================
 
 export const CHAIN_REGISTRY: Record<NetworkId, ChainMetadata> = {
+  "arc-testnet": {
+    id: "arc-testnet",
+    chainId: 5042002,
+    name: "Arc Testnet",
+    shortName: "ARC-T",
+    isTestnet: true,
+    viemChain: arcTestnet,
+    rpcUrl: "https://rpc.testnet.arc.network",
+    explorerUrl: "https://testnet.arcscan.app",
+    nativeToken: { symbol: "USDC", name: "USDC", decimals: 18 },
+    tokens: {
+      // Native USDC's ERC-20 facade (system contract). Payments transfer this.
+      USDC: { symbol: "USDC", decimals: 6, address: "0x3600000000000000000000000000000000000000" },
+      EURC: { symbol: "EURC", decimals: 6, address: "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a" },
+    },
+    defaultPaymentToken: "USDC",
+  },
   mezo: {
     id: "mezo",
     chainId: 31612,
@@ -157,20 +191,22 @@ export function getTxExplorerUrl(networkId: NetworkId, txHash: string): string {
 }
 
 export function isNativeToken(symbol: TokenSymbol): symbol is NativeTokenSymbol {
+  // Deliberately BTC-only: on Arc, USDC is the native gas token but payments
+  // go through its ERC-20 facade (it has an address), so it takes the ERC-20 path.
   return symbol === "BTC";
 }
 
 export function getTokenDecimals(networkId: NetworkId, symbol: TokenSymbol): number {
   const chain = getChainMetadata(networkId);
   if (isNativeToken(symbol)) return chain.nativeToken.decimals;
-  const token = chain.tokens[symbol as Exclude<TokenSymbol, NativeTokenSymbol>];
+  const token = chain.tokens[symbol as Exclude<TokenSymbol, "BTC">];
   return token?.decimals ?? 18;
 }
 
 export function getTokenAddress(networkId: NetworkId, symbol: TokenSymbol): `0x${string}` | null {
   const chain = getChainMetadata(networkId);
   if (isNativeToken(symbol)) return null;
-  const token = chain.tokens[symbol as Exclude<TokenSymbol, NativeTokenSymbol>];
+  const token = chain.tokens[symbol as Exclude<TokenSymbol, "BTC">];
   return token?.address ?? null;
 }
 
@@ -246,7 +282,8 @@ export const TOKEN_ADDRESSES = buildTokenAddressesRecord();
 export const TOKEN_DECIMALS: Record<TokenSymbol, number> = {
   BTC: 18, // Mezo native gas (18 decimals, not 8)
   MUSD: 18, // Mezo USD stablecoin
-  USDC: 6,
+  USDC: 6, // ERC-20 facade decimals (Arc native balance is 18, facade is 6)
+  EURC: 6,
   USDT: 6,
   DAI: 18,
 };

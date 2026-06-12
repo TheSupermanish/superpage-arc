@@ -161,6 +161,7 @@ export {
   CHAIN_REGISTRY,
   
   // Chain definitions
+  arcTestnet,
   mezoMainnet,
   mezoTestnet,
 

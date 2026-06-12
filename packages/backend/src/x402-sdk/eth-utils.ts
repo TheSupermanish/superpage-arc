@@ -27,7 +27,7 @@ export type PaymentRequirements = {
   network: string;
   chainId: number;
   amount: string;
-  token: "BTC" | "MUSD" | "USDC" | "USDT" | "DAI";
+  token: "BTC" | "MUSD" | "USDC" | "EURC" | "USDT" | "DAI";
   recipient: string;
   memo?: string;
   deadline?: number;
@@ -42,5 +42,5 @@ export type PaymentProof = {
   timestamp: number;
 };
 
-export type Network = "mezo" | "mezo-testnet";
-export type TokenType = "BTC" | "MUSD" | "USDC" | "USDT" | "DAI";
+export type Network = "arc-testnet" | "mezo" | "mezo-testnet";
+export type TokenType = "BTC" | "MUSD" | "USDC" | "EURC" | "USDT" | "DAI";
