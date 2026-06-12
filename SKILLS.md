@@ -4,7 +4,7 @@ SuperPage is an AI-native marketplace where agents can discover, purchase, and a
 
 **Base URL:** `https://superpa.ge` (production) | `http://localhost:2337` (local dev)
 
-**Payment:** MUSD on Mezo Testnet/matsnet (chain ID 31611)
+**Payment:** USDC on Arc Testnet (chain ID 5042002). USDC is also the native gas token, so one faucet funds everything.
 
 ---
 
@@ -128,7 +128,7 @@ Buy access to a digital resource (API, file, or article)
   "currency": "USDC",
   "recipient": "0x...",
   "resourceId": "resource_id",
-  "chainId": 545
+  "chainId": 5042002
 }
 ```
 
@@ -195,39 +195,58 @@ Check the status of a product order
 }
 ```
 
+### read_article
+Read a pay-per-read article. Free preview blocks render without payment; the full article unlocks with a single x402 USDC payment.
+
+**Process:**
+1. Preview: `GET /x402/resource/{slug}` → 402 with price + excerpt (free preview also renders at `/read/{slug}`)
+2. Pay the quoted USDC amount on Arc
+3. Retry with `X-PAYMENT: { "txHash": "0x..." }` → full markdown/blocks
+
+### stream_video
+Watch a video and pay per second through the StreamPay payment channel on Arc. One on-chain deposit, off-chain vouchers every second, one on-chain settlement, unwatched remainder refunded.
+
+**Process:**
+1. On-chain: call `openSession(creator, ratePerSecond, sessionKey)` on StreamPay, sending the deposit as `msg.value` in native USDC (ephemeral `sessionKey` generated per session). Get `creator` and `ratePerSecond` from `GET /stream/meta/{slug}`
+2. `POST /stream/session/register` with `{ resourceSlug, sessionId }` → playback unlocked at `/watch/{slug}`
+3. Every second: `POST /stream/session/{sessionId}/heartbeat` with `{ amountOwedWei, secondsWatched, signature }`
+   - Voucher digest: `keccak256(abi.encodePacked("SUPERPAGE_STREAM", chainId, contract, sessionId, amountOwed))`, signed eth_sign style by the session key
+4. `POST /stream/session/{sessionId}/close` → platform calls `closeSession(sessionId, amountOwed, signature)` on-chain; poll `GET /stream/session/{sessionId}` for the receipt
+5. Safety valve: call `reclaimExpired(sessionId)` on the contract after 24h if settlement never happens
+
 ---
 
 ## 💳 Wallet & Balance Skills
 
 ### check_wallet_balance
-Check ETH and USDC balance
+Check your USDC balance on Arc (native USDC pays gas, the ERC-20 facade pays resources)
 
 **On-Chain Query (via viem/ethers):**
 ```javascript
-// ETH Balance
-const ethBalance = await publicClient.getBalance({
+// Native USDC balance (gas, 18 decimals)
+const gasBalance = await publicClient.getBalance({
   address: walletAddress
 })
 
-// USDC Balance
+// ERC-20 USDC facade balance (payments, 6 decimals)
 const usdcBalance = await publicClient.readContract({
-  address: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8',
+  address: '0x3600000000000000000000000000000000000000',
   abi: erc20ABI,
   functionName: 'balanceOf',
   args: [walletAddress]
 })
 ```
 
-**Returns:** Balance in wei/smallest unit (divide by 10^6 for USDC)
+**Returns:** Balance in smallest unit (divide by 10^6 for ERC-20 USDC, 10^18 for native)
 
 ### send_payment
-Send cryptocurrency to another address
+Send USDC to another address
 
 **On-Chain Transaction:**
 ```javascript
-// Send USDC
+// Send USDC (ERC-20 facade, 6 decimals)
 const hash = await walletClient.writeContract({
-  address: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8', // USDC
+  address: '0x3600000000000000000000000000000000000000', // USDC facade on Arc
   abi: erc20ABI,
   functionName: 'transfer',
   args: [recipientAddress, amountInSmallestUnit]
@@ -347,17 +366,19 @@ Send a message to the agent (JSON-RPC 2.0)
 
 ## 🌐 Blockchain Details
 
-**Network:** Mezo Testnet (matsnet)
-- **Chain ID:** 545
-- **RPC:** `https://testnet.evm.nodes.onflow.org`
-- **Explorer:** `https://evm-testnet.flowscan.io`
-- **Gas:** FLOW (~$0.01 per tx)
-- **Native Token:** FLOW
-- **Faucet:** `https://faucet.flow.com/fund-account`
+**Network:** Arc Testnet
+- **Chain ID:** 5042002
+- **RPC:** `https://rpc.testnet.arc.network`
+- **Explorer:** `https://testnet.arcscan.app`
+- **Gas:** USDC (native, sub-cent per tx)
+- **Native Token:** USDC (18 decimals at the native EVM level)
+- **Faucet:** `https://faucet.circle.com` (select Arc Testnet; one faucet covers gas AND payments)
 
-**USDC Contract:** `0x291b030d596cf505f774426d8de7c946ce5af7a5`
+**USDC Contract (ERC-20 facade):** `0x3600000000000000000000000000000000000000`
 - **Decimals:** 6
-- **Standard:** ERC-20 (MockUSDC)
+- **Standard:** ERC-20 (native USDC facade)
+
+**EURC Contract:** `0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a`
 
 ---
 
@@ -494,8 +515,8 @@ Add to `claude_desktop_config.json`:
       "env": {
         "SUPERPAGE_SERVER": "https://superpa.ge",
         "WALLET_PRIVATE_KEY": "0x...",
-        "X402_CHAIN": "mezo-testnet",
-        "X402_CURRENCY": "MUSD",
+        "X402_CHAIN": "arc-testnet",
+        "X402_CURRENCY": "USDC",
         "MAX_AUTO_PAYMENT": "10.00"
       }
     }
@@ -544,5 +565,5 @@ const response = await fetch('https://superpa.ge/a2a', {
 
 **Platform:** SuperPage - AI-Native Web3 Commerce
 **Protocol:** HTTP 402 Payment Required + x402 SDK
-**Blockchain:** Mezo (Bitcoin economic layer, chain ID 31611)
-**Currency:** USDC (stablecoin)
+**Blockchain:** Arc Testnet (Circle's stablecoin-native L1, chain ID 5042002)
+**Currency:** USDC (also the native gas token)

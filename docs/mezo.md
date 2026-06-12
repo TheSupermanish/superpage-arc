@@ -1,6 +1,8 @@
-# Mezo Integration Guide
+# Mezo Integration Guide (Legacy)
 
-SuperPage supports **Mezo** — a Bitcoin economic layer with EVM-compatibility — as a payment chain. Native gas is paid in **BTC** and the default x402 payment token is **MUSD** (Mezo's BTC-backed stablecoin). On mainnet, bridged **mUSDC** and **mUSDT** are also available.
+> **Legacy chain.** SuperPage's default network is now **Arc Testnet** (chain ID 5042002), where USDC is the native gas token. See [docs/arc.md](arc.md). Mezo support is kept for back-compat (`X402_CHAIN=mezo-testnet`) and this guide documents that configuration.
+
+SuperPage supports **Mezo** (a Bitcoin economic layer with EVM-compatibility) as a legacy payment chain. Native gas is paid in **BTC** and the default x402 payment token is **MUSD** (Mezo's BTC-backed stablecoin). On mainnet, bridged **mUSDC** and **mUSDT** are also available.
 
 ## Overview
 

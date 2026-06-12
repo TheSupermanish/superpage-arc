@@ -22,6 +22,7 @@ import exploreRoutes from "./routes/exploreRoutes.js";
 import resourceRoutes from "./routes/resourceRoutes.js";
 import creatorRoutes from "./routes/creatorRoutes.js";
 import storeRoutes from "./routes/storeRoutes.js";
+import streamRoutes from "./routes/streamRoutes.js";
 
 // Error handling
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -75,7 +76,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use("/files", express.static(path.join(__dirname, "../public/files")));
 
-// Serve uploaded files from disk
+// Serve uploaded files from disk.
+// Raw HLS output and source videos are token-gated via /stream/hls and must
+// never be served by the public static handler.
+app.use(["/uploads/hls", "/uploads/videos-src"], (_req, res) => {
+  res.status(403).json({ error: "Streams are served via /stream/hls with a valid token" });
+});
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Health check
@@ -114,6 +120,9 @@ app.use("/", orderRoutes);
 
 // x402 gateway
 app.use("/x402", x402Routes);
+
+// Pay-per-second video streaming (StreamPay channels)
+app.use("/stream", streamRoutes);
 
 // MCP agent servers
 app.use("/mcp", mcpRoutes);

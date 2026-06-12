@@ -39,10 +39,10 @@ dotenv.config();
 
 const app = express();
 const x402 = new X402Server({
-  network: 'mainnet',
+  network: 'arc-testnet',
   privateKey: process.env.ETH_PRIVATE_KEY!,
   recipientAddress: process.env.ETH_RECIPIENT_ADDRESS!,
-  tokenAddress: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8', // USDC
+  tokenAddress: '0x3600000000000000000000000000000000000000', // USDC
 });
 
 app.get('/api/weather',
@@ -69,9 +69,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const client = new X402Client({
-  network: 'mainnet',
+  network: 'arc-testnet',
   privateKey: process.env.WALLET_PRIVATE_KEY!,
-  tokenAddress: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8',
+  tokenAddress: '0x3600000000000000000000000000000000000000',
 });
 
 async function getWeather() {
@@ -99,10 +99,10 @@ import { X402Server } from '@super-x402/sdk';
 
 const app = express();
 const x402 = new X402Server({
-  network: 'mainnet',
+  network: 'arc-testnet',
   privateKey: process.env.ETH_PRIVATE_KEY!,
   recipientAddress: process.env.ETH_RECIPIENT_ADDRESS!,
-  tokenAddress: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8',
+  tokenAddress: '0x3600000000000000000000000000000000000000',
 });
 
 app.get('/api/generate', async (req, res, next) => {
@@ -147,10 +147,10 @@ import path from 'path';
 
 const app = express();
 const x402 = new X402Server({
-  network: 'mainnet',
+  network: 'arc-testnet',
   privateKey: process.env.ETH_PRIVATE_KEY!,
   recipientAddress: process.env.ETH_RECIPIENT_ADDRESS!,
-  tokenAddress: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8',
+  tokenAddress: '0x3600000000000000000000000000000000000000',
 });
 
 const files = {
@@ -197,10 +197,10 @@ const mongo = await MongoClient.connect(process.env.MONGODB_URI!);
 const db = mongo.db('x402');
 
 const x402 = new X402Server({
-  network: 'mainnet',
+  network: 'arc-testnet',
   privateKey: process.env.ETH_PRIVATE_KEY!,
   recipientAddress: process.env.ETH_RECIPIENT_ADDRESS!,
-  tokenAddress: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8',
+  tokenAddress: '0x3600000000000000000000000000000000000000',
 });
 
 app.get('/api/translate',
@@ -253,10 +253,10 @@ import { X402Server } from '@super-x402/sdk';
 
 const app = express();
 const x402 = new X402Server({
-  network: 'mainnet',
+  network: 'arc-testnet',
   privateKey: process.env.ETH_PRIVATE_KEY!,
   recipientAddress: process.env.ETH_RECIPIENT_ADDRESS!,
-  tokenAddress: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8',
+  tokenAddress: '0x3600000000000000000000000000000000000000',
 });
 
 // In-memory credits store (use Redis/DB in production)

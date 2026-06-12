@@ -426,7 +426,7 @@ export default function SettingsPage() {
             <h3 className="font-bold text-lg text-foreground">On-Chain Identity (ERC-8004)</h3>
           </div>
           <p className="text-sm text-muted-foreground">
-            Mint a verifiable agent identity NFT on Mezo. Other agents can look you up, give you reputation, and trust your payments.
+            Mint a verifiable agent identity NFT on Arc. Other agents can look you up, give you reputation, and trust your payments.
           </p>
         </div>
         <div className="p-6 space-y-4">

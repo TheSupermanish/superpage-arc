@@ -2,69 +2,66 @@
 
 # SuperPage
 
-### **The x402 Payment Skill for the Agent Internet**
+### **Creator commerce for humans and AI agents, settled in USDC on Arc**
 
-*An OpenClaw skill that lets autonomous AI agents discover, preview, confirm, and pay for digital resources and physical products using on-chain USDC micro-payments.*
+*Creators sell articles per read and videos per second. AI agents buy autonomously via x402 (HTTP 402). Every payment settles in USDC on Arc in under a second.*
 
-[![Coinbase x402 Winner](https://img.shields.io/badge/Coinbase_x402-Winner-0052FF)](https://x402.org)
-[![Mezo Testnet](https://img.shields.io/badge/Mezo-matsnet-F7931A)](https://mezo.org)
+[![Arc Testnet](https://img.shields.io/badge/Arc-Testnet-00D4AA)](https://testnet.arcscan.app)
 [![x402 Protocol](https://img.shields.io/badge/x402-Enabled-blue)](https://x402.org)
-[![OpenClaw](https://img.shields.io/badge/OpenClaw-Skill-orange)](https://openclaw.ai)
+[![USDC Native Gas](https://img.shields.io/badge/Gas-USDC-2775CA)](https://www.circle.com)
 [![MCP Protocol](https://img.shields.io/badge/MCP-Integrated-purple)](https://modelcontextprotocol.io)
+[![OpenClaw](https://img.shields.io/badge/OpenClaw-Skill-orange)](https://openclaw.ai)
 
-**Coinbase x402 Track Winner — SURGE x OpenClaw Hackathon 2026**
-**Now running on Mezo — Bitcoin economic layer with MUSD micro-payments + ERC-8004 trust**
+**Lepton Agents Hackathon (Canteen x Circle x Arc)**
+RFB 4: Streaming and Continuous Payments · RFB 6: Creator and Publisher Monetization
 
-[Live Demo](https://superpa.ge) · [Telegram Bot](https://t.me/HeySuperioBot) · [Documentation](#documentation)
+[Live Demo](https://superpa.ge) · [Documentation](#documentation) · [Streaming Protocol](#streaming-protocol-walkthrough)
 
 </div>
 
 ---
 
-## Hackathon Submission
+## What It Is
 
-**Track:** Autonomous Payments & Monetized Skills
+SuperPage is a creator marketplace where humans AND AI agents buy and sell digital resources through x402 (HTTP 402) USDC payments. Creators publish articles in a Notion-like editor and upload videos that transcode to HLS; buyers (a person with a wallet, or an agent with a private key) pay per read or per second watched. On Arc, USDC is the native gas token, so the entire economy (payments, gas, payouts, refunds) runs on a single stable unit of account, and settlement lands in under a second.
 
-**What it is:** An OpenClaw skill + marketplace platform that gives any AI agent the ability to spend MUSD (Mezo's BTC-backed stablecoin) to access premium APIs, digital content, and Shopify products — all through a trustless x402 payment flow running on Mezo testnet (matsnet).
+## Why Nanopayments
 
-**Built With:**
-- **OpenClaw** — Local-first agent runtime (Telegram bot + skill system)
-- **x402 Protocol** — HTTP 402 payment-gated resources
-- **Mezo** — Bitcoin economic layer (EVM-compatible L2) for on-chain MUSD payments
-- **A2A Protocol** — Agent-to-agent communication (JSON-RPC 2.0)
-- **AP2** — Google's Agent Payments Protocol (mandate-based shopping)
-- **MCP** — Model Context Protocol (Claude Desktop integration)
-- **ERC-8004** — On-chain agent identity & reputation
+A lepton is the smallest unit of matter that still does work; a nanopayment is the smallest unit of commerce that still does work, and it only becomes practical when settlement is sub-second, sub-cent, and denominated in the same token as gas. Arc makes the lepton-sized payment (a fraction of a cent for one second of video) economically real, so pricing can finally match consumption instead of approximating it with subscriptions.
 
----
+## What's New for This Hackathon
 
-## The Problem
+Previously SuperPage was an agent shopping skill. For Lepton it became a full creator economy:
 
-AI agents can research, write, and plan — but they can't **buy** or **sell** anything. Premium APIs, gated content, and e-commerce are locked behind human payment flows. There's no standard way for an autonomous agent to discover a resource, pay for it, or monetize its own creations.
-
-## The Solution
-
-SuperPage is an AI-native commerce platform where **agents and humans coexist as both buyers AND sellers**.
-
-**Agents as Buyers** — discover resources, preview prices, confirm with users, pay USDC on-chain, and access content autonomously.
-
-**Agents as Creators** — AI agents can generate content (articles, datasets, guides, code templates) and list them on the marketplace with a price. Other agents and humans pay to access them. An AI agent can write a guide, publish it on SuperPage, and earn USDC every time someone buys it — fully autonomous creator economy.
-
-The platform gives agents a complete payment workflow:
+1. **Arc port**: the whole stack (frontend, backend, SDK, contracts, agent surfaces) now runs on Arc Testnet (chainId 5042002) with native-USDC gas and the ERC-20 USDC facade as the payment token.
+2. **Pay-per-second video streaming** (RFB 4): an on-chain payment channel (the `StreamPay` contract) opened with a USDC deposit, advanced by off-chain signed vouchers every second, settled once on close. The viewer is refunded the unwatched remainder.
 
 ```
-1. Agent searches the marketplace          → list-resources / search
-2. Agent previews a resource price         → preview (no payment yet)
-3. Agent shows price and asks to confirm   → "Buy Weather API for $0.50 USDC?"
-4. User says yes                           → "yes"
-5. Agent pays and delivers content         → request (pays + returns data)
-6. Agent shows receipt with tx hash        → on-chain proof
+   Viewer                       SuperPage                    StreamPay (Arc)
+     │                              │                              │
+     │ 1. openSession(creator,      │                              │
+     │    rate, sessionKey)         │                              │
+     │    + USDC deposit ───────────┼─────────────────────────────>│ lock USDC
+     │                              │                              │
+     │ 2. play /watch/[slug] ──────>│ serve HLS segments           │
+     │                              │                              │
+     │ 3. every second:             │                              │
+     │    signed voucher ──────────>│ verify sig, gate next        │
+     │    (off-chain, free)         │ segment, track amountOwed    │
+     │         ... x N seconds ...  │                              │
+     │                              │                              │
+     │ 4. stop watching ───────────>│ 5. closeSession(id,          │
+     │                              │    amountOwed, sig) ────────>│ pay creator,
+     │                              │                              │ refund viewer
+     │                              │                              │
+     │ (safety valve: viewer can reclaimExpired(id) for the full   │
+     │  deposit after 24h if the platform never settles)           │
 ```
 
-This works across three surfaces:
-- **Telegram** — via OpenClaw gateway (`@HeySuperioBot`)
-- **Claude Desktop** — via MCP server (12 autonomous tools)
-- **CLI** — via standalone AI agent (`pnpm agent`)
+3. **Notion-like publishing** (RFB 6): a BlockNote block editor for articles with free preview blocks, per-read pricing, and a clean reading surface at `/read/[slug]`.
+4. **Gumroad-style storefront**: creator profiles, product detail pages at `/r/[slug]`, cover images, and one-click x402 checkout for humans and agents alike.
+
+Honest scope: this is a hackathon build running on Arc Testnet. Nothing here touches mainnet funds.
 
 ---
 
@@ -105,14 +102,14 @@ This works across three surfaces:
 │                     SUPERPAGE PLATFORM                           │
 │                                                                  │
 │   ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐     │
-│   │ x402 Gateway │  │  A2A Server  │  │  AP2 Mandates    │     │
-│   │ (HTTP 402)   │  │  (JSON-RPC)  │  │  (Shopping Flow) │     │
+│   │ x402 Gateway │  │  A2A Server  │  │  Stream Gateway  │     │
+│   │ (HTTP 402)   │  │  (JSON-RPC)  │  │ (vouchers + HLS) │     │
 │   └──────┬───────┘  └──────┬───────┘  └────────┬─────────┘     │
 │          │                 │                    │                │
 │   ┌──────┴─────────────────┴────────────────────┴──────────┐    │
 │   │              Express Backend (TypeScript)               │    │
-│   │  • Resource marketplace (26+ items)                     │    │
-│   │  • Shopify store integration                            │    │
+│   │  • Resource marketplace (articles, video, APIs, files)  │    │
+│   │  • ffmpeg HLS transcoding pipeline                      │    │
 │   │  • Payment verification (on-chain)                      │    │
 │   │  • ERC-8004 identity & reputation                       │    │
 │   │  • MongoDB state management                             │    │
@@ -120,121 +117,25 @@ This works across three surfaces:
 │                          │                                       │
 │   ┌──────────────────────┴─────────────────────────────────┐    │
 │   │              Next.js Frontend                           │    │
-│   │  • Creator dashboard & profiles                         │    │
-│   │  • Resource explorer & marketplace                      │    │
-│   │  • Faucet for test USDC                                 │    │
-│   │  • Wallet connect (RainbowKit)                          │    │
+│   │  • Notion-like article editor (BlockNote)               │    │
+│   │  • Pay-per-second video player (/watch/[slug])          │    │
+│   │  • Gumroad-style storefront (/r/[slug])                 │    │
+│   │  • Creator dashboard, wallet connect (RainbowKit)       │    │
 │   └────────────────────────────────────────────────────────┘    │
 │                                                                  │
 └──────────────────────────────────────────────────────────────────┘
                             │
                             ▼
                 ┌───────────────────────┐
-                │  Mezo Testnet         │
-                │  (matsnet)            │
+                │  Arc Testnet          │
                 │                       │
-                │  • MUSD payments      │
-                │  • BTC gas (18 dec)   │
-                │  • Chain ID: 31611    │
-                │  • ~1s block time     │
+                │  • USDC payments      │
+                │  • USDC IS the gas    │
+                │  • Chain ID: 5042002  │
+                │  • Sub-second blocks  │
+                │  • StreamPay channel  │
                 │  • On-chain receipts  │
                 └───────────────────────┘
-```
-
----
-
-## Features
-
-### OpenClaw Skill (Telegram Agent)
-
-The `superpage-x402` skill runs inside OpenClaw and connects to Telegram via `@HeySuperioBot`. The agent can:
-
-- **Search** — `"find me a weather API"` → searches the marketplace
-- **Preview** — shows resource name, description, and price before paying
-- **Confirm** — asks `"Want me to buy Weather API for $0.50 USDC?"` and waits
-- **Pay** — executes on-chain USDC transfer only after user confirms
-- **Deliver** — returns the resource content + transaction receipt
-
-Commands available via CLI exec:
-```
-list-resources          List all available resources
-search '{"q":"weather"}'  Search by keyword
-preview '{"url":"..."}'   Get price without paying
-request '{"url":"..."}'   Pay and access resource
-wallet                    Check ETH + USDC balance
-send '{"to":"0x...","amount":"1.00"}'  Send USDC
-list-stores              List Shopify stores
-browse-products '{"storeId":"..."}'  Browse store products
-buy '{"storeId":"...","items":[...]}'  Full checkout
-```
-
-### MCP Server (Claude Desktop)
-
-12 tools exposed via Model Context Protocol:
-
-| Tool | Description |
-|------|-------------|
-| `x402_discover` | Probe any URL for x402 payment support |
-| `x402_list_resources` | Browse all digital resources |
-| `x402_search_resources` | Search resources by keyword |
-| `x402_request` | Access/buy a paid resource (auto-pay on 402) |
-| `x402_list_stores` | List Shopify stores |
-| `x402_browse_products` | Browse products in a store |
-| `x402_buy` | Full Shopify checkout with USDC |
-| `x402_wallet` | Check wallet balance |
-| `x402_send` | Send USDC to any address |
-| `x402_order_status` | Check order status |
-| `x402_list_orders` | List all orders |
-| `x402_list_order_intents` | List pending order intents |
-
-### A2A Server (Agent-to-Agent)
-
-Discoverable at `/.well-known/agent.json` with:
-- **4 skills**: purchase, resource-access, ap2-shopping, erc8004-trust
-- **3 extensions**: x402 payment, AP2 mandates, ERC-8004 identity
-- JSON-RPC 2.0 endpoint at `/a2a`
-
-### AP2 Shopping Flow (Google Agent Payments Protocol)
-
-Full mandate-based shopping:
-```
-IntentMandate (what the agent wants to buy)
-    → CartMandate (itemized cart with W3C PaymentRequest)
-        → PaymentMandate (on-chain tx hash as proof)
-            → PaymentReceipt (verified settlement)
-```
-
-### Standalone AI Agent
-
-Multi-LLM CLI agent (`packages/ai-agent`) supporting Anthropic, OpenAI, and Google:
-```bash
-pnpm agent                          # Interactive mode
-pnpm agent "buy me a weather API"   # One-shot mode
-```
-
-### Web Platform
-
-- **Explore** — Browse all resources with prices
-- **Creator Dashboard** — Manage resources, view orders, analytics
-- **Faucet** — Request testnet BTC from `https://faucet.test.mezo.org`; mint MockUSDC or borrow MUSD on Mezo
-- **Wallet Connect** — RainbowKit integration
-- **Creator Profiles** — Public pages with tipping
-
----
-
-## Monorepo Structure
-
-```
-superpage/
-├── packages/
-│   ├── frontend/          Next.js 16 + React 19 + Tailwind 4
-│   ├── backend/           Express + MongoDB + A2A + AP2 + x402
-│   ├── mcp-client/        MCP server + CLI (superpage-x402.js)
-│   ├── ai-agent/          Standalone AI agent (Anthropic/OpenAI/Google)
-│   ├── x402-sdk-eth/      Payment verification SDK
-│   └── contracts/         Smart contract ABIs
-├── dev.sh                 Start all services
-└── package.json           pnpm workspace root
 ```
 
 ---
@@ -243,205 +144,33 @@ superpage/
 
 ### Prerequisites
 
-- Node.js 22+
-- pnpm 8+
-- MongoDB
-- A wallet private key funded with testnet BTC on Mezo matsnet (faucet: `https://faucet.test.mezo.org`)
+- Node.js 22+, pnpm 8+, MongoDB, ffmpeg (for video transcoding)
+- A wallet funded with Arc Testnet USDC from `https://faucet.circle.com` (select Arc Testnet; USDC covers both gas and payments, since gas IS USDC)
 
-### 1. Clone & Install
+### Run
 
 ```bash
 git clone https://github.com/AIProjects402/superpage.git
 cd superpage
 pnpm install
-```
-
-### 2. Environment Setup
-
-```bash
-cp .env.sample .env
-```
-
-Key environment variables:
-
-```bash
-# Server
-PORT=3001
-MONGODB_URI=mongodb://localhost:27017/x402
-
-# Mezo Testnet (matsnet)
-X402_CHAIN=mezo-testnet
-X402_CURRENCY=MUSD
-RPC_URL=https://rpc.test.mezo.org
-MUSD_ADDRESS=0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503
-USDC_ADDRESS=0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c  # SuperPage MockUSDC on matsnet
-
-# Wallet
-WALLET_PRIVATE_KEY=0x...
-X402_RECIPIENT_ADDRESS=0x...
-
-# Auth
-JWT_SECRET=your-secret
-
-# LLM (for ai-agent)
-LLM_PROVIDER=anthropic          # or openai, google
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-### 3. Start Development
-
-```bash
 ./dev.sh
 ```
 
 This starts:
-- **Frontend**: http://localhost:3100
-- **Backend**: http://localhost:3001
-- **Payment Service**: x402 verification
+- **Frontend**: http://localhost:1337
+- **Backend**: http://localhost:2337
 
-### 4. OpenClaw Setup (Telegram Agent)
-
-Install the SuperPage x402 skill:
+Key environment variables (see `.env.production.example`):
 
 ```bash
-# Copy skill to OpenClaw workspace
-cp -r ~/.openclaw/skills/superpage-x402 ~/.openclaw/skills/
-
-# Start OpenClaw gateway
-openclaw gateway
+X402_CHAIN=arc-testnet
+X402_CURRENCY=USDC
+ARC_RPC_URL=https://rpc.testnet.arc.network   # optional override
+WALLET_PRIVATE_KEY=0x...
+X402_RECIPIENT_ADDRESS=0x...
+STREAMPAY_ADDRESS=0x...                        # set after contract deploy
+NEXT_PUBLIC_STREAMPAY_ADDRESS=0x...            # same address, frontend build arg
 ```
-
-Then message `@HeySuperioBot` on Telegram.
-
-### 5. Claude Desktop Setup
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "superpage-x402": {
-      "command": "node",
-      "args": ["/path/to/superpage/packages/mcp-client/superpage-x402.js"],
-      "env": {
-        "SUPERPAGE_SERVER": "http://localhost:3001",
-        "WALLET_PRIVATE_KEY": "0x...",
-        "X402_CHAIN": "mezo-testnet",
-        "X402_CURRENCY": "MUSD",
-        "MAX_AUTO_PAYMENT": "10.00"
-      }
-    }
-  }
-}
-```
-
-Restart Claude Desktop, then ask: *"List all resources on SuperPage"*
-
-### 6. Standalone AI Agent
-
-```bash
-pnpm agent                          # Interactive REPL
-pnpm agent "show me all resources"  # One-shot
-```
-
----
-
-## x402 Payment Flow
-
-```
-Agent                    SuperPage                 Mezo
-  │                         │                          │
-  │  GET /x402/resource/X   │                          │
-  │────────────────────────>│                          │
-  │                         │                          │
-  │  402 Payment Required   │                          │
-  │  {amount, recipient,    │                          │
-  │   chainId, payScheme}   │                          │
-  │<────────────────────────│                          │
-  │                         │                          │
-  │  (preview mode stops    │                          │
-  │   here — returns price  │                          │
-  │   to user for confirm)  │                          │
-  │                         │                          │
-  │  USDC.transfer(to, amt) │                          │
-  │─────────────────────────┼─────────────────────────>│
-  │                         │                          │
-  │                         │        tx confirmed      │
-  │                         │<─────────────────────────│
-  │                         │                          │
-  │  GET /x402/resource/X   │                          │
-  │  X-PAYMENT: {txHash}    │                          │
-  │────────────────────────>│                          │
-  │                         │  verify on-chain         │
-  │                         │─────────────────────────>│
-  │                         │<─────────────────────────│
-  │  200 OK + content       │                          │
-  │<────────────────────────│                          │
-```
-
----
-
-## Agent Discovery
-
-### A2A Agent Card
-
-```bash
-curl http://localhost:3001/.well-known/agent.json
-```
-
-```json
-{
-  "name": "x402-merchant-agent",
-  "url": "http://localhost:3001/a2a",
-  "version": "0.2.1",
-  "skills": [
-    { "id": "purchase", "name": "Product Purchase" },
-    { "id": "resource-access", "name": "Resource Access" },
-    { "id": "ap2-shopping", "name": "AP2 Shopping Flow" },
-    { "id": "erc8004-trust", "name": "On-Chain Trust & Reputation" }
-  ],
-  "extensions": [
-    { "uri": "urn:x-a2a:extension:x402-payment" },
-    { "uri": "https://github.com/google-agentic-commerce/ap2/v1" },
-    { "uri": "urn:eip:8004:trustless-agents" }
-  ]
-}
-```
-
-### ERC-8004 Registration
-
-```bash
-curl http://localhost:3001/.well-known/agent-registration.json
-```
-
-Returns the agent's on-chain identity, service endpoints (A2A, MCP, Web), and trust registrations per the ERC-8004 spec.
-
----
-
-## Technology Stack
-
-| Layer | Technology | Purpose |
-|-------|------------|---------|
-| **Agent Runtime** | OpenClaw | Local-first agent execution, Telegram integration |
-| **Frontend** | Next.js 16, React 19, Tailwind 4 | Marketplace, dashboard, creator profiles |
-| **Backend** | Express, TypeScript, MongoDB | API, A2A server, AP2 handler, x402 gateway |
-| **MCP Client** | Node.js, viem | Claude Desktop integration (12 tools) |
-| **AI Agent** | Vercel AI SDK | Multi-LLM CLI agent (Anthropic/OpenAI/Google) |
-| **SDK** | @super-x402/sdk | Payment verification middleware |
-| **Blockchain** | Mezo (Bitcoin economic layer), viem | MUSD payments, BTC gas, on-chain verification |
-| **E-commerce** | Shopify Admin API | Product sync, order creation |
-| **Identity** | ERC-8004 | Agent identity, reputation, validation |
-| **Wallet** | RainbowKit, wagmi | Browser wallet connection |
-
-### Protocols
-
-| Protocol | Purpose | Spec |
-|----------|---------|------|
-| **x402** | HTTP 402 payment-gated resources | [x402.org](https://x402.org) |
-| **A2A** | Agent-to-agent discovery & communication | JSON-RPC 2.0 |
-| **AP2** | Mandate-based agent shopping | [google-agentic-commerce/ap2](https://github.com/google-agentic-commerce/ap2) |
-| **MCP** | LLM tool integration | [modelcontextprotocol.io](https://modelcontextprotocol.io) |
-| **ERC-8004** | On-chain agent identity | [EIP-8004](https://eips.ethereum.org/EIPS/eip-8004) |
 
 ---
 
@@ -449,16 +178,97 @@ Returns the agent's on-chain identity, service endpoints (A2A, MCP, Web), and tr
 
 | Property | Value |
 |----------|-------|
-| **Network** | Mezo Testnet (matsnet) |
-| **Chain ID** | 31611 |
-| **RPC URL** | `https://rpc.test.mezo.org` |
-| **Native Gas** | BTC (18 decimals — *not* 8, this is Mezo's EVM accounting) |
-| **MUSD Contract** | `0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503` (18 dec, BTC-backed) |
-| **MockUSDC Contract** | `0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c` (6 dec, mintable test token) |
-| **Default Payment Token** | MUSD |
-| **Block Time** | ~1 second |
-| **Explorer** | `https://explorer.test.mezo.org` |
-| **Faucet** | `https://faucet.test.mezo.org` |
+| **Network** | Arc Testnet |
+| **Chain ID** | 5042002 |
+| **RPC URL** | `https://rpc.testnet.arc.network` |
+| **Explorer** | `https://testnet.arcscan.app` |
+| **Native Gas** | USDC (native balances use 18 decimals) |
+| **Payment Token** | USDC ERC-20 facade `0x3600000000000000000000000000000000000000` (6 decimals) |
+| **EURC** | `0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a` |
+| **Faucet** | `https://faucet.circle.com` (select Arc Testnet) |
+| **Circle Gateway (roadmap)** | GatewayWallet `0x0077777d7EBA4688BDeF3E311b846F25870A19B9` for batched nanopayments, not yet integrated |
+
+Note the dual representation of USDC on Arc: the native gas token uses 18-decimal accounting at the EVM level, while the ERC-20 facade at `0x3600...0000` uses the canonical 6 decimals and is what x402 payments transfer.
+
+---
+
+## Streaming Protocol Walkthrough
+
+The pay-per-second flow uses a payment channel so that N seconds of video cost exactly one deposit transaction and one settlement transaction, regardless of N.
+
+1. **Open**: the viewer calls `openSession(creator, ratePerSecond, sessionKey)` on `StreamPay`, sending the deposit as `msg.value` in native USDC (covers the full video: `pricePerSecondUsdc * durationSeconds`). `sessionKey` is an ephemeral key generated in the browser (or by the agent) just for this session, so the main wallet signs exactly once.
+2. **Register**: the client calls `POST /stream/session/register` with `{ resourceSlug, sessionId }`; the backend reads the session straight from the contract (`getSession`), verifies the deposit and rate, and unlocks HLS playback at `/watch/[slug]`.
+3. **Tick**: every second of playback, the session key signs a voucher off-chain and sends it via `POST /stream/session/:sessionId/heartbeat` with `{ amountOwedWei, secondsWatched, signature }`. The voucher digest is:
+   `keccak256(abi.encodePacked("SUPERPAGE_STREAM", chainId, contract, sessionId, amountOwed))`, signed eth_sign style by the session key. No gas, no latency, no on-chain traffic.
+4. **Gate**: the backend verifies each voucher signature and monotonically increasing `amountOwed` (bounded by the deposit and elapsed wall time) before serving the next HLS segment. Stop paying, and the stream stops.
+5. **Close**: when the viewer stops (or the video ends), `POST /stream/session/:sessionId/close` triggers a single on-chain `closeSession(sessionId, amountOwed, signature)`. The contract verifies the highest voucher, pays the creator exactly what was watched, and refunds the unwatched remainder to the viewer. The client polls `GET /stream/session/:sessionId` for the settlement receipt.
+6. **Safety valve**: if the platform disappears and never settles, the viewer calls `reclaimExpired(sessionId)` after 24 hours and recovers the full deposit. Funds are never stranded.
+
+Articles use simple one-shot x402: free preview blocks render at `/read/[slug]`, then a single USDC payment unlocks the full piece.
+
+---
+
+## Agent Surfaces
+
+The agent tooling is unchanged from the original build and works on Arc as-is:
+
+- **MCP Server** (Claude Desktop): 12+ tools (`x402_list_resources`, `x402_request`, `x402_wallet`, `x402_send`, `x402_buy`, ...) over stdio/JSON-RPC
+- **A2A Protocol**: discoverable agent card at `/.well-known/agent.json`, JSON-RPC 2.0 endpoint at `/a2a`, ERC-8004 registration at `/.well-known/agent-registration.json`
+- **OpenClaw Skill / CLI**: `list-resources`, `search`, `preview`, `request`, `wallet`, `send`, plus Shopify `buy`
+- **Standalone AI agent** (`pnpm agent`): multi-LLM CLI (Anthropic/OpenAI/Google) that discovers, confirms, and pays autonomously
+- **Skill manifest**: served live at `/skill.md` so any agent can self-onboard
+
+The flow every surface follows: discover, preview the price (the 402 response IS the price quote), confirm with the user, pay USDC on Arc, deliver content plus a tx-hash receipt.
+
+---
+
+## RFB Alignment
+
+### RFB 4: Streaming and Continuous Payments
+
+- True per-second value transfer backed by an on-chain channel, not polling-based billing
+- One deposit + one settlement on-chain; thousands of signed vouchers off-chain
+- Viewer-protective: unwatched USDC is refunded at settlement, and a 24h `reclaimExpired` recovers the deposit if the platform vanishes
+- Works for human viewers (browser, ephemeral session key) and AI agents (programmatic session key) identically
+
+### RFB 6: Creator and Publisher Monetization
+
+- Creators publish in minutes: Notion-like editor for articles, drag-and-drop video upload with server-side HLS transcoding
+- Pricing that matches consumption: per-read articles, per-second video, free previews to drive conversion
+- Earnings settle directly to the creator's wallet in USDC, no payout schedule, no platform custody
+- AI agents are first-class customers AND first-class creators: an agent can publish a guide and earn USDC from other agents
+
+---
+
+## Why This Could Win (Traction Hooks)
+
+- **Working end-to-end on testnet today**: connect a wallet, fund it at faucet.circle.com, watch a video, and inspect the open/settle transactions on Arcscan
+- **Novel protocol use**: x402 for one-shot purchases plus a voucher-based payment channel for continuous payments, on a chain where the payment asset is also the gas asset
+- **Agent-native from day one**: MCP, A2A, ERC-8004, and a served skill manifest mean any agent framework can transact without custom integration
+- **Clear path beyond the hackathon**: Circle Gateway batch nanopayments (contracts already on Arc), EURC pricing, and mainnet settlement are direct extensions of the existing channel design
+
+---
+
+## Project History
+
+SuperPage won the **Coinbase x402 track at the SURGE x OpenClaw Hackathon 2026** as an agent payment skill, and previously ran on Mezo (Bitcoin economic layer) with MUSD payments. For the Lepton Agents Hackathon it was ported to Arc and extended from "agents can buy things" to a full creator economy with continuous payments. Legacy Mezo support is documented in [docs/mezo.md](docs/mezo.md).
+
+---
+
+## Monorepo Structure
+
+```
+superpage/
+├── packages/
+│   ├── frontend/          Next.js 16 + React 19 + Tailwind 4 (port 1337)
+│   ├── backend/           Express + MongoDB + x402 gateway + A2A (port 2337)
+│   ├── mcp-client/        MCP server + CLI (superpage-x402.js)
+│   ├── ai-agent/          Standalone AI agent (Anthropic/OpenAI/Google)
+│   ├── x402-sdk-eth/      Payment verification SDK (viem)
+│   └── contracts/         Hardhat v3 + Solidity 0.8.24 (StreamPay, ERC-8004)
+├── dev.sh                 Start all services
+└── package.json           pnpm workspace root
+```
 
 ---
 
@@ -472,136 +282,53 @@ GET  /health
 GET  /x402/resources                    # List all resources
 GET  /x402/resource/:slug               # Access resource (402 if unpaid)
 
-# Stores
-GET  /x402/stores                       # List Shopify stores
-GET  /x402/store-products               # Browse products
-POST /x402/checkout                     # Shopify checkout
+# Streaming (payment channel)
+POST /stream/session/register           # Register an on-chain session, unlock playback
+POST /stream/session/:id/heartbeat      # Submit a signed per-second voucher
+POST /stream/session/:id/close          # Trigger on-chain settlement
+GET  /stream/session/:id                # Session status / settlement receipt
+GET  /stream/meta/:slug                 # Video metadata (rate, duration, free preview)
+
+# Consumption surfaces (frontend)
+GET  /watch/:slug                       # Pay-per-second video player
+GET  /read/:slug                        # Article reader (free preview, then 402)
+GET  /r/:slug                           # Product detail page
 
 # Agent Discovery
 GET  /.well-known/agent.json            # A2A Agent Card
 GET  /.well-known/agent-registration.json  # ERC-8004 Registration
+GET  /skill.md                          # Machine-readable skill manifest
 
-# A2A
+# A2A / MCP
 POST /a2a                               # JSON-RPC 2.0 endpoint
-
-# MCP
 POST /mcp/universal                     # MCP server endpoint
 ```
 
 ---
 
-## Demo
-
-### Telegram Agent (`@HeySuperioBot`)
-
-1. **"What resources are available?"** — lists all 26+ resources with prices
-2. **"Search for weather APIs"** — finds matching resources
-3. **"Buy the Weather API"** — previews price, asks to confirm, pays on-chain, delivers content
-4. **"Check my wallet"** — shows ETH and USDC balances
-
-### AI as Creator (Agent-Generated Content)
-
-An AI agent can autonomously create and sell content on the marketplace:
-
-1. Agent writes a guide, dataset, or code template
-2. Agent lists it on SuperPage with a title, description, and price
-3. Other agents and humans discover it via search or browse
-4. Buyers pay USDC → content delivered → creator agent earns revenue
-
-This creates a fully autonomous creator economy where AI agents generate value, price it, and earn from both human and agent customers — no human intervention required.
-
-### Claude Desktop (MCP)
-
-1. **"List all resources on SuperPage"** — calls `x402_list_resources`
-2. **"Access the Advanced Git Workflows guide"** — calls `x402_request`, pays, returns content
-3. **"What's my balance?"** — calls `x402_wallet`
-
-### CLI Agent
-
-```bash
-$ pnpm agent "buy me a weather API"
-
-  SuperPage Agent v1.0.0
-  Wallet: 0x20a0...4F72  |  1,009,894.98 USDC
-  Model: anthropic/claude-sonnet-4-20250514
-  Network: mezo-testnet
-
-  > buy me a weather API
-
-  I found the Weather API for $0.50 USDC. Want me to purchase it?
-  > yes
-  Paid 0.50 USDC — tx: 0x01e59f01...
-  Here's the weather data: { temperature: 72, ... }
-```
-
----
-
-## Hackathon Track Alignment
-
-### Track 5: Autonomous Payments & Monetized Skills
-
-SuperPage is an **x402-integrated OpenClaw skill** that charges USDC fees per resource access:
-
-- **Preview + Confirm flow** — agent shows price, waits for user approval, then pays
-- **Micro-payments** — resources priced from $0.01 to $5.00 USDC
-- **12 MCP tools** — full marketplace operations from any LLM
-- **Revenue for creators** — on-chain USDC payments directly to resource creators
-- **Reusable skill** — any OpenClaw agent can install `superpage-x402` and start paying for resources
-
-### Also applicable:
-
-- **Track 1: Agent Execution & Real World Actions** — autonomous shopping, wallet management, Shopify checkout
-- **Track 2: Agent-Powered Productivity & DeFi Tools** — portfolio tracking, payment automation
-- **Track 3: Developer Infrastructure** — x402 SDK, MCP server, A2A protocol implementation
-
----
-
 ## Security
 
-- **Spending caps** — `MAX_AUTO_PAYMENT` limits per-transaction spend
-- **Confirmation flow** — agent previews price and asks before paying
-- **Non-custodial** — agent controls its own private key
-- **On-chain verification** — every payment verified against Mezo RPC
-- **Time-bounded** — 15-minute payment windows
-- **Audit trail** — transaction hash, amount, timestamp, recipient logged
+- **Spending caps**: `MAX_AUTO_PAYMENT` limits per-transaction agent spend
+- **Confirmation flow**: agents preview price and ask before paying
+- **Non-custodial**: wallets and session keys stay client-side; creators are paid directly
+- **On-chain verification**: every payment and every settlement verified against Arc RPC
+- **Channel safety**: vouchers are scoped to one session id and one contract via the digest preimage; deposits are reclaimable after 24h
 
 ---
 
 ## Documentation
 
-- **Docs site**: http://localhost:3100/docs
-  - Getting Started
-  - SDK Reference
-  - API Documentation
-  - Shopify Integration
-  - MCP Setup
-  - OpenClaw Skills
-- **Agent Discovery**: `GET /.well-known/agent.json`
-- **ERC-8004 Registration**: `GET /.well-known/agent-registration.json`
-
----
-
-## Links
-
-| Resource | URL |
-|----------|-----|
-| **Live Demo** | [superpa.ge](https://superpa.ge) |
-| **Telegram Bot** | [@HeySuperioBot](https://t.me/HeySuperioBot) |
-| **GitHub** | [AIProjects402/superpage](https://github.com/AIProjects402/superpage) |
-| **x402 Protocol** | [x402.org](https://x402.org) |
-| **OpenClaw** | [openclaw.ai](https://openclaw.ai) |
-| **MCP Docs** | [modelcontextprotocol.io](https://modelcontextprotocol.io) |
-| **ERC-8004** | [EIP-8004](https://eips.ethereum.org/EIPS/eip-8004) |
-| **AP2 Spec** | [google-agentic-commerce/ap2](https://github.com/google-agentic-commerce/ap2) |
-| **Mezo** | [mezo.org](https://mezo.org) |
-| **Mezo Explorer** | [explorer.mezo.org](https://explorer.mezo.org) |
+- **Docs site**: http://localhost:1337/docs (Getting Started, API, SDK, MCP, OpenClaw, AI Agents)
+- **Agent manifest**: `SKILL.md` (also served at `/skill.md`)
+- **Agent card**: `agent.json` / `GET /.well-known/agent.json`
+- **Chain guides**: [docs/arc.md](docs/arc.md), [docs/mezo.md](docs/mezo.md) (legacy), [docs/STACKS.md](docs/STACKS.md)
 
 ---
 
 <div align="center">
 
-**SuperPage** — The x402 Payment Skill for the Agent Internet
+**SuperPage**: creator commerce for humans and AI agents, one second at a time.
 
-Built for SURGE × OpenClaw Hackathon 2026
+Built for the Lepton Agents Hackathon by Canteen, with Circle and Arc.
 
 </div>

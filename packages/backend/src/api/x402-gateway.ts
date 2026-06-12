@@ -495,7 +495,7 @@ function generateSampleFileContent(resource: any, filename: string) {
  * Serve blog/article content (URL, sitemap, or direct content)
  */
 async function serveArticle(resource: any, req: Request, res: Response) {
-  const { content, storage_key, blog_url, sitemap_url, mode } = resource.config || {};
+  const { content, storage_key, blog_url, sitemap_url, mode, blocks, markdown, excerpt } = resource.config || {};
 
   res.setHeader("X-402-Paid", "true");
 
@@ -570,20 +570,27 @@ async function serveArticle(resource: any, req: Request, res: Response) {
   }
 
   // Mode: Direct content (default)
-  let articleContent = content;
+  // New-style articles store BlockNote JSON (blocks) plus derived markdown;
+  // legacy articles only have config.content (markdown string)
+  let articleContent = markdown ?? content;
 
   // If content is stored in storage, fetch it - TODO: Implement with MongoDB GridFS
   if (!articleContent && storage_key) {
-    return res.status(501).json({ 
+    return res.status(501).json({
       error: "Article storage not yet implemented",
       message: "Please use direct content or external URL mode"
     });
   }
 
   return res.json({
+    type: "article",
     id: resource._id.toString(),
     name: resource.name,
     description: resource.description,
+    blocks: blocks ?? null,
+    markdown: articleContent || "",
+    excerpt: excerpt || "",
+    // Legacy fields kept for older consumers (CLI agents, purchase modal)
     content: articleContent || "",
     contentType: "markdown",
     mode: "direct",

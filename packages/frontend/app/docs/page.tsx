@@ -15,7 +15,7 @@ export default function DocsPage() {
             Learn how to build with SuperPage.
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl">
-            From your first payment-gated API to AI agent integration, we've got everything you need to monetize with HTTP 402 and MUSD on Mezo.
+            From your first payment-gated API to AI agent integration, we've got everything you need to monetize with HTTP 402 and USDC on Arc.
           </p>
         </div>
       </section>
@@ -71,16 +71,16 @@ export default function DocsPage() {
             Integrating x402 in 3 minutes
           </h2>
           <p className="text-muted-foreground mb-6">
-          Our SDK is designed to be as simple as possible. To get started, you'll need to initialize the <code>X402Server</code> with your Ethereum wallet credentials.
+          Our SDK is designed to be as simple as possible. To get started, you'll need to initialize the <code>X402Server</code> with your EVM wallet credentials.
         </p>
         <pre className="mb-6">
           <code>{`import { X402Server } from '@super-x402/sdk';
 
 const x402 = new X402Server({
-  network: 'mainnet',
+  network: 'arc-testnet',
   privateKey: process.env.ETH_PRIVATE_KEY,
   recipientAddress: '0xYourAddress',
-  tokenAddress: '0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503' // MUSD on Mezo testnet
+  tokenAddress: '0x3600000000000000000000000000000000000000' // USDC facade on Arc
 });
 
 app.get('/api/premium',
@@ -91,7 +91,7 @@ app.get('/api/premium',
 );`}</code>
         </pre>
           <p className="text-muted-foreground mb-8">
-            This creates a payment-gated endpoint that returns HTTP 402 with payment requirements. Clients using the SDK automatically pay with MUSD (or USDC) and receive the content. The transaction is verified on-chain instantly.
+            This creates a payment-gated endpoint that returns HTTP 402 with payment requirements. Clients using the SDK automatically pay with USDC and receive the content. The transaction is verified on-chain in under a second.
           </p>
           <div className="p-8 rounded-2xl bg-muted border border-border flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex flex-col gap-1 text-center md:text-left">
@@ -119,7 +119,7 @@ app.get('/api/premium',
             It enables automatic, programmable payments for AI agents, APIs, and digital commerce.
           </p>
           <p>
-            Built on Mezo (Bitcoin economic layer) with <strong className="text-primary">MUSD stablecoin</strong>, SuperPage makes it easy to:
+            Built on Arc (Circle's stablecoin-native L1) with <strong className="text-primary">USDC as both the payment and gas token</strong>, SuperPage makes it easy to:
           </p>
           <ul className="list-disc list-inside space-y-2 ml-4">
             <li>Create payment-gated APIs and content</li>
@@ -165,7 +165,7 @@ app.get('/api/premium',
             <div>
               <h4 className="font-semibold text-foreground mb-1">Client Sends Payment</h4>
               <p className="text-muted-foreground text-sm">
-                Client automatically sends MUSD payment on Mezo (or any supported EVM chain).
+                Client automatically sends USDC payment on Arc (or any supported EVM chain).
               </p>
             </div>
           </div>

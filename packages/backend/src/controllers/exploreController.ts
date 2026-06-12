@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import { Resource, Creator, Store, StoreProduct } from "../models/index.js";
 import { ApiResponse } from "../middleware/response.js";
 import { asyncHandler } from "../middleware/errorHandler.js";
 import { stripHtml } from "../utils/utils.js";
+import { getCurrency } from "../config/chain-config.js";
 
 /**
  * Get all data needed for the explore page
@@ -54,6 +56,9 @@ export const getExploreData = asyncHandler(async (req: Request, res: Response) =
     name: r.name,
     description: r.description,
     priceUsdc: r.priceUsdc,
+    coverImage: r.config?.coverImage || null,
+    pricePerSecondUsdc: r.type === "video" ? r.config?.pricePerSecondUsdc ?? null : null,
+    durationSeconds: r.type === "video" ? r.config?.durationSeconds ?? null : null,
     accessCount: r.accessCount || 0,
     createdAt: r.createdAt,
     creator: {
@@ -118,5 +123,71 @@ export const getExploreData = asyncHandler(async (req: Request, res: Response) =
     creators: creatorsWithCounts,
     stores: formattedStores,
     products: formattedProducts,
+  });
+});
+
+/**
+ * Public metadata for a single resource (product detail page)
+ * GET /api/resources/:slug/meta
+ */
+export const getResourceMeta = asyncHandler(async (req: Request, res: Response) => {
+  const { slug } = req.params;
+
+  // Look up by slug first; fall back to ObjectId for resources without slugs
+  let resource: any = await Resource.findOne({ slug: slug.toLowerCase() })
+    .populate("creatorId", "username displayName name walletAddress")
+    .lean();
+
+  if (!resource && mongoose.Types.ObjectId.isValid(slug)) {
+    resource = await Resource.findById(slug)
+      .populate("creatorId", "username displayName name walletAddress")
+      .lean();
+  }
+
+  if (!resource || !resource.isActive || !resource.isPublic) {
+    return ApiResponse.error(res, "Resource not found", 404);
+  }
+
+  const config: Record<string, any> = resource.config || {};
+  const creator: any = resource.creatorId;
+
+  // Rough reading time from stored markdown (legacy articles store config.content)
+  const articleText: string = config.markdown || config.content || "";
+  const readingMinutes = Math.max(
+    1,
+    Math.ceil(articleText.split(/\s+/).filter(Boolean).length / 200)
+  );
+
+  return ApiResponse.success(res, {
+    slug: resource.slug || resource._id.toString(),
+    type: resource.type,
+    name: resource.name,
+    description: resource.description || null,
+    priceUsdc: resource.priceUsdc,
+    currency: getCurrency(),
+    coverImage: config.coverImage || null,
+    createdAt: resource.createdAt,
+    accessCount: resource.accessCount || 0,
+    creator: {
+      username: creator?.username || null,
+      displayName: creator?.displayName || creator?.name || "Unknown",
+      walletAddress: creator?.walletAddress || null,
+    },
+    video:
+      resource.type === "video"
+        ? {
+            pricePerSecondUsdc: config.pricePerSecondUsdc ?? 0,
+            durationSeconds: config.durationSeconds ?? 0,
+            freePreviewSeconds: config.freePreviewSeconds ?? 10,
+          }
+        : undefined,
+    article:
+      resource.type === "article"
+        ? {
+            excerpt: config.excerpt || "",
+            freeBlocks: config.freeBlocks ?? 0,
+            readingMinutes,
+          }
+        : undefined,
   });
 });

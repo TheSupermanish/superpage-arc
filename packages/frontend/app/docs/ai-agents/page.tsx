@@ -64,12 +64,13 @@ pnpm install`} language="bash" />
     "x402": {
       "command": "node",
       "args": [
-        "/path/to/USDC/packages/mcp-client/superpage-x402.js"
+        "/path/to/superpage/packages/mcp-client/superpage-x402.js"
       ],
       "env": {
         "SUPERPAGE_SERVER": "https://superpa.ge",
         "WALLET_PRIVATE_KEY": "0xYourPrivateKey",
-        "ETH_NETWORK": "mainnet",
+        "X402_CHAIN": "arc-testnet",
+        "X402_CURRENCY": "USDC",
         "MAX_AUTO_PAYMENT": "10.00"
       }
     }
@@ -93,7 +94,7 @@ pnpm install`} language="bash" />
             <div className="space-y-6">
               <div className="border-l-4 border-primary pl-4">
                 <h4 className="font-bold text-foreground mb-2 font-mono">x402_wallet</h4>
-                <p className="text-muted-foreground mb-2">Check ETH and USDC token balance</p>
+                <p className="text-muted-foreground mb-2">Check USDC balance on Arc (gas and payments)</p>
                   <CodeBlock code={`Example prompt: "Check my x402 wallet balance"`} language="text" />
                 </div>
 
@@ -152,9 +153,9 @@ class AIAgent {
 
   constructor(privateKey: string) {
     this.x402 = new X402Client({
-      network: 'mainnet',
+      network: 'arc-testnet',
       privateKey,
-      tokenAddress: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8',
+      tokenAddress: '0x3600000000000000000000000000000000000000',
       maxAutoPayment: '5.00', // Don't pay more than $5 automatically
     });
   }
@@ -222,9 +223,9 @@ class ShoppingAgent {
 
   constructor(privateKey: string) {
     this.x402 = new X402Client({
-      network: 'mainnet',
+      network: 'arc-testnet',
       privateKey,
-      tokenAddress: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8',
+      tokenAddress: '0x3600000000000000000000000000000000000000',
     });
   }
 

@@ -103,8 +103,80 @@ export default function APIDocsPage() {
                 <p className="text-muted-foreground mb-3">Access a resource (auto-pays with HTTP 402)</p>
                 <p className="text-sm text-muted-foreground mb-2">Headers:</p>
                 <ul className="text-sm text-muted-foreground ml-4 space-y-1">
-                  <li>• <code className="bg-muted px-2 py-1 rounded">X-Payment-TxHash</code> - Ethereum transaction hash (after payment)</li>
+                  <li>• <code className="bg-muted px-2 py-1 rounded">X-Payment-TxHash</code> - Arc transaction hash (after payment)</li>
                 </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Streaming Endpoints */}
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-foreground text-2xl">Streaming (Pay-Per-Second)</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Payment-channel video streaming via the StreamPay contract on Arc. One on-chain deposit, off-chain vouchers every second, one on-chain settlement. Playback happens at /watch/:slug; articles read at /read/:slug.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="border-l-4 border-primary pl-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="px-3 py-1 bg-blue-500/20 text-blue-600 rounded font-bold text-sm">GET</span>
+                  <code className="text-foreground font-mono">/stream/meta/:slug</code>
+                </div>
+                <p className="text-muted-foreground mb-3">Video metadata: creator address, ratePerSecond, duration, free preview seconds. Use this to size the deposit before opening a session.</p>
+              </div>
+
+              <div className="border-l-4 border-green-500 pl-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="px-3 py-1 bg-green-500/20 text-green-600 rounded font-bold text-sm">POST</span>
+                  <code className="text-foreground font-mono">/stream/session/register</code>
+                </div>
+                <p className="text-muted-foreground mb-3">Register an on-chain StreamPay session. Call openSession(creator, ratePerSecond, sessionKey) on the contract first, sending the deposit as msg.value in native USDC. The backend reads the session back via getSession and unlocks playback.</p>
+                <pre className="bg-muted p-4 rounded-xl overflow-x-auto text-sm border border-border text-foreground">
+{`{
+  "resourceSlug": "my-video",
+  "sessionId": "1"   // on-chain session id (numeric string)
+}`}
+                </pre>
+              </div>
+
+              <div className="border-l-4 border-green-500 pl-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="px-3 py-1 bg-green-500/20 text-green-600 rounded font-bold text-sm">POST</span>
+                  <code className="text-foreground font-mono">/stream/session/:sessionId/heartbeat</code>
+                </div>
+                <p className="text-muted-foreground mb-3">Submit a signed voucher for each second watched. The backend verifies the signature and the monotonically increasing amount before serving the next HLS segment.</p>
+                <pre className="bg-muted p-4 rounded-xl overflow-x-auto text-sm border border-border text-foreground">
+{`{
+  "amountOwedWei": "123456000000000000",  // cumulative, native USDC wei (18 dec)
+  "secondsWatched": 12,
+  "signature": "0x..."
+}`}
+                </pre>
+              </div>
+
+              <div className="border-l-4 border-green-500 pl-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="px-3 py-1 bg-green-500/20 text-green-600 rounded font-bold text-sm">POST</span>
+                  <code className="text-foreground font-mono">/stream/session/:sessionId/close</code>
+                </div>
+                <p className="text-muted-foreground mb-3">Trigger settlement. The platform calls closeSession(sessionId, amountOwed, signature) on-chain: the creator is paid for the watched seconds and the viewer is refunded the unwatched remainder. Poll GET /stream/session/:sessionId for the receipt. If settlement never happens, the viewer can call reclaimExpired(sessionId) on the contract after 24 hours.</p>
+              </div>
+
+              <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
+                <p className="text-sm text-foreground mb-2 font-semibold">Voucher digest format</p>
+                <pre className="bg-muted p-4 rounded-xl overflow-x-auto text-sm border border-border text-foreground">
+{`keccak256(abi.encodePacked(
+  "SUPERPAGE_STREAM",
+  chainId,      // 5042002
+  contract,     // StreamPay address
+  sessionId,
+  amountOwed
+))`}
+                </pre>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Signed eth_sign style (EIP-191 personal message prefix) by the ephemeral session key registered at open.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -242,9 +314,10 @@ export default function APIDocsPage() {
   "payment": {
     "amount": "1000000",
     "token": "USDC",
-    "tokenAddress": "0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8",
+    "tokenAddress": "0x3600000000000000000000000000000000000000",
     "recipient": "0x...",
-    "network": "mainnet"
+    "network": "arc-testnet",
+    "chainId": 5042002
   }
 }`}
                 </pre>

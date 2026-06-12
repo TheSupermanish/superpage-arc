@@ -14,8 +14,9 @@ export function ModernNavbar() {
 
   const navLinks = [
     { href: "/", label: "Home", show: true },
-    { href: "/creators", label: "Creators", show: true },
     { href: "/explore", label: "Explore", show: true },
+    { href: "/docs", label: "Docs", show: true },
+    { href: "/faucet", label: "Faucet", show: true },
     { href: "/dashboard", label: "Dashboard", show: isAuthenticated },
   ];
 

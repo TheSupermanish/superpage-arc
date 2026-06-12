@@ -20,8 +20,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SuperPage — Monetize Anything with Bitcoin on Mezo",
-  description: "Paywall your APIs, files, articles, and stores with MUSD on Mezo (Bitcoin economic layer). AI-agent ready payments powered by HTTP 402.",
+  title: "SuperPage: Sell Articles Per Read and Videos Per Second on Arc",
+  description: "Creator marketplace with USDC payments on Arc. Paywall articles, pay-per-second video, APIs, files, and stores. AI-agent ready payments powered by HTTP 402 (x402).",
   icons: {
     icon: [
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },

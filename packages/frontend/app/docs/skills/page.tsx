@@ -212,7 +212,7 @@ curl https://superpa.ge/x402/resource/premium-api \\
               <CardTitle className="text-base font-mono text-primary">x402_wallet</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">Check your ETH and USDC balance, wallet address, network</p>
+              <p className="text-sm text-muted-foreground">Check your USDC balance (gas and payments), wallet address, network</p>
             </CardContent>
           </Card>
 
@@ -231,14 +231,14 @@ curl https://superpa.ge/x402/resource/premium-api \\
             <CardTitle className="text-lg">Check Balance</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">{`// ETH Balance
+            <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">{`// Native USDC balance (gas, 18 decimals)
 const ethBalance = await publicClient.getBalance({
   address: walletAddress
 })
 
 // USDC Balance
 const usdcBalance = await publicClient.readContract({
-  address: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8',
+  address: '0x3600000000000000000000000000000000000000',
   abi: erc20ABI,
   functionName: 'balanceOf',
   args: [walletAddress]

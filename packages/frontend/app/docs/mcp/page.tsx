@@ -108,12 +108,13 @@ pnpm install`} language="bash" />
     "x402": {
       "command": "node",
       "args": [
-        "/absolute/path/to/USDC/packages/mcp-client/superpage-x402.js"
+        "/absolute/path/to/superpage/packages/mcp-client/superpage-x402.js"
       ],
       "env": {
         "SUPERPAGE_SERVER": "https://superpa.ge",
         "WALLET_PRIVATE_KEY": "0xYourPrivateKeyHere",
-        "ETH_NETWORK": "mainnet",
+        "X402_CHAIN": "arc-testnet",
+        "X402_CURRENCY": "USDC",
         "MAX_AUTO_PAYMENT": "10.00"
       }
     }
@@ -145,14 +146,14 @@ pnpm install`} language="bash" />
 
                 <div className="border-l-4 border-primary pl-4">
                   <h4 className="font-bold text-foreground mb-2">WALLET_PRIVATE_KEY</h4>
-                  <p className="text-muted-foreground mb-1">Ethereum wallet private key (with 0x prefix)</p>
+                  <p className="text-muted-foreground mb-1">EVM wallet private key (with 0x prefix), funded with USDC on Arc testnet</p>
                   <code className="text-sm bg-muted px-2 py-1 rounded">0x...</code>
                 </div>
 
                 <div className="border-l-4 border-primary pl-4">
-                  <h4 className="font-bold text-foreground mb-2">ETH_NETWORK</h4>
-                  <p className="text-muted-foreground mb-1">Ethereum network to use</p>
-                  <code className="text-sm bg-muted px-2 py-1 rounded">mainnet</code> or <code className="text-sm bg-muted px-2 py-1 rounded">sepolia</code>
+                  <h4 className="font-bold text-foreground mb-2">X402_CHAIN</h4>
+                  <p className="text-muted-foreground mb-1">Network to use (chain ID 5042002)</p>
+                  <code className="text-sm bg-muted px-2 py-1 rounded">arc-testnet</code>
                 </div>
 
                 <div className="border-l-4 border-primary pl-4">
@@ -177,7 +178,7 @@ pnpm install`} language="bash" />
                 {[
                   {
                     name: "x402_wallet",
-                    description: "Check ETH and USDC token balance",
+                    description: "Check USDC balance on Arc (gas and payments)",
                     example: "Check my x402 wallet balance"
                   },
                   {
@@ -241,7 +242,7 @@ pnpm install`} language="bash" />
                   <p className="text-foreground">Your x402 wallet has:</p>
                   <ul className="text-foreground mt-2 space-y-1">
                     <li>• 50.25 USDC ($50.25 USD)</li>
-                    <li>• 0.15 ETH (for gas fees)</li>
+                    <li>• Gas is paid in USDC too (Arc native token)</li>
                   </ul>
                 </div>
 
@@ -305,17 +306,17 @@ pnpm install`} language="bash" />
 
               <div>
                 <p className="font-semibold text-foreground mb-2">Connection errors?</p>
-                <p>Verify that your x402 backend is running on the specified port (default: 3001) and that the SUPERPAGE_SERVER URL is correct.</p>
+                <p>Verify that your x402 backend is running on the specified port (default: 2337) and that the SUPERPAGE_SERVER URL is correct.</p>
               </div>
 
               <div>
                 <p className="font-semibold text-foreground mb-2">Payment failures?</p>
-                <p>Ensure your wallet has both USDC tokens for payment AND ETH for gas fees. Check that you're on the correct network (mainnet vs sepolia).</p>
+                <p>Ensure your wallet has USDC on Arc testnet. USDC is the native gas token there, so one faucet drip from faucet.circle.com covers payments and gas. Check that you're on chain ID 5042002.</p>
               </div>
 
               <div>
                 <p className="font-semibold text-foreground mb-2">Wallet balance showing 0?</p>
-                <p>Verify that WALLET_PRIVATE_KEY is correctly set and includes the 0x prefix. Make sure the wallet has been funded with USDC and ETH.</p>
+                <p>Verify that WALLET_PRIVATE_KEY is correctly set and includes the 0x prefix. Make sure the wallet has been funded with USDC from faucet.circle.com.</p>
               </div>
             </CardContent>
           </Card>

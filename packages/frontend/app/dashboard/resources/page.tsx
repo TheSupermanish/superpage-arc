@@ -24,7 +24,8 @@ import {
   MoreVertical,
   Code,
   FileText,
-  Globe,
+  Newspaper,
+  Video,
   ShoppingBag,
   ExternalLink,
   Pencil,
@@ -45,7 +46,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 interface Resource {
   id: string;
   slug: string;
-  type: "api" | "file" | "article" | "shopify";
+  type: "api" | "file" | "article" | "video" | "shopify";
   name: string;
   description: string | null;
   priceUsdc: number;
@@ -84,7 +85,8 @@ interface ShopifyStore {
 const typeIcons = {
   api: Code,
   file: FileText,
-  article: Globe,
+  article: Newspaper,
+  video: Video,
   shopify: ShoppingBag,
 };
 
@@ -92,6 +94,7 @@ const typeColors = {
   api: "text-sp-blue bg-sp-blue/10",
   file: "text-sp-gold bg-sp-gold/10",
   article: "text-sp-coral bg-sp-coral/10",
+  video: "text-sp-pink bg-sp-pink/10",
   shopify: "text-sp-pink bg-sp-pink/10",
 };
 
@@ -108,7 +111,7 @@ export default function ResourcesPage() {
   const [loadingPreview, setLoadingPreview] = useState(false);
 
   // Filtering state
-  const [activeTab, setActiveTab] = useState<"all" | "api" | "file" | "article" | "stores">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "api" | "file" | "article" | "video" | "stores">("all");
   const [selectedStore, setSelectedStore] = useState<string>("all");
 
   // Check for tab query parameter on mount
@@ -368,8 +371,19 @@ export default function ResourcesPage() {
               : "text-muted-foreground hover:text-sp-gold hover:bg-sp-gold/10"
           }`}
         >
-          <Globe className="h-4 w-4" />
+          <Newspaper className="h-4 w-4" />
           Articles ({resources.filter((r) => r.type === "article").length})
+        </button>
+        <button
+          onClick={() => setActiveTab("video")}
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+            activeTab === "video"
+              ? "bg-sp-gold text-white shadow-lg shadow-sp-gold/10"
+              : "text-muted-foreground hover:text-sp-gold hover:bg-sp-gold/10"
+          }`}
+        >
+          <Video className="h-4 w-4" />
+          Videos ({resources.filter((r) => r.type === "video").length})
         </button>
         <button
           onClick={() => {
@@ -621,15 +635,13 @@ export default function ResourcesPage() {
                             <Copy className="h-4 w-4" />
                           )}
                         </button>
-                        <a
-                          href={`${API_URL}/x402/resource/${resource.slug || resource.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <Link
+                          href={`/r/${resource.slug || resource.id}`}
                           className="p-2 rounded-lg text-muted-foreground hover:text-sp-gold hover:bg-sp-gold/10 transition-colors"
-                          title="Open in new tab"
+                          title="View product page"
                         >
                           <ExternalLink className="h-4 w-4" />
-                        </a>
+                        </Link>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button className="p-2 rounded-lg text-muted-foreground hover:text-sp-gold hover:bg-sp-gold/10 transition-colors">

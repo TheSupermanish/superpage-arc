@@ -16,7 +16,7 @@ export default function SDKDocsPage() {
             @super-x402/sdk
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl">
-            TypeScript SDK for building HTTP 402 payment-gated APIs and applications on Ethereum
+            TypeScript SDK for building HTTP 402 payment-gated APIs and applications on Arc
           </p>
         </div>
       </section>
@@ -58,10 +58,10 @@ import { X402Server } from '@super-x402/sdk';
 
 const app = express();
 const x402 = new X402Server({
-  network: 'mainnet',
+  network: 'arc-testnet',
   privateKey: process.env.ETH_PRIVATE_KEY,
   recipientAddress: process.env.ETH_RECIPIENT_ADDRESS,
-  tokenAddress: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8', // USDC
+  tokenAddress: '0x3600000000000000000000000000000000000000', // USDC
 });
 
 // Protected endpoint requiring 1.00 USDC payment
@@ -83,9 +83,9 @@ app.listen(3001);`} />
                 <CodeBlock code={`import { X402Client } from '@super-x402/sdk';
 
 const client = new X402Client({
-  network: 'mainnet',
+  network: 'arc-testnet',
   privateKey: process.env.WALLET_PRIVATE_KEY,
-  tokenAddress: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8', // USDC
+  tokenAddress: '0x3600000000000000000000000000000000000000', // USDC
 });
 
 // Automatically pays if 402 is returned
@@ -107,7 +107,7 @@ console.log(data);`} />
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-3">Constructor</h3>
               <CodeBlock code={`const x402 = new X402Server({
-  network: 'mainnet' | 'sepolia',
+  network: 'arc-testnet' | 'mezo-testnet',
   privateKey: string,              // Your private key
   recipientAddress: string,        // Address to receive payments
   tokenAddress: string,            // USDC token address
@@ -159,7 +159,7 @@ if (result.verified) {
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-3">Constructor</h3>
               <CodeBlock code={`const client = new X402Client({
-  network: 'mainnet' | 'sepolia',
+  network: 'arc-testnet' | 'mezo-testnet',
   privateKey: string,              // Your wallet private key
   tokenAddress: string,            // USDC token address
   rpcUrl?: string,                 // Optional custom RPC
@@ -195,7 +195,7 @@ console.log('Payment sent:', txHash);`} />
               <h3 className="text-lg font-semibold text-foreground mb-3">Check Balance</h3>
               <CodeBlock code={`const balance = await client.getBalance();
 console.log('USDC Balance:', balance.formatted);
-console.log('ETH Balance:', balance.eth);`} />
+console.log('Native USDC (gas):', balance.native);`} />
             </div>
           </div>
         </div>
@@ -208,7 +208,7 @@ console.log('ETH Balance:', balance.eth);`} />
               <h3 className="text-lg font-semibold text-foreground mb-3">Custom Token Support</h3>
               <CodeBlock code={`// Use any ERC-20 token
 const x402 = new X402Server({
-  network: 'mainnet',
+  network: 'arc-testnet',
   privateKey: process.env.ETH_PRIVATE_KEY,
   recipientAddress: process.env.ETH_RECIPIENT_ADDRESS,
   tokenAddress: '0xYourTokenAddress',
@@ -274,7 +274,7 @@ const x402 = new X402Server({
           <div className="space-y-4">
             <CodeBlock code={`// Configuration types
 interface X402ServerConfig {
-  network: 'mainnet' | 'sepolia';
+  network: 'arc-testnet' | 'mezo-testnet';
   privateKey: string;
   recipientAddress: string;
   tokenAddress: string;
@@ -282,7 +282,7 @@ interface X402ServerConfig {
 }
 
 interface X402ClientConfig {
-  network: 'mainnet' | 'sepolia';
+  network: 'arc-testnet' | 'mezo-testnet';
   privateKey: string;
   tokenAddress: string;
   rpcUrl?: string;

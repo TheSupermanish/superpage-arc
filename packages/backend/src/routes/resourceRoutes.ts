@@ -1,5 +1,6 @@
 import { Router, type Router as ExpressRouter } from "express";
 import { listPublicResources } from "../controllers/resourcesController.js";
+import { getResourceMeta } from "../controllers/exploreController.js";
 import { authMiddleware } from "../api/wallet-auth.js";
 import {
   handleListResources,
@@ -21,6 +22,13 @@ const router: ExpressRouter = Router();
  * @access  Public
  */
 router.get("/public", listPublicResources);
+
+/**
+ * @route   GET /api/resources/:slug/meta
+ * @desc    Public metadata for a resource (product detail page)
+ * @access  Public
+ */
+router.get("/:slug/meta", getResourceMeta);
 
 // ============================================================
 // PROTECTED RESOURCE MANAGEMENT

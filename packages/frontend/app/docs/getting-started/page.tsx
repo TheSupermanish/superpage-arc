@@ -23,7 +23,7 @@ export default function GettingStartedPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-foreground">
-                Install the x402 SDK for Ethereum:
+                Install the x402 SDK for EVM chains:
               </p>
               <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
 {`npm install @x402/eth-sdk viem
@@ -62,7 +62,7 @@ const app = express();`}
                 <p className="text-sm font-semibold text-primary mb-2">Step 2: Create x402 Server</p>
                 <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
 {`const x402 = createX402Server({
-  network: 'mainnet',              // Ethereum mainnet
+  network: 'arc-testnet',          // Arc testnet (chain ID 5042002)
   recipientAddress: '0xYourWallet' // Your wallet address
 });`}
                 </pre>
@@ -116,7 +116,7 @@ app.listen(3000, () => {
 const response = await x402Fetch(
   'https://api.example.com/premium-data',
   {
-    network: 'mainnet',
+    network: 'arc-testnet',
     signer: process.env.PRIVATE_KEY // Your private key
   }
 );
@@ -137,7 +137,7 @@ function MyComponent() {
 
   const fetchData = async () => {
     const client = new X402Client({
-      network: 'mainnet',
+      network: 'arc-testnet',
       signer: walletClient
     });
 
@@ -168,18 +168,23 @@ function MyComponent() {
                 Create a <code className="bg-muted px-2 py-1 rounded">.env</code> file:
               </p>
               <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
-{`# Your Ethereum wallet private key (for client payments)
+{`# Your wallet private key (for client payments)
 PRIVATE_KEY=0x...
 
 # Your recipient wallet address (for receiving payments)
 RECIPIENT_ADDRESS=0x...
 
-# Optional: Custom RPC endpoint
-RPC_ENDPOINT=https://eth-mainnet.g.alchemy.com/v2/YOUR-KEY`}
+# Optional: custom Arc RPC endpoint
+ARC_RPC_URL=https://rpc.testnet.arc.network`}
               </pre>
               <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-lg">
                 <p className="text-sm text-yellow-600">
                   ⚠️ <strong>Security:</strong> Never commit your private keys to git. Add <code>.env</code> to your <code>.gitignore</code> file.
+                </p>
+              </div>
+              <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
+                <p className="text-sm text-foreground">
+                  <strong>Funding:</strong> grab test USDC at <a href="https://faucet.circle.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">faucet.circle.com</a> (select Arc Testnet). USDC is Arc&apos;s native gas token, so the same drip covers gas and payments.
                 </p>
               </div>
             </CardContent>
@@ -214,8 +219,8 @@ RPC_ENDPOINT=https://eth-mainnet.g.alchemy.com/v2/YOUR-KEY`}
 # Response: 402 Payment Required
 {
   "scheme": "exact",
-  "network": "mainnet",
-  "chainId": 1,
+  "network": "arc-testnet",
+  "chainId": 5042002,
   "amount": "1000000",
   "token": "USDC",
   "recipient": "0xYourAddress",
@@ -229,7 +234,7 @@ RPC_ENDPOINT=https://eth-mainnet.g.alchemy.com/v2/YOUR-KEY`}
                 <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
 {`const response = await x402Fetch(
   'http://localhost:3000/api/premium-data',
-  { network: 'mainnet', signer: privateKey }
+  { network: 'arc-testnet', signer: privateKey }
 );
 
 // Payment sent automatically!
@@ -249,9 +254,9 @@ RPC_ENDPOINT=https://eth-mainnet.g.alchemy.com/v2/YOUR-KEY`}
                 You're all set! Here's what to explore next:
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Link href="/docs/USDC">
+                <Link href="/faucet">
                   <Button variant="outline" className="w-full justify-start">
-                    💰 Learn about USDC
+                    💰 Get Test USDC
                   </Button>
                 </Link>
                 <Link href="/docs/examples">

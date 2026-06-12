@@ -1,11 +1,11 @@
 {
   "name": "superpage-merchant-agent",
-  "description": "Autonomous merchant agent for the x402 payment protocol — enables AI agents and humans to discover, pay for, and access digital resources (APIs, files, articles, datasets) using on-chain MUSD micro-payments on Mezo (Bitcoin economic layer).",
-  "version": "1.0.0",
+  "description": "Autonomous merchant agent for the x402 payment protocol: enables AI agents and humans to discover, pay for, and access digital resources (APIs, files, articles, pay-per-second video) using on-chain USDC micro-payments on Arc (Circle's stablecoin-native L1, where USDC is also the gas token).",
+  "version": "2.0.0",
   "url": "https://superpa.ge/a2a",
   "protocols": ["A2A", "MCP", "x402", "AP2", "ERC-8004"],
   "capabilities": {
-    "streaming": false,
+    "streaming": true,
     "pushNotifications": false,
     "stateTransitionHistory": true,
     "autonomousPayment": true,
@@ -15,22 +15,44 @@
     {
       "id": "resource-access",
       "name": "Resource Access via x402",
-      "description": "Access payment-gated resources (APIs, files, articles) with MUSD micro-payments on Mezo. Agent receives HTTP 402, extracts payment requirements, executes on-chain transfer, and gains access.",
+      "description": "Access payment-gated resources (APIs, files, articles) with USDC micro-payments on Arc. Agent receives HTTP 402, extracts payment requirements, executes on-chain transfer, and gains access.",
       "tags": ["x402", "payment", "resources", "pay-per-use"],
       "examples": [
         "Access a premium weather API endpoint",
-        "Unlock a gated research article for 0.50 MUSD",
+        "Unlock a gated research article for 0.50 USDC",
         "Download a dataset behind an x402 paywall"
+      ]
+    },
+    {
+      "id": "video-streaming",
+      "name": "Pay-Per-Second Video Streaming",
+      "description": "Watch videos and pay only for seconds consumed via the StreamPay payment channel on Arc: openSession with a native-USDC deposit and an ephemeral session key, sign per-second vouchers off-chain, closeSession settles once on-chain, and the unwatched remainder is refunded (reclaimExpired after 24h as a safety valve). Endpoints: GET /stream/meta/{slug}, POST /stream/session/register, POST /stream/session/{id}/heartbeat, POST /stream/session/{id}/close; playback at /watch/{slug}.",
+      "tags": ["streaming", "payment-channel", "pay-per-second", "video", "x402"],
+      "examples": [
+        "Open a streaming session for a 0.001 USDC/second video",
+        "Watch 30 seconds of a tutorial and settle for exactly 0.03 USDC",
+        "Reclaim a deposit 24h after an unsettled session"
+      ]
+    },
+    {
+      "id": "article-reading",
+      "name": "Pay-Per-Read Articles",
+      "description": "Read Notion-style articles published on SuperPage. Free preview blocks are available without payment at /read/{slug}; the full article unlocks with a single x402 USDC payment via GET /x402/resource/{slug}.",
+      "tags": ["articles", "publishing", "x402", "preview"],
+      "examples": [
+        "Preview the free blocks of an article before buying",
+        "Pay 0.10 USDC to read the full guide",
+        "Fetch the article excerpt for summarization"
       ]
     },
     {
       "id": "purchase",
       "name": "Shopify Product Purchase",
-      "description": "Purchase physical and digital products from Shopify stores using on-chain MUSD payments on Mezo. Supports product browsing, cart creation, and checkout.",
+      "description": "Purchase physical and digital products from Shopify stores using on-chain USDC payments on Arc. Supports product browsing, cart creation, and checkout.",
       "tags": ["shopping", "e-commerce", "shopify"],
       "examples": [
         "Buy a t-shirt from the x402 shop",
-        "Browse products and purchase with crypto"
+        "Browse products and purchase with USDC"
       ]
     },
     {
@@ -46,8 +68,8 @@
     {
       "id": "erc8004-trust",
       "name": "On-Chain Trust & Reputation (ERC-8004)",
-      "description": "Register agent identity, query reputation scores, submit feedback, and verify trust via ERC-8004 Trustless Agents registries on Mezo.",
-      "tags": ["erc8004", "trust", "reputation", "identity", "mezo", "bitcoin"],
+      "description": "Register agent identity, query reputation scores, submit feedback, and verify trust via ERC-8004 Trustless Agents registries on Arc.",
+      "tags": ["erc8004", "trust", "reputation", "identity", "arc", "usdc"],
       "examples": [
         "Register this agent on-chain with ERC-8004",
         "Check reputation score of agent #0",
@@ -57,7 +79,7 @@
     {
       "id": "creator-marketplace",
       "name": "Creator Marketplace",
-      "description": "Discover creators and their monetized resources. Search by keyword, browse catalogs, preview pricing before committing to payment.",
+      "description": "Discover creators and their monetized resources. Search by keyword, browse catalogs, preview pricing before committing to payment. Product detail pages at /r/{slug}.",
       "tags": ["marketplace", "discovery", "creators"],
       "examples": [
         "Find all API resources under $2",
@@ -67,23 +89,25 @@
     }
   ],
   "chain": {
-    "network": "mezo-testnet",
-    "chainId": 31611,
-    "rpcUrl": "https://rpc.test.mezo.org",
-    "explorer": "https://explorer.test.mezo.org",
-    "nativeGasToken": "BTC",
-    "currency": "MUSD",
-    "musdContract": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
-    "usdcContract": "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c",
-    "faucet": "https://faucet.test.mezo.org"
+    "network": "arc-testnet",
+    "chainId": 5042002,
+    "rpcUrl": "https://rpc.testnet.arc.network",
+    "explorer": "https://testnet.arcscan.app",
+    "nativeGasToken": "USDC",
+    "currency": "USDC",
+    "usdcContract": "0x3600000000000000000000000000000000000000",
+    "eurcContract": "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a",
+    "streamPayContract": "${STREAMPAY_ADDRESS}",
+    "faucet": "https://faucet.circle.com"
   },
   "erc8004": {
     "agentId": 0,
-    "chainId": 31611,
-    "identityRegistry": "0x92b19730d0b7416f195600489cd9be29e109ebce",
-    "reputationRegistry": "0x6a81e89fdb563cdf0d21dc2ea5c18ec4020e596f",
-    "validationRegistry": "0x70d51bafea51fb2f60a06824c1bc5638e36243a1",
-    "registrationFile": "https://superpa.ge/.well-known/agent-registration.json"
+    "chainId": 5042002,
+    "identityRegistry": "${ERC8004_IDENTITY_REGISTRY}",
+    "reputationRegistry": "${ERC8004_REPUTATION_REGISTRY}",
+    "validationRegistry": "${ERC8004_VALIDATION_REGISTRY}",
+    "registrationFile": "https://superpa.ge/.well-known/agent-registration.json",
+    "note": "Registry addresses are env-driven placeholders, filled in after the Arc testnet deploy."
   },
   "endpoints": {
     "a2a": "https://superpa.ge/a2a",
@@ -91,13 +115,21 @@
     "mcpPayment": "https://superpa.ge/mcp-payment",
     "agentCard": "https://superpa.ge/.well-known/agent.json",
     "agentRegistration": "https://superpa.ge/.well-known/agent-registration.json",
+    "streamMeta": "https://superpa.ge/stream/meta/{slug}",
+    "streamRegister": "https://superpa.ge/stream/session/register",
+    "streamHeartbeat": "https://superpa.ge/stream/session/{sessionId}/heartbeat",
+    "streamClose": "https://superpa.ge/stream/session/{sessionId}/close",
+    "streamStatus": "https://superpa.ge/stream/session/{sessionId}",
+    "watch": "https://superpa.ge/watch/{slug}",
+    "read": "https://superpa.ge/read/{slug}",
+    "resourcePreview": "https://superpa.ge/x402/resource/{slug}",
     "web": "https://superpa.ge"
   },
   "surfaces": [
     {
       "name": "Web App",
       "url": "https://superpa.ge",
-      "description": "Next.js marketplace frontend for browsing creators, purchasing resources, and managing stores"
+      "description": "Next.js marketplace frontend for browsing creators, reading articles, watching pay-per-second video, and managing stores"
     },
     {
       "name": "MCP Server (Claude Desktop)",

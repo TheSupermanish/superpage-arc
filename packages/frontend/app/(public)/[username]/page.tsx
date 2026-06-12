@@ -1,22 +1,18 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
   Globe,
   Github,
   Twitter,
-  DollarSign,
   Package,
-  FileText,
-  Code,
   Copy,
   Check,
   Share2,
   BadgeCheck,
-  ArrowLeft,
   Youtube,
   Linkedin,
   Instagram,
@@ -31,11 +27,20 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { parseUnits } from "viem";
 import { PublicNavbar } from "@/components/public-navbar";
 import { PurchaseModal, type PurchaseItem } from "@/components/purchase-modal";
-import { getTxUrl, getChainId, getMusdAddress } from "@/lib/chain-config";
+import { ProductCard, type ProductCardItem, type ProductCardType } from "@/components/product-card";
+import {
+  getTxUrl,
+  getAddressUrl,
+  getCurrency,
+  getPaymentTokenAddress,
+  getPaymentTokenDecimals,
+} from "@/lib/chain-config";
 import { getDefaultChainId } from "@/lib/chains";
 
 const TIP_CHAIN_ID = getDefaultChainId();
-const MUSD_ADDRESS = getMusdAddress();
+const PAYMENT_TOKEN_ADDRESS = getPaymentTokenAddress();
+const PAYMENT_TOKEN_DECIMALS = getPaymentTokenDecimals();
+const CURRENCY = getCurrency();
 const ERC20_ABI = [
   {
     name: "transfer",
@@ -72,7 +77,7 @@ interface Profile {
   stats?: {
     totalSales: number;
     totalRevenue: number;
-  };
+  } | null;
 }
 
 interface Store {
@@ -116,7 +121,6 @@ interface ProfileData {
 
 export default function PublicProfilePage() {
   const params = useParams();
-  const router = useRouter();
   const username = params.username as string;
 
   const [data, setData] = useState<ProfileData | null>(null);
@@ -162,12 +166,12 @@ export default function PublicProfilePage() {
       // Send USDC transfer
       setTipStatus("sending");
       const hash = await writeContractAsync({
-        address: MUSD_ADDRESS,
+        address: PAYMENT_TOKEN_ADDRESS,
         abi: ERC20_ABI,
         functionName: "transfer",
         args: [
           data.profile.walletAddress as `0x${string}`,
-          parseUnits(amount, 6),
+          parseUnits(amount, PAYMENT_TOKEN_DECIMALS),
         ],
         chainId: TIP_CHAIN_ID,
       });
@@ -193,11 +197,7 @@ export default function PublicProfilePage() {
         const res = await fetch(`${API_URL}/@${username}`);
 
         if (!res.ok) {
-          if (res.status === 404) {
-            setError("Profile not found");
-          } else {
-            setError("Failed to load profile");
-          }
+          setError(res.status === 404 ? "Profile not found" : "Failed to load profile");
           return;
         }
 
@@ -224,23 +224,15 @@ export default function PublicProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-card flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative mb-4">
-            <div className="size-16 rounded-full bg-primary/20 animate-pulse" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
-            </div>
-          </div>
-          <p className="text-muted-foreground">Loading profile...</p>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-card flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-foreground mb-4">404</h1>
           <p className="text-xl text-muted-foreground mb-8">{error || "Profile not found"}</p>
@@ -255,320 +247,262 @@ export default function PublicProfilePage() {
   }
 
   const { profile, content } = data;
+  const displayName = profile.displayName || profile.username;
+  const initial = displayName.charAt(0).toUpperCase();
+
+  const toCardItem = (r: Resource): ProductCardItem => ({
+    id: r.id,
+    slug: r.slug,
+    type: (["api", "file", "article", "video", "shopify"].includes(r.type)
+      ? r.type
+      : "api") as ProductCardType,
+    name: r.name,
+    description: r.description,
+    priceUsdc: r.price,
+    creator: { username: profile.username },
+  });
+
+  const socialIcon = (href: string, icon: React.ReactNode, label: string) => (
+    <a
+      key={label}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={label}
+      className="size-9 flex items-center justify-center rounded-full bg-card border border-border hover:border-primary hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
+    >
+      {icon}
+    </a>
+  );
+  const links = profile.socialLinks;
 
   return (
-    <div className="min-h-screen bg-card text-foreground relative overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground">
       <PublicNavbar />
-      {/* Animated Background Blobs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 size-96 bg-primary/5 rounded-full blur-3xl animate-blob"></div>
-        <div className="absolute bottom-1/4 right-1/4 size-96 bg-primary/5 rounded-full blur-3xl animate-blob" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[500px] bg-primary/5 rounded-full blur-3xl animate-blob" style={{animationDelay: '4s'}}></div>
-      </div>
 
-      {/* Main Content */}
-      <main className="relative z-10 w-full max-w-2xl mx-auto px-6 sm:px-8 lg:px-10 pt-20 pb-12 flex flex-col items-center">
-        {/* Back Button and Share Button */}
-        <div className="w-full flex items-center justify-between mb-6">
-          <button
-            onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors group"
-          >
-            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-medium">Back</span>
-          </button>
-          <button
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({
-                  title: `${profile.displayName || profile.username} on SuperPage`,
-                  url: window.location.href
-                });
-              } else {
-                navigator.clipboard.writeText(window.location.href);
-              }
-            }}
-            className="size-10 flex items-center justify-center rounded-full bg-card border border-border hover:border-primary hover:bg-primary/10 transition-all text-muted-foreground hover:text-primary"
-          >
-            <Share2 className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Profile Section */}
-        <div className="flex flex-col items-center text-center mb-12 w-full">
-          <div className="relative mb-6 group">
-            <div className="absolute inset-0 bg-primary rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
-            <div
-              className="relative size-32 rounded-full border-4 border-card overflow-hidden ring-4 ring-primary/10 bg-cover bg-center"
-              style={{
-                backgroundImage: profile.avatarUrl
-                  ? `url(${profile.avatarUrl})`
-                  : `url(https://api.dicebear.com/7.x/shapes/svg?seed=${profile.username})`,
-              }}
-            />
-            <div className="absolute bottom-2 right-2 bg-primary border-4 border-card size-8 rounded-full shadow-lg flex items-center justify-center" title="Verified">
-              <BadgeCheck className="text-primary-foreground" size={14} />
-            </div>
-          </div>
-
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2 flex items-center justify-center gap-2">
-            {profile.displayName || profile.username}
-          </h1>
-          <p className="text-primary font-mono text-sm mb-2">@{profile.username}</p>
-
-          {profile.erc8004AgentId != null && profile.erc8004AgentId > 0 && (
-            <a
-              href={`https://explorer.test.mezo.org/address/0x92b19730d0b7416f195600489cd9be29e109ebce`}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="View on Mezo Explorer"
-              className="inline-flex items-center gap-1.5 px-3 py-1 mb-4 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
-            >
-              <BadgeCheck className="h-3.5 w-3.5" />
-              On-chain Agent #{profile.erc8004AgentId} · ERC-8004
-            </a>
-          )}
-
-          {profile.bio && (
-            <p className="text-muted-foreground leading-relaxed max-w-md mx-auto text-base">
-              {profile.bio}
-            </p>
-          )}
-
-          {/* Social Links */}
-          {(() => {
-            const links = profile.socialLinks;
-            const hasSocials = profile.website || links?.twitter || links?.github || links?.discord || links?.youtube || links?.linkedin || links?.instagram || links?.telegram;
-            if (!hasSocials) return null;
-
-            const socialIcon = (href: string, icon: React.ReactNode, label: string) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={label}
-                className="size-10 flex items-center justify-center rounded-full bg-card border border-border hover:border-primary hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
-              >
-                {icon}
-              </a>
-            );
-
-            return (
-              <div className="flex flex-wrap gap-3 mt-6 justify-center">
-                {profile.website && socialIcon(profile.website, <Globe className="h-5 w-5" />, "Website")}
-                {links?.twitter && socialIcon(links.twitter.startsWith("http") ? links.twitter : `https://twitter.com/${links.twitter}`, <Twitter className="h-5 w-5" />, "Twitter")}
-                {links?.github && socialIcon(links.github.startsWith("http") ? links.github : `https://github.com/${links.github}`, <Github className="h-5 w-5" />, "GitHub")}
-                {links?.youtube && socialIcon(links.youtube.startsWith("http") ? links.youtube : `https://youtube.com/@${links.youtube}`, <Youtube className="h-5 w-5" />, "YouTube")}
-                {links?.linkedin && socialIcon(links.linkedin.startsWith("http") ? links.linkedin : `https://linkedin.com/in/${links.linkedin}`, <Linkedin className="h-5 w-5" />, "LinkedIn")}
-                {links?.instagram && socialIcon(links.instagram.startsWith("http") ? links.instagram : `https://instagram.com/${links.instagram}`, <Instagram className="h-5 w-5" />, "Instagram")}
-                {links?.telegram && socialIcon(links.telegram.startsWith("http") ? links.telegram : `https://t.me/${links.telegram}`, <Send className="h-5 w-5" />, "Telegram")}
-                {links?.discord && socialIcon(links.discord.startsWith("http") ? links.discord : `https://discord.gg/${links.discord}`, <MessageCircle className="h-5 w-5" />, "Discord")}
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* Tip Button */}
-        {profile.walletAddress && (
-          <div className="w-full mb-6">
-            {!tipOpen ? (
-              <button
-                onClick={() => setTipOpen(true)}
-                className="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:shadow-xl hover:shadow-primary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
-              >
-                <Heart className="h-5 w-5" />
-                Send a Tip
-              </button>
+      {/* Header band */}
+      <header className="border-b border-border bg-secondary/40 pt-28 pb-12">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
+            {/* Avatar */}
+            {profile.avatarUrl ? (
+              <div
+                className="size-24 rounded-full bg-cover bg-center ring-4 ring-primary/10 shrink-0"
+                style={{ backgroundImage: `url(${profile.avatarUrl})` }}
+              />
             ) : (
-              <div className="w-full p-5 rounded-2xl bg-card border border-primary/30 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-foreground flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-primary" />
-                    Tip {profile.displayName || profile.username}
-                  </h3>
-                  <button onClick={() => { setTipOpen(false); setTipStatus("idle"); setTipError(null); setTipTxHash(null); setTipAmount(""); }} className="text-muted-foreground hover:text-foreground text-sm">
-                    Cancel
-                  </button>
-                </div>
-
-                {tipStatus === "success" ? (
-                  <div className="text-center py-4 space-y-3">
-                    <div className="size-14 rounded-full bg-green-500/20 flex items-center justify-center mx-auto">
-                      <Check className="h-7 w-7 text-green-500" />
-                    </div>
-                    <p className="font-bold text-foreground">Tip sent!</p>
-                    <p className="text-sm text-muted-foreground">${tipAmount} USDC to {profile.displayName || profile.username}</p>
-                    {tipTxHash && (
-                      <a
-                        href={getTxUrl(tipTxHash)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                      >
-                        View transaction <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    {/* Preset amounts */}
-                    <div className="grid grid-cols-4 gap-2">
-                      {["1", "2", "5", "10"].map((amt) => (
-                        <button
-                          key={amt}
-                          onClick={() => setTipAmount(amt)}
-                          className={`py-2.5 rounded-xl text-sm font-bold transition-all ${
-                            tipAmount === amt
-                              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                              : "bg-muted text-foreground hover:bg-primary/10 border border-border"
-                          }`}
-                        >
-                          ${amt}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Custom amount */}
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          placeholder="Custom amount"
-                          value={tipAmount}
-                          onChange={(e) => setTipAmount(e.target.value)}
-                          className="w-full pl-7 pr-16 py-2.5 rounded-xl bg-muted border border-border text-foreground text-sm focus:border-primary focus:outline-none"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">USDC</span>
-                      </div>
-                    </div>
-
-                    {tipError && (
-                      <p className="text-xs text-red-500">{tipError}</p>
-                    )}
-
-                    {/* Send button */}
-                    <button
-                      onClick={() => handleTip(tipAmount)}
-                      disabled={!tipAmount || parseFloat(tipAmount) <= 0 || tipStatus === "sending" || tipStatus === "switching"}
-                      className="w-full py-3 rounded-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-                    >
-                      {tipStatus === "switching" ? (
-                        <><Loader2 className="h-4 w-4 animate-spin" /> Switching network...</>
-                      ) : tipStatus === "sending" ? (
-                        <><Loader2 className="h-4 w-4 animate-spin" /> Confirm in wallet...</>
-                      ) : !isConnected ? (
-                        <>Connect Wallet to Tip</>
-                      ) : (
-                        <>Send ${tipAmount || "0"} USDC</>
-                      )}
-                    </button>
-                  </>
-                )}
+              <div className="size-24 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-4xl ring-4 ring-primary/10 shrink-0">
+                {initial}
               </div>
             )}
-          </div>
-        )}
 
-        {/* Wallet Address */}
-        {profile.walletAddress && (
-          <div className="w-full mb-10">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Wallet Address</h2>
-            <div className="w-full p-5 rounded-2xl bg-card border border-border hover:border-primary transition-all group cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="size-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
-                    <DollarSign className="h-6 w-6" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-bold text-foreground text-base">Ethereum</p>
-                    <p className="text-sm text-muted-foreground font-mono">
+            {/* Identity */}
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{displayName}</h1>
+                <span className="text-primary font-mono text-sm">@{profile.username}</span>
+                {profile.erc8004AgentId != null && profile.erc8004AgentId > 0 && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold">
+                    <BadgeCheck className="h-3.5 w-3.5" />
+                    On-chain Agent #{profile.erc8004AgentId}
+                  </span>
+                )}
+              </div>
+              {profile.bio && (
+                <p className="text-muted-foreground leading-relaxed max-w-2xl">{profile.bio}</p>
+              )}
+              <div className="flex items-center gap-4 flex-wrap pt-1">
+                {profile.stats && (
+                  <span className="text-sm text-muted-foreground">
+                    <span className="font-bold text-foreground">{profile.stats.totalSales}</span>{" "}
+                    {profile.stats.totalSales === 1 ? "sale" : "sales"}
+                  </span>
+                )}
+                {profile.walletAddress && (
+                  <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                    <a
+                      href={getAddressUrl(profile.walletAddress)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono hover:text-foreground transition-colors inline-flex items-center gap-1"
+                    >
                       {profile.walletAddress.slice(0, 6)}...{profile.walletAddress.slice(-4)}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={copyWalletAddress}
-                  className="size-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground group-hover:text-primary-foreground group-hover:bg-primary transition-all"
-                >
-                  {copiedWallet ? (
-                    <Check className="h-5 w-5" />
-                  ) : (
-                    <Copy className="h-5 w-5" />
-                  )}
-                </button>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                    <button
+                      onClick={copyWalletAddress}
+                      className="hover:text-foreground transition-colors"
+                      title="Copy wallet address"
+                    >
+                      {copiedWallet ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                  </span>
+                )}
               </div>
             </div>
-          </div>
-        )}
 
-        {/* Content Sections */}
-        <div className="w-full space-y-6 mb-10">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Resources & APIs</h2>
-          {content.resources.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {content.resources.map((resource) => (
-                <div
-                  key={resource.id}
-                  onClick={() => {
-                    setPurchaseItem({
-                      kind: "resource",
-                      data: {
-                        id: resource.id,
-                        slug: resource.slug,
-                        type: resource.type as "api" | "file" | "article",
-                        name: resource.name,
-                        description: resource.description || null,
-                        priceUsdc: resource.price,
-                        accessCount: resource.accessCount,
-                      },
-                    });
-                    setPurchaseOpen(true);
-                  }}
-                  className="w-full p-6 rounded-2xl bg-card border border-border hover:border-primary hover:shadow-xl hover:shadow-primary/5 transition-all group cursor-pointer"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="size-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
-                      {resource.type === 'api' ? (
-                        <Code className="h-6 w-6" />
-                      ) : (
-                        <FileText className="h-6 w-6" />
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-primary">${resource.price}</p>
-                      <p className="text-xs text-muted-foreground">{resource.accessCount} accesses</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="font-bold text-foreground group-hover:text-primary transition-colors mb-1">{resource.name}</p>
-                    {resource.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">{resource.description}</p>
-                    )}
-                  </div>
+            {/* Actions */}
+            <div className="flex items-center gap-3 shrink-0">
+              {(profile.website || links?.twitter || links?.github || links?.discord || links?.youtube || links?.linkedin || links?.instagram || links?.telegram) && (
+                <div className="flex flex-wrap gap-2">
+                  {profile.website && socialIcon(profile.website, <Globe className="h-4 w-4" />, "Website")}
+                  {links?.twitter && socialIcon(links.twitter.startsWith("http") ? links.twitter : `https://twitter.com/${links.twitter}`, <Twitter className="h-4 w-4" />, "Twitter")}
+                  {links?.github && socialIcon(links.github.startsWith("http") ? links.github : `https://github.com/${links.github}`, <Github className="h-4 w-4" />, "GitHub")}
+                  {links?.youtube && socialIcon(links.youtube.startsWith("http") ? links.youtube : `https://youtube.com/@${links.youtube}`, <Youtube className="h-4 w-4" />, "YouTube")}
+                  {links?.linkedin && socialIcon(links.linkedin.startsWith("http") ? links.linkedin : `https://linkedin.com/in/${links.linkedin}`, <Linkedin className="h-4 w-4" />, "LinkedIn")}
+                  {links?.instagram && socialIcon(links.instagram.startsWith("http") ? links.instagram : `https://instagram.com/${links.instagram}`, <Instagram className="h-4 w-4" />, "Instagram")}
+                  {links?.telegram && socialIcon(links.telegram.startsWith("http") ? links.telegram : `https://t.me/${links.telegram}`, <Send className="h-4 w-4" />, "Telegram")}
+                  {links?.discord && socialIcon(links.discord.startsWith("http") ? links.discord : `https://discord.gg/${links.discord}`, <MessageCircle className="h-4 w-4" />, "Discord")}
                 </div>
+              )}
+              <button
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: `${displayName} on SuperPage`,
+                      url: window.location.href,
+                    });
+                  } else {
+                    navigator.clipboard.writeText(window.location.href);
+                  }
+                }}
+                title="Share"
+                className="size-9 flex items-center justify-center rounded-full bg-card border border-border hover:border-primary hover:bg-primary/10 transition-all text-muted-foreground hover:text-primary"
+              >
+                <Share2 className="h-4 w-4" />
+              </button>
+              {profile.walletAddress && (
+                <button
+                  onClick={() => setTipOpen(true)}
+                  className="px-5 py-2.5 rounded-full font-bold text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg shadow-primary/10"
+                >
+                  <Heart className="h-4 w-4" />
+                  Tip
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Tip panel */}
+          {tipOpen && profile.walletAddress && (
+            <div className="mt-6 max-w-md p-5 rounded-2xl bg-card border border-primary/30 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-foreground flex items-center gap-2">
+                  <Heart className="h-4 w-4 text-primary" />
+                  Tip {displayName}
+                </h3>
+                <button
+                  onClick={() => { setTipOpen(false); setTipStatus("idle"); setTipError(null); setTipTxHash(null); setTipAmount(""); }}
+                  className="text-muted-foreground hover:text-foreground text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              {tipStatus === "success" ? (
+                <div className="text-center py-4 space-y-3">
+                  <div className="size-14 rounded-full bg-green-500/20 flex items-center justify-center mx-auto">
+                    <Check className="h-7 w-7 text-green-500" />
+                  </div>
+                  <p className="font-bold text-foreground">Tip sent!</p>
+                  <p className="text-sm text-muted-foreground">${tipAmount} {CURRENCY} to {displayName}</p>
+                  {tipTxHash && (
+                    <a
+                      href={getTxUrl(tipTxHash)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      View on Arcscan <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <>
+                  {/* Preset amounts */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {["1", "2", "5", "10"].map((amt) => (
+                      <button
+                        key={amt}
+                        onClick={() => setTipAmount(amt)}
+                        className={`py-2.5 rounded-xl text-sm font-bold transition-all ${
+                          tipAmount === amt
+                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                            : "bg-muted text-foreground hover:bg-primary/10 border border-border"
+                        }`}
+                      >
+                        ${amt}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Custom amount */}
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="Custom amount"
+                      value={tipAmount}
+                      onChange={(e) => setTipAmount(e.target.value)}
+                      className="w-full pl-7 pr-16 py-2.5 rounded-xl bg-muted border border-border text-foreground text-sm focus:border-primary focus:outline-none"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">{CURRENCY}</span>
+                  </div>
+
+                  {tipError && <p className="text-xs text-red-500">{tipError}</p>}
+
+                  {/* Send button */}
+                  <button
+                    onClick={() => handleTip(tipAmount)}
+                    disabled={!tipAmount || parseFloat(tipAmount) <= 0 || tipStatus === "sending" || tipStatus === "switching"}
+                    className="w-full py-3 rounded-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                  >
+                    {tipStatus === "switching" ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Switching network...</>
+                    ) : tipStatus === "sending" ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Confirm in wallet...</>
+                    ) : !isConnected ? (
+                      <>Connect Wallet to Tip</>
+                    ) : (
+                      <>Send ${tipAmount || "0"} {CURRENCY}</>
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Products */}
+      <main className="max-w-6xl mx-auto px-6 py-12 space-y-14">
+        <section className="space-y-6">
+          <h2 className="text-xl font-bold tracking-tight">Products</h2>
+          {content.resources.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {content.resources.map((resource) => (
+                <ProductCard key={resource.id} item={toCardItem(resource)} />
               ))}
             </div>
           ) : (
             <div className="w-full p-12 rounded-2xl bg-card border border-border text-center">
               <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <FileText className="h-8 w-8 text-primary/50" />
+                <Package className="h-8 w-8 text-primary/50" />
               </div>
-              <p className="text-muted-foreground text-sm">No resources yet</p>
-              <p className="text-muted-foreground text-xs mt-1">Check back soon for APIs, files, and articles</p>
+              <p className="text-muted-foreground text-sm">Nothing for sale yet</p>
+              <p className="text-muted-foreground text-xs mt-1">Check back soon for videos, articles, files, and APIs</p>
             </div>
           )}
-        </div>
+        </section>
 
-        {/* Store Products */}
-        <div className="w-full mb-12">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Store Products</h2>
-          {content.products.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {content.products.slice(0, 6).map((product) => (
+        {/* Store products */}
+        {content.products.length > 0 && (
+          <section className="space-y-6">
+            <h2 className="text-xl font-bold tracking-tight">Store products</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {content.products.slice(0, 8).map((product) => (
                 <div
                   key={product._id}
                   onClick={() => {
@@ -594,34 +528,25 @@ export default function PublicProfilePage() {
                       src={product.image}
                       alt={product.name}
                       fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-primary/10">
                       <Package className="h-12 w-12 text-primary/60" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/50 to-transparent flex flex-col justify-end p-4">
-                    <p className="text-xs text-primary font-bold mb-1">{product.currency}</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent flex flex-col justify-end p-4">
                     <p className="text-sm font-bold text-foreground truncate">{product.name}</p>
                     <p className="text-xs text-muted-foreground">${parseFloat(product.price).toFixed(2)}</p>
                   </div>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="w-full p-12 rounded-2xl bg-card border border-border text-center">
-              <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <Package className="h-8 w-8 text-primary/50" />
-              </div>
-              <p className="text-muted-foreground text-sm">No products yet</p>
-              <p className="text-muted-foreground text-xs mt-1">This creator hasn't added any store products</p>
-            </div>
-          )}
-        </div>
+          </section>
+        )}
 
         {/* Footer */}
-        <footer className="flex flex-col items-center gap-2 mt-auto pb-6">
+        <footer className="flex flex-col items-center gap-2 pt-8 pb-4">
           <div className="flex items-center gap-2 text-muted-foreground">
             <div className="size-8 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">S</span>
@@ -640,18 +565,6 @@ export default function PublicProfilePage() {
         }}
         item={purchaseItem}
       />
-
-      <style>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-      `}</style>
     </div>
   );
 }

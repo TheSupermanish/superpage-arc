@@ -41,6 +41,7 @@ export function PublicNavbar() {
     { href: "/explore", label: "Explore", show: true },
     { href: "/docs", label: "Docs", show: true },
     { href: "/faucet", label: "Faucet", show: true },
+    { href: "/dashboard", label: "Dashboard", show: true },
   ];
 
   return (

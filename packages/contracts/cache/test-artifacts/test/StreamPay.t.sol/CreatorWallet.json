@@ -1,0 +1,18 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "CreatorWallet",
+  "sourceName": "test/StreamPay.t.sol",
+  "abi": [
+    {
+      "stateMutability": "payable",
+      "type": "receive"
+    }
+  ],
+  "bytecode": "0x608080604052346013576040908160188239f35b5f80fdfe36156008575f80fd5b00fea264697066735822122034008b2ea3f47fa94aee852058623f2b3e7082bb47a97e5fb5bb104a63c3eb9b64736f6c63430008180033",
+  "deployedBytecode": "0x36156008575f80fd5b00fea264697066735822122034008b2ea3f47fa94aee852058623f2b3e7082bb47a97e5fb5bb104a63c3eb9b64736f6c63430008180033",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/test/StreamPay.t.sol",
+  "buildInfoId": "solc-0_8_24-813a58f80afd4b8a6047ba21bf38c44f53e8e38e"
+}

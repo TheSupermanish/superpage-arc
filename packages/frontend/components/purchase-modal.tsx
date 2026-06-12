@@ -22,11 +22,11 @@ import {
   type CheckoutResult,
   type PaymentStatus,
 } from "@/hooks/use-x402-payment";
-import { getCurrencyDisplay, getTxUrl } from "@/lib/chain-config";
+import { getCurrency, getTxUrl } from "@/lib/chain-config";
 import {
   Code,
   FileText,
-  Globe,
+  Newspaper,
   ShoppingBag,
   Loader2,
   Wallet,
@@ -35,6 +35,8 @@ import {
   ExternalLink,
   ArrowRight,
   Package,
+  Check,
+  BookOpen,
 } from "lucide-react";
 import { marked } from "marked";
 
@@ -77,8 +79,16 @@ interface PurchaseModalProps {
 const TYPE_CONFIG: Record<string, { icon: typeof Code; color: string; label: string }> = {
   api: { icon: Code, color: "text-sp-blue bg-sp-blue/15", label: "API" },
   file: { icon: FileText, color: "text-sp-gold bg-sp-gold/15", label: "File" },
-  article: { icon: Globe, color: "text-sp-coral bg-sp-coral/15", label: "Article" },
+  article: { icon: Newspaper, color: "text-sp-coral bg-sp-coral/15", label: "Article" },
   shopify: { icon: ShoppingBag, color: "text-sp-pink bg-sp-pink/15", label: "Store" },
+};
+
+// Short, type-specific "what you get" lines shown before payment
+const TYPE_INCLUDES: Record<string, string[]> = {
+  api: ["Instant access to the live endpoint", "Works for humans and AI agents"],
+  file: ["Direct download right after payment", "The original file, yours to keep"],
+  article: ["Full article, readable instantly", "One payment, no subscription"],
+  shopify: ["Sold directly by the creator", "Settled instantly on-chain"],
 };
 
 const STATUS_LABELS: Record<PaymentStatus, string> = {
@@ -140,7 +150,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
   const isProcessing = status !== "idle" && status !== "success" && status !== "error";
 
   const price = isResource
-    ? `${item.data.priceUsdc} ${getCurrencyDisplay()}`
+    ? `$${item.data.priceUsdc.toFixed(2)} ${getCurrency()}`
     : `${item.data.price} ${item.data.currency}`;
 
   const typeConfig = isResource ? TYPE_CONFIG[item.data.type] || TYPE_CONFIG.api : null;
@@ -253,6 +263,18 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
           <span className="text-sm text-muted-foreground font-medium">Price</span>
           <span className="text-xl font-bold text-primary">{price}</span>
         </div>
+
+        {/* What you get */}
+        {isResource && status === "idle" && (
+          <ul className="space-y-2 px-1">
+            {(TYPE_INCLUDES[item.data.type] || TYPE_INCLUDES.api).map((line) => (
+              <li key={line} className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                <Check className="h-4 w-4 text-primary shrink-0" />
+                {line}
+              </li>
+            ))}
+          </ul>
+        )}
 
         {/* Product image (large) */}
         {isProduct && item.data.image && (
@@ -371,7 +393,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-xs text-primary hover:underline"
               >
-                View transaction <ExternalLink className="h-3 w-3" />
+                View on Arcscan <ExternalLink className="h-3 w-3" />
               </a>
             )}
           </div>
@@ -383,14 +405,14 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
             <AlertCircle className="text-red-400 flex-shrink-0 mt-0.5" size={18} />
             <div className="text-sm text-red-400">
               <p>{error}</p>
-              {/MUSD|USDC|faucet|Insufficient|reverted/i.test(error) && (
+              {/USDC|faucet|Insufficient|reverted/i.test(error) && (
                 <a
                   href="/faucet"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block mt-2 underline font-medium hover:text-red-300"
                 >
-                  Open MUSD Faucet →
+                  Get test {getCurrency()} from the faucet
                 </a>
               )}
             </div>
@@ -416,7 +438,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-xs text-primary hover:underline"
               >
-                View transaction <ExternalLink className="h-3 w-3" />
+                View on Arcscan <ExternalLink className="h-3 w-3" />
               </a>
             )}
             {resourceResult.downloaded.url && (
@@ -446,7 +468,28 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-xs text-primary hover:underline"
               >
-                View transaction <ExternalLink className="h-3 w-3" />
+                View on Arcscan <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+            {/* Type-appropriate next action */}
+            {item.data.type === "article" && item.data.slug && (
+              <a
+                href={`/read/${item.data.slug}`}
+                className="flex items-center justify-center gap-2 w-full p-4 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/10"
+              >
+                <BookOpen className="h-5 w-5" />
+                Open in reader
+              </a>
+            )}
+            {item.data.type === "api" && item.data.slug && (
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/x402/resource/${item.data.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full p-4 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/10"
+              >
+                <ExternalLink className="h-5 w-5" />
+                Open endpoint
               </a>
             )}
             {/* Content display */}
@@ -503,7 +546,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-xs text-primary hover:underline"
               >
-                View transaction <ExternalLink className="h-3 w-3" />
+                View on Arcscan <ExternalLink className="h-3 w-3" />
               </a>
             )}
             <div className="p-3 rounded-xl bg-muted border border-border text-sm space-y-1">
@@ -531,7 +574,7 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
               onClick={handleBuy}
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-bold py-6"
             >
-              {isResource && item.data.type === "article" ? "Read for" : "Pay"} {price}
+              Pay {price}
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           )}

@@ -7,9 +7,9 @@
       "command": "node",
       "args": ["./packages/mcp-client/superpage-x402.js"],
       "env": {
-        "SUPERPAGE_SERVER": "http://localhost:3001",
+        "SUPERPAGE_SERVER": "http://localhost:2337",
         "WALLET_PRIVATE_KEY": "YOUR_WALLET_PRIVATE_KEY_HERE",
-        "X402_CHAIN": "base",
+        "X402_CHAIN": "arc-testnet",
         "X402_CURRENCY": "USDC",
         "MAX_AUTO_PAYMENT": "10.00"
       },

@@ -7,10 +7,10 @@
       "command": "node",
       "args": ["./packages/mcp-client/superpage-x402.js"],
       "env": {
-        "SUPERPAGE_SERVER": "http://localhost:3001",
+        "SUPERPAGE_SERVER": "http://localhost:2337",
         "WALLET_PRIVATE_KEY": "REDACTED_WALLET_PRIVATE_KEY",
-        "X402_CHAIN": "mezo-testnet",
-        "X402_CURRENCY": "MUSD",
+        "X402_CHAIN": "arc-testnet",
+        "X402_CURRENCY": "USDC",
         "MAX_AUTO_PAYMENT": "10.00"
       },
       "status": "active"

@@ -197,7 +197,7 @@ export default function ShopifyDocsPage() {
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">4</div>
                   <div>
                     <h4 className="font-semibold text-foreground mb-1">Payment Sent</h4>
-                    <p className="text-muted-foreground text-sm">USDC transferred on Ethereum blockchain</p>
+                    <p className="text-muted-foreground text-sm">USDC transferred on Arc (settles in under a second)</p>
                   </div>
                 </div>
 
@@ -234,9 +234,9 @@ export default function ShopifyDocsPage() {
                 <CodeBlock code={`import { X402Client } from '@super-x402/sdk';
 
 const client = new X402Client({
-  network: 'mainnet',
+  network: 'arc-testnet',
   privateKey: process.env.WALLET_PRIVATE_KEY!,
-  tokenAddress: '0xc4083B1E81ceb461Ccef3FDa8A9F24F0d764B6D8',
+  tokenAddress: '0x3600000000000000000000000000000000000000',
 });
 
 const response = await client.fetch(
@@ -333,7 +333,7 @@ console.log('Shopify Order:', order.shopifyOrderId);`} />
 
               <div>
                 <p className="font-semibold text-foreground mb-2">Payment verification failing?</p>
-                <p>Ensure you have sufficient ETH for gas fees in addition to USDC tokens. Check that the transaction was confirmed on-chain.</p>
+                <p>Ensure you have sufficient USDC; on Arc, USDC covers both the payment and the gas fee. Check that the transaction was confirmed on-chain.</p>
               </div>
             </CardContent>
           </Card>

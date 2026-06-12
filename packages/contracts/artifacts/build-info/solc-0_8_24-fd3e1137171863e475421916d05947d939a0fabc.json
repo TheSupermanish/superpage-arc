@@ -1,0 +1,40 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_24-fd3e1137171863e475421916d05947d939a0fabc",
+  "solcVersion": "0.8.24",
+  "solcLongVersion": "0.8.24+commit.e11b9ed9",
+  "userSourceNameMap": {
+    "contracts/StreamPay.sol": "project/contracts/StreamPay.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "shanghai",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": [],
+      "viaIR": true
+    },
+    "sources": {
+      "project/contracts/StreamPay.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.24;\n\n/**\n * StreamPay: pay-per-second streaming payment channels for SuperPage.\n *\n * A viewer opens a session by depositing native USDC (Arc's gas token,\n * 18 decimals via msg.value) and naming an ephemeral session key. While\n * watching, the session key signs off-chain vouchers for the amount owed\n * so far. Anyone holding the latest voucher (in practice the SuperPage\n * backend) closes the session: the creator is paid the voucher amount,\n * the viewer gets the rest of the deposit back. If the backend never\n * closes, the viewer reclaims the full deposit after 24 hours.\n */\ncontract StreamPay {\n    struct Session {\n        address viewer;\n        address payable creator;\n        address sessionKey;\n        uint256 deposit;\n        uint256 ratePerSecond;\n        uint64 openedAt;\n        bool open;\n    }\n\n    uint256 public lastId;\n    mapping(uint256 => Session) private sessions;\n\n    uint256 public constant RECLAIM_DELAY = 24 hours;\n\n    event SessionOpened(\n        uint256 indexed id,\n        address indexed viewer,\n        address indexed creator,\n        uint256 ratePerSecond,\n        uint256 deposit,\n        address sessionKey\n    );\n    event SessionClosed(uint256 indexed id, uint256 amountPaid, uint256 refund);\n    event SessionReclaimed(uint256 indexed id, uint256 refund);\n\n    /**\n     * Open a payment channel. msg.value is the deposit in native USDC wei\n     * (18 decimals). The session key signs per-second vouchers off-chain.\n     */\n    function openSession(\n        address payable creator,\n        uint256 ratePerSecond,\n        address sessionKey\n    ) external payable returns (uint256 id) {\n        require(msg.value > 0, \"StreamPay: deposit required\");\n        require(ratePerSecond > 0, \"StreamPay: rate required\");\n        require(creator != address(0), \"StreamPay: creator required\");\n        require(sessionKey != address(0), \"StreamPay: session key required\");\n\n        id = ++lastId;\n        sessions[id] = Session({\n            viewer: msg.sender,\n            creator: creator,\n            sessionKey: sessionKey,\n            deposit: msg.value,\n            ratePerSecond: ratePerSecond,\n            openedAt: uint64(block.timestamp),\n            open: true\n        });\n\n        emit SessionOpened(id, msg.sender, creator, ratePerSecond, msg.value, sessionKey);\n    }\n\n    /**\n     * Close a session with the latest voucher. The voucher signs the digest\n     * keccak256(\"SUPERPAGE_STREAM\", chainid, this, id, amountOwed) via\n     * EIP-191 eth_sign. Payout is capped at the deposit; the remainder is\n     * refunded to the viewer. Callable by anyone with a valid voucher.\n     */\n    function closeSession(uint256 id, uint256 amountOwed, bytes calldata sig) external {\n        Session storage s = sessions[id];\n        require(s.open, \"StreamPay: session not open\");\n\n        bytes32 digest = keccak256(\n            abi.encodePacked(\"SUPERPAGE_STREAM\", block.chainid, address(this), id, amountOwed)\n        );\n        require(recoverEthSigned(digest, sig) == s.sessionKey, \"StreamPay: bad voucher\");\n\n        // Cap payout at the deposit\n        uint256 amountPaid = amountOwed > s.deposit ? s.deposit : amountOwed;\n        uint256 refund = s.deposit - amountPaid;\n\n        // Effects before interactions (reentrancy guard)\n        s.open = false;\n\n        if (amountPaid > 0) {\n            (bool paidOk, ) = s.creator.call{value: amountPaid}(\"\");\n            require(paidOk, \"StreamPay: creator transfer failed\");\n        }\n        if (refund > 0) {\n            (bool refundOk, ) = payable(s.viewer).call{value: refund}(\"\");\n            require(refundOk, \"StreamPay: viewer refund failed\");\n        }\n\n        emit SessionClosed(id, amountPaid, refund);\n    }\n\n    /**\n     * Escape hatch: if a session is never settled, the viewer reclaims the\n     * full deposit after RECLAIM_DELAY.\n     */\n    function reclaimExpired(uint256 id) external {\n        Session storage s = sessions[id];\n        require(s.open, \"StreamPay: session not open\");\n        require(msg.sender == s.viewer, \"StreamPay: not viewer\");\n        require(block.timestamp > uint256(s.openedAt) + RECLAIM_DELAY, \"StreamPay: not expired\");\n\n        uint256 refund = s.deposit;\n        s.open = false;\n\n        (bool ok, ) = payable(s.viewer).call{value: refund}(\"\");\n        require(ok, \"StreamPay: refund failed\");\n\n        emit SessionReclaimed(id, refund);\n    }\n\n    function getSession(uint256 id)\n        external\n        view\n        returns (\n            address viewer,\n            address creator,\n            address sessionKey,\n            uint256 deposit,\n            uint256 ratePerSecond,\n            uint64 openedAt,\n            bool open\n        )\n    {\n        Session storage s = sessions[id];\n        return (s.viewer, s.creator, s.sessionKey, s.deposit, s.ratePerSecond, s.openedAt, s.open);\n    }\n\n    /** Recover the signer of an EIP-191 eth_sign signature over `digest`. */\n    function recoverEthSigned(bytes32 digest, bytes calldata sig) internal pure returns (address) {\n        require(sig.length == 65, \"StreamPay: bad sig length\");\n        bytes32 ethHash = keccak256(abi.encodePacked(\"\\x19Ethereum Signed Message:\\n32\", digest));\n\n        bytes32 r = bytes32(sig[0:32]);\n        bytes32 s = bytes32(sig[32:64]);\n        uint8 v = uint8(sig[64]);\n        if (v < 27) v += 27;\n        require(v == 27 || v == 28, \"StreamPay: bad sig v\");\n\n        address signer = ecrecover(ethHash, v, r, s);\n        require(signer != address(0), \"StreamPay: bad signature\");\n        return signer;\n    }\n}\n"
+      }
+    }
+  }
+}
