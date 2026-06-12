@@ -90,7 +90,7 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
     <div className="min-h-screen bg-background text-foreground">
       <PublicNavbar />
 
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <main className="max-w-5xl mx-auto px-4 pt-28 pb-8 space-y-6">
         {error && (
           <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
             {error}

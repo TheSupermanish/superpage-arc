@@ -40,11 +40,21 @@ function resolveCoverUrl(src: string): string {
   return src.startsWith("/") ? `${API_URL}${src}` : src;
 }
 
+/** Sub-cent prices are the whole point of nanopayments: never collapse them to $0.00. */
+function formatUsdc(amount: number): string {
+  if (amount > 0 && amount < 0.01) {
+    return `$${amount.toFixed(4).replace(/0+$/, "").replace(/\.$/, "")}`;
+  }
+  return `$${amount.toFixed(2)}`;
+}
+
 export function formatCardPrice(item: Pick<ProductCardItem, "type" | "priceUsdc" | "pricePerSecondUsdc">): string {
   if (item.type === "video" && item.pricePerSecondUsdc) {
-    return `$${(item.pricePerSecondUsdc * 60).toFixed(2)}/min`;
+    return `${formatUsdc(item.pricePerSecondUsdc * 60)}/min`;
   }
-  return `$${(item.priceUsdc ?? 0).toFixed(2)}`;
+  const price = item.priceUsdc ?? 0;
+  if (price === 0) return "Free";
+  return formatUsdc(price);
 }
 
 export function ProductCard({ item }: { item: ProductCardItem }) {

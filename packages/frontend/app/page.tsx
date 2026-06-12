@@ -36,7 +36,9 @@ export default function LandingPage() {
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/explore?limit=20`);
+        // The API sorts by popularity; fetch a wide pool so newly published
+        // items are in it before we re-sort by date below.
+        const res = await fetch(`${API_URL}/api/explore?limit=100`);
         if (!res.ok) return;
         const json = await res.json();
         const resources: ExploreResource[] = json.data?.resources || [];
