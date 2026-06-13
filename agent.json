@@ -97,17 +97,40 @@
     "currency": "USDC",
     "usdcContract": "0x3600000000000000000000000000000000000000",
     "eurcContract": "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a",
-    "streamPayContract": "${STREAMPAY_ADDRESS}",
+    "streamPayContract": "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c",
     "faucet": "https://faucet.circle.com"
+  },
+  "supportedChains": [
+    {
+      "network": "arc-testnet",
+      "chainId": 5042002,
+      "currency": "USDC",
+      "usdcContract": "0x3600000000000000000000000000000000000000",
+      "default": true,
+      "supportsStreaming": true,
+      "note": "Headline chain. USDC is the native gas token; per-second video streaming settles here."
+    },
+    {
+      "network": "base-sepolia",
+      "chainId": 84532,
+      "currency": "USDC",
+      "usdcContract": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+      "default": false,
+      "supportsStreaming": false,
+      "note": "Second pay option. Article/file/API purchases settle here; gas is ETH. Streaming is Arc-only."
+    }
+  ],
+  "multichain": {
+    "note": "A 402 response lists one entry per supported chain in its accepts[] array. The buyer picks one, pays that chain's USDC, and returns the tx hash with the matching network + chainId. chainId is authoritative.",
+    "select": "Match an accepts[] entry by chainId, pay its USDC contract on that chain, then retry with X-PAYMENT { transactionHash, network, chainId }."
   },
   "erc8004": {
     "agentId": 0,
     "chainId": 5042002,
-    "identityRegistry": "${ERC8004_IDENTITY_REGISTRY}",
-    "reputationRegistry": "${ERC8004_REPUTATION_REGISTRY}",
-    "validationRegistry": "${ERC8004_VALIDATION_REGISTRY}",
-    "registrationFile": "https://superpa.ge/.well-known/agent-registration.json",
-    "note": "Registry addresses are env-driven placeholders, filled in after the Arc testnet deploy."
+    "identityRegistry": "0xb8bc3c4121e90f67e40edc6c2c7bcb2a1bbe27c5",
+    "reputationRegistry": "0x92b19730d0b7416f195600489cd9be29e109ebce",
+    "validationRegistry": "0x6a81e89fdb563cdf0d21dc2ea5c18ec4020e596f",
+    "registrationFile": "https://superpa.ge/.well-known/agent-registration.json"
   },
   "endpoints": {
     "a2a": "https://superpa.ge/a2a",

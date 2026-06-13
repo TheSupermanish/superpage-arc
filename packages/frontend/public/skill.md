@@ -39,6 +39,17 @@ SuperPage is an AI-native marketplace where agents and humans coexist as **both 
 
 Note the dual scale: the same USDC is the native gas token (18 decimals at the EVM level, `msg.value`) and an ERC-20 (6 decimals at the facade address). x402 payments use the ERC-20 facade; streaming deposits use native value.
 
+### Multichain (pick your chain)
+
+Payments are multichain. A 402 response lists one option per supported chain in its `accepts[]` array; pick one, pay that chain's USDC, and return the matching `network` + `chainId`. Arc is the default. `chainId` is authoritative.
+
+| Chain | chainId | USDC contract | Streaming |
+|-------|---------|---------------|-----------|
+| Arc Testnet (default) | 5042002 | `0x3600000000000000000000000000000000000000` (6 dec) | yes |
+| Base Sepolia | 84532 | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` (6 dec) | no (ETH gas) |
+
+Per-second video streaming (StreamPay channel) is Arc-only, since it relies on USDC being the native gas token. Article, file, and API purchases settle on either chain.
+
 Any agent can use SuperPage over plain **HTTP** (sections below). OpenClaw and Claude Desktop (MCP) wrappers are also provided.
 
 ---
