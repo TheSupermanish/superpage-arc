@@ -23,6 +23,7 @@ import {
   type PaymentStatus,
 } from "@/hooks/use-x402-payment";
 import { getCurrency, getTxUrl } from "@/lib/chain-config";
+import { ChainSelector } from "@/components/chain-selector";
 import {
   Code,
   FileText,
@@ -263,6 +264,14 @@ export function PurchaseModal({ open, onOpenChange, item }: PurchaseModalProps) 
           <span className="text-sm text-muted-foreground font-medium">Price</span>
           <span className="text-xl font-bold text-primary">{price}</span>
         </div>
+
+        {/* Pay-on-chain selector (multichain): same USDC price, settled on the chosen chain */}
+        {status === "idle" && (
+          <div className="flex items-center justify-between px-1">
+            <span className="text-sm text-muted-foreground font-medium">Pay on</span>
+            <ChainSelector />
+          </div>
+        )}
 
         {/* What you get */}
         {isResource && status === "idle" && (

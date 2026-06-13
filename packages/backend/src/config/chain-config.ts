@@ -24,11 +24,11 @@ export const SPAY_SCHEME = "spay";
 // Type Definitions
 // ============================================================
 
-export type NetworkId = "arc-testnet" | "mezo" | "mezo-testnet";
+export type NetworkId = "arc-testnet" | "base-sepolia" | "mezo" | "mezo-testnet";
 
-export type TokenSymbol = "BTC" | "MUSD" | "USDC" | "EURC";
+export type TokenSymbol = "BTC" | "ETH" | "MUSD" | "USDC" | "EURC";
 
-export type NativeTokenSymbol = "BTC" | "USDC";
+export type NativeTokenSymbol = "BTC" | "ETH" | "USDC";
 
 interface TokenConfig {
   address: string;
@@ -48,6 +48,10 @@ interface ChainMetadata {
   defaultPaymentToken: string;
   displayCurrency?: string;
   isTestnet: boolean;
+  /** Offered to users in the multichain selector (default chain listed first). */
+  enabled?: boolean;
+  /** Pay-per-second streaming (native-USDC channel) is supported here. */
+  supportsStreaming?: boolean;
 }
 
 export type { ChainMetadata };
@@ -58,6 +62,7 @@ export type { ChainMetadata };
 
 export const TOKEN_DECIMALS: Record<string, number> = {
   BTC: 18,  // Mezo native gas token (18 decimals)
+  ETH: 18,  // Base native gas token
   MUSD: 18, // Mezo USD stablecoin (verified on-chain: 18 decimals)
   USDC: 6,  // Arc ERC-20 facade decimals (native balance is 18)
   EURC: 6,
@@ -81,6 +86,22 @@ export const CHAIN_REGISTRY: Record<NetworkId, ChainMetadata> = {
     },
     defaultPaymentToken: "USDC",
     isTestnet: true,
+    enabled: true,
+    supportsStreaming: true, // USDC-as-native-gas enables the StreamPay channel
+  },
+  "base-sepolia": {
+    chainId: 84532,
+    name: "Base Sepolia",
+    rpcUrl: process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org",
+    explorerUrl: "https://sepolia.basescan.org",
+    nativeToken: { symbol: "ETH", decimals: 18 },
+    tokens: {
+      USDC: { address: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", decimals: 6 },
+    },
+    defaultPaymentToken: "USDC",
+    isTestnet: true,
+    enabled: true,
+    supportsStreaming: false, // gas is ETH, not USDC, so the native channel does not apply
   },
   mezo: {
     chainId: 31612,
@@ -166,6 +187,25 @@ export function getCurrencyDisplayName(networkId: NetworkId, symbol: TokenSymbol
 
 export function getSupportedNetworks(): NetworkId[] {
   return Object.keys(CHAIN_REGISTRY) as NetworkId[];
+}
+
+/**
+ * Networks offered to users / agents in the multichain flow, default first.
+ * Mezo stays in the registry for back-compat but is not surfaced here.
+ */
+export function getEnabledNetworks(): NetworkId[] {
+  const order: NetworkId[] = ["arc-testnet", "base-sepolia"];
+  return (Object.keys(CHAIN_REGISTRY) as NetworkId[])
+    .filter((id) => CHAIN_REGISTRY[id].enabled)
+    .sort((a, b) => {
+      const ia = order.indexOf(a);
+      const ib = order.indexOf(b);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
+}
+
+export function supportsStreaming(networkId: NetworkId): boolean {
+  return CHAIN_REGISTRY[networkId]?.supportsStreaming === true;
 }
 
 // ============================================================

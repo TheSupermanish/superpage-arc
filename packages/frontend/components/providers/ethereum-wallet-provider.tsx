@@ -4,13 +4,14 @@ import { ReactNode, useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
 import { RainbowKitProvider, getDefaultConfig, darkTheme } from "@rainbow-me/rainbowkit";
-import { arcTestnet, mezoMainnet, mezoTestnet } from "@/lib/chains";
+import { arcTestnet, baseSepolia, mezoMainnet, mezoTestnet } from "@/lib/chains";
 import "@rainbow-me/rainbowkit/styles.css";
 
 const queryClient = new QueryClient();
 
 const supportedChains = [
   arcTestnet, // Default: Arc Testnet (Circle L1) — x402 payment chain, USDC gas
+  baseSepolia, // Base Sepolia — second selectable chain (Circle USDC, ETH gas)
   mezoTestnet, // Mezo Testnet (matsnet)
   mezoMainnet, // Mezo Mainnet (Bitcoin economic layer L2)
 ] as const;

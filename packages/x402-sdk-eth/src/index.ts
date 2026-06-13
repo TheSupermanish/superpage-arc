@@ -162,11 +162,13 @@ export {
   
   // Chain definitions
   arcTestnet,
+  baseSepolia,
   mezoMainnet,
   mezoTestnet,
 
   // Helper functions
   getSupportedNetworks,
+  getEnabledNetworks,
   isValidNetwork,
   getChainMetadata,
   getViemChain,

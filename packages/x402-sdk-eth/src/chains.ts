@@ -13,11 +13,11 @@ import { defineChain, type Chain } from "viem";
 // TYPES
 // ============================================================
 
-export type NetworkId = "arc-testnet" | "mezo" | "mezo-testnet";
+export type NetworkId = "arc-testnet" | "base-sepolia" | "mezo" | "mezo-testnet";
 
-export type TokenSymbol = "BTC" | "MUSD" | "USDC" | "EURC" | "USDT" | "DAI";
+export type TokenSymbol = "BTC" | "ETH" | "MUSD" | "USDC" | "EURC" | "USDT" | "DAI";
 
-export type NativeTokenSymbol = "BTC" | "USDC";
+export type NativeTokenSymbol = "BTC" | "ETH" | "USDC";
 
 export interface TokenConfig {
   symbol: TokenSymbol;
@@ -42,6 +42,10 @@ export interface ChainMetadata {
   tokens: Partial<Record<Exclude<TokenSymbol, "BTC">, TokenConfig>>;
   defaultPaymentToken: TokenSymbol;
   displayCurrency?: string;
+  /** Whether this chain is offered to users in the multichain selector. */
+  enabled?: boolean;
+  /** Whether pay-per-second streaming (native-USDC channel) is supported here. */
+  supportsStreaming?: boolean;
 }
 
 // ============================================================
@@ -59,6 +63,21 @@ export const arcTestnet = defineChain({
   },
   blockExplorers: {
     default: { name: "Arcscan", url: "https://testnet.arcscan.app" },
+  },
+  testnet: true,
+});
+
+export const baseSepolia = defineChain({
+  id: 84532,
+  name: "Base Sepolia",
+  network: "base-sepolia",
+  nativeCurrency: { decimals: 18, name: "Ether", symbol: "ETH" },
+  rpcUrls: {
+    default: { http: ["https://sepolia.base.org"] },
+    public: { http: ["https://sepolia.base.org"] },
+  },
+  blockExplorers: {
+    default: { name: "BaseScan", url: "https://sepolia.basescan.org" },
   },
   testnet: true,
 });
@@ -114,6 +133,25 @@ export const CHAIN_REGISTRY: Record<NetworkId, ChainMetadata> = {
       EURC: { symbol: "EURC", decimals: 6, address: "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a" },
     },
     defaultPaymentToken: "USDC",
+    enabled: true,
+    supportsStreaming: true, // USDC-as-native-gas enables the StreamPay channel
+  },
+  "base-sepolia": {
+    id: "base-sepolia",
+    chainId: 84532,
+    name: "Base Sepolia",
+    shortName: "BASE-S",
+    isTestnet: true,
+    viemChain: baseSepolia,
+    rpcUrl: "https://sepolia.base.org",
+    explorerUrl: "https://sepolia.basescan.org",
+    nativeToken: { symbol: "ETH", name: "Ether", decimals: 18 },
+    tokens: {
+      USDC: { symbol: "USDC", decimals: 6, address: "0x036CbD53842c5426634e7929541eC2318f3dCF7e" },
+    },
+    defaultPaymentToken: "USDC",
+    enabled: true,
+    supportsStreaming: false, // gas is ETH, not USDC, so the native channel does not apply
   },
   mezo: {
     id: "mezo",
@@ -158,6 +196,22 @@ export const CHAIN_REGISTRY: Record<NetworkId, ChainMetadata> = {
 
 export function getSupportedNetworks(): NetworkId[] {
   return Object.keys(CHAIN_REGISTRY) as NetworkId[];
+}
+
+/**
+ * Networks offered to users in the multichain selector, default (Arc) first.
+ * Mezo stays in the registry for back-compat but is not surfaced here.
+ */
+export function getEnabledNetworks(): NetworkId[] {
+  const order: NetworkId[] = ["arc-testnet", "base-sepolia"];
+  const enabled = (Object.keys(CHAIN_REGISTRY) as NetworkId[]).filter(
+    (id) => CHAIN_REGISTRY[id].enabled
+  );
+  return enabled.sort((a, b) => {
+    const ia = order.indexOf(a);
+    const ib = order.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
 }
 
 export function isValidNetwork(networkId: string): networkId is NetworkId {
@@ -281,6 +335,7 @@ export const TOKEN_ADDRESSES = buildTokenAddressesRecord();
 
 export const TOKEN_DECIMALS: Record<TokenSymbol, number> = {
   BTC: 18, // Mezo native gas (18 decimals, not 8)
+  ETH: 18, // Base native gas
   MUSD: 18, // Mezo USD stablecoin
   USDC: 6, // ERC-20 facade decimals (Arc native balance is 18, facade is 6)
   EURC: 6,

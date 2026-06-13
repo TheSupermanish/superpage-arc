@@ -25,6 +25,19 @@ export const arcTestnet = defineChain({
   testnet: true,
 });
 
+export const baseSepolia = defineChain({
+  id: 84532,
+  name: "Base Sepolia",
+  nativeCurrency: { decimals: 18, name: "Ether", symbol: "ETH" },
+  rpcUrls: {
+    default: { http: [process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org"] },
+  },
+  blockExplorers: {
+    default: { name: "BaseScan", url: "https://sepolia.basescan.org" },
+  },
+  testnet: true,
+});
+
 export const mezoMainnet = defineChain({
   id: 31612,
   name: "Mezo",
@@ -55,7 +68,7 @@ export const mezoTestnet = defineChain({
 // Chain Registry
 // ============================================================
 
-export const SUPPORTED_CHAINS: Chain[] = [arcTestnet, mezoMainnet, mezoTestnet];
+export const SUPPORTED_CHAINS: Chain[] = [arcTestnet, baseSepolia, mezoMainnet, mezoTestnet];
 
 export const CHAIN_BY_ID: Record<number, Chain> = Object.fromEntries(
   SUPPORTED_CHAINS.map(chain => [chain.id, chain])
@@ -63,6 +76,7 @@ export const CHAIN_BY_ID: Record<number, Chain> = Object.fromEntries(
 
 export const CHAIN_BY_NAME: Record<string, Chain> = {
   "arc-testnet": arcTestnet,
+  "base-sepolia": baseSepolia,
   mezo: mezoMainnet,
   "mezo-testnet": mezoTestnet,
 };

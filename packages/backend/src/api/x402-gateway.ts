@@ -17,9 +17,11 @@ import {
   getNetwork,
   getCurrency,
   getTokenDecimals,
-  getChainId,
-  isValidNetwork,
+  getEnabledNetworks,
+  getChainMetadata,
+  getDefaultPaymentToken,
   SPAY_SCHEME,
+  type NetworkId,
 } from "../config/chain-config.js";
 import mongoose from "mongoose";
 
@@ -122,40 +124,48 @@ export async function handleResourceAccess(req: Request, res: Response) {
     // NO PAYMENT - Return 402 with payment requirements
     // ============================================================
     if (!xPaymentHeader) {
-      const network = getNetwork();
       console.log(`[x402-gateway] No payment header - returning 402 (${priceUsdc} ${currency})`);
 
-      // Get chain ID from the chain registry
-      const chainId = getChainId(network);
+      const requestId = `resource_${resource._id.toString()}_${Date.now()}`;
+      const memo = resource.description || `Access to ${resource.name}`;
 
-      // Return payment requirements in SDK-compatible format
-      // The SDK's parsePaymentRequirements expects the body to match PaymentRequirementsSchema
-      const paymentRequirements = {
-        scheme: SPAY_SCHEME as any,
-        network: network,
-        chainId: chainId,
-        token: currency as any,
-        amount: amountMicroUsdc,
-        recipient: recipientAddress,
-        requestId: `resource_${resource._id.toString()}_${Date.now()}`,
-        memo: resource.description || `Access to ${resource.name}`,
-      };
+      // Multichain: advertise one payment option per enabled chain. The buyer
+      // (human or agent) picks one and pays its USDC on that chain. The amount
+      // is identical across chains (USDC is 6 decimals everywhere we enable),
+      // and the recipient EOA is valid on every EVM chain.
+      const accepts = getEnabledNetworks().map((net) => {
+        const meta = getChainMetadata(net);
+        const token = getDefaultPaymentToken(net);
+        return {
+          scheme: SPAY_SCHEME as any,
+          network: net,
+          chainId: meta.chainId,
+          token: token as any,
+          amount: amountMicroUsdc,
+          recipient: recipientAddress,
+          requestId,
+          memo,
+        };
+      });
+
+      // The default chain (Arc) is mirrored at the top level for SDK parsers
+      // that read a single requirement; accepts[] is the full multichain menu.
+      const primary = accepts[0];
 
       return res.status(402).json({
-        // SDK-compatible payment requirements (top-level for SDK parsing)
-        ...paymentRequirements,
-        
+        ...primary,
+
         // Additional metadata
         x402Version: "1.0",
         resourceId: resource._id.toString(),
         resourceName: resource.name,
         resourceType: resource.type,
-        description: resource.description || `Access to ${resource.name}`,
+        description: memo,
         price: priceUsdc,
         priceFormatted: `$${priceUsdc.toFixed(2)} ${currency}`,
-        
-        // Also include in accepts array for backward compatibility
-        accepts: [paymentRequirements],
+
+        // One entry per supported chain — this is the multichain mechanism.
+        accepts,
       });
     }
 
@@ -177,35 +187,45 @@ export async function handleResourceAccess(req: Request, res: Response) {
 
     console.log(`[x402-gateway] Payment data parsed (network: ${paymentData.network})`);
 
-    // Verify payment
-    const network = getNetwork();
-    
-    // All networks in the registry are EVM networks
-    // isValidNetwork returns true for all supported EVM chains
-    const isEVMNetwork = isValidNetwork(network);
+    // Multichain: verify against the chain the buyer actually paid on, taken
+    // from the proof and validated against our enabled-chain allowlist. We do
+    // NOT trust the server default here, otherwise a Base payment would be
+    // checked against Arc's RPC and always fail.
+    const enabled = getEnabledNetworks();
+    const proofNetwork = paymentData.network as NetworkId | undefined;
+    const network: NetworkId =
+      proofNetwork && enabled.includes(proofNetwork) ? proofNetwork : (getNetwork() as NetworkId);
 
-    const paymentProof = isEVMNetwork ? {
+    if (proofNetwork && !enabled.includes(proofNetwork)) {
+      console.warn(`[x402-gateway] Proof network ${proofNetwork} not enabled; rejecting`);
+      return res.status(402).json({
+        error: "Unsupported payment network",
+        details: `Pay on one of: ${enabled.join(", ")}`,
+      });
+    }
+
+    const meta = getChainMetadata(network);
+    const chainId = meta.chainId;
+    const token = getDefaultPaymentToken(network);
+
+    const paymentProof = {
       transactionHash: paymentData.transactionHash || paymentData.signature,
-      network: paymentData.network,
-      chainId: paymentData.chainId || paymentData.chain_id,
-      timestamp: paymentData.timestamp || Date.now(),
-    } : {
-      signature: paymentData.signature,
-      network: paymentData.network,
+      network,
+      // Bind to the resolved chain's id, not whatever the client claimed,
+      // so the SDK's chainId equality check verifies against the real chain.
+      chainId,
       timestamp: paymentData.timestamp || Date.now(),
     };
 
-    const chainId = getChainId(network);
-    
     const paymentRequirements = {
-      network: network,
-      chainId: chainId,
+      network,
+      chainId,
       recipient: recipientAddress,
       amount: amountMicroUsdc,
-      token: currency as any,
+      token: token as any,
     };
 
-    console.log(`[x402-gateway] Verifying payment (amount: ${amountMicroUsdc}, network: ${network})`);
+    console.log(`[x402-gateway] Verifying payment (amount: ${amountMicroUsdc}, network: ${network}, chainId: ${chainId})`);
 
     // Verify with retries — fast chains like Mezo may need a moment for RPC sync
     let verified = false;

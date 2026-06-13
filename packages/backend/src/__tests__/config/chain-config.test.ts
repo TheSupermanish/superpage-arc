@@ -15,6 +15,7 @@ import {
   getDefaultPaymentToken,
   getCurrencyDisplayName,
   getSupportedNetworks,
+  getEnabledNetworks,
   getChainConfig,
   getTxExplorerUrl,
   type NetworkId,
@@ -35,9 +36,24 @@ describe("Module constants", () => {
   });
 });
 
-describe("CHAIN_REGISTRY (Arc + Mezo)", () => {
-  it("contains Arc testnet plus the two Mezo networks", () => {
-    expect(Object.keys(CHAIN_REGISTRY).sort()).toEqual(["arc-testnet", "mezo", "mezo-testnet"]);
+describe("CHAIN_REGISTRY (Arc + Base + Mezo)", () => {
+  it("contains Arc testnet, Base Sepolia, and the two Mezo networks", () => {
+    expect(Object.keys(CHAIN_REGISTRY).sort()).toEqual([
+      "arc-testnet",
+      "base-sepolia",
+      "mezo",
+      "mezo-testnet",
+    ]);
+  });
+
+  it("has Base Sepolia enabled with USDC and ETH gas, no streaming", () => {
+    const base = CHAIN_REGISTRY["base-sepolia"];
+    expect(base.chainId).toBe(84532);
+    expect(base.nativeToken.symbol).toBe("ETH");
+    expect(base.tokens.USDC?.address).toBe("0x036CbD53842c5426634e7929541eC2318f3dCF7e");
+    expect(base.tokens.USDC?.decimals).toBe(6);
+    expect(base.enabled).toBe(true);
+    expect(base.supportsStreaming).toBe(false);
   });
 
   it("has Arc testnet with native-USDC gas and the ERC-20 facade as payment token", () => {
@@ -180,9 +196,16 @@ describe("getCurrencyDisplayName", () => {
 });
 
 describe("getSupportedNetworks", () => {
-  it("returns Arc + Mezo networks", () => {
+  it("returns Arc + Base + Mezo networks", () => {
     const networks = getSupportedNetworks();
-    expect(networks.sort()).toEqual(["arc-testnet", "mezo", "mezo-testnet"]);
+    expect(networks.sort()).toEqual(["arc-testnet", "base-sepolia", "mezo", "mezo-testnet"]);
+  });
+});
+
+describe("getEnabledNetworks", () => {
+  it("returns Arc first, then Base (Mezo excluded)", () => {
+    const enabled = getEnabledNetworks();
+    expect(enabled).toEqual(["arc-testnet", "base-sepolia"]);
   });
 });
 
@@ -244,11 +267,11 @@ describe("Convenience functions", () => {
 });
 
 describe("TOKEN_DECIMALS", () => {
-  it("contains the supported payment tokens", () => {
+  it("contains the supported payment and gas tokens", () => {
     expect(TOKEN_DECIMALS.BTC).toBe(18);
+    expect(TOKEN_DECIMALS.ETH).toBe(18);
     expect(TOKEN_DECIMALS.MUSD).toBe(18);
     expect(TOKEN_DECIMALS.USDC).toBe(6);
     expect(TOKEN_DECIMALS.EURC).toBe(6);
-    expect(TOKEN_DECIMALS.ETH).toBeUndefined();
   });
 });

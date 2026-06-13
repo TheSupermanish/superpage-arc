@@ -9,6 +9,7 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { PublicNavbar } from "@/components/public-navbar";
 import { useX402Payment, type PaymentStatus } from "@/hooks/use-x402-payment";
 import { getTxUrl } from "@/lib/chain-config";
+import { ChainSelector } from "@/components/chain-selector";
 import {
   Loader2,
   Lock,
@@ -293,6 +294,14 @@ export default function ReadArticlePage() {
                       {preview.currency}
                     </span>
                   </p>
+
+                  {/* Pay-on-chain selector (multichain) */}
+                  {!isProcessing && (
+                    <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                      <span>Pay on</span>
+                      <ChainSelector />
+                    </div>
+                  )}
 
                   {/* Payment progress */}
                   {isProcessing && (

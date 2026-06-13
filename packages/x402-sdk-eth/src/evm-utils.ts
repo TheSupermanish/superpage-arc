@@ -15,6 +15,48 @@ import {
 } from "viem";
 
 /**
+ * Arc Testnet chain definition (Circle's stablecoin-native L1)
+ * Chain ID: 5042002
+ * RPC: https://rpc.testnet.arc.network
+ * Native gas token: USDC (18 decimals native; 6-decimal ERC-20 facade at 0x3600...)
+ */
+export const arcTestnet = defineChain({
+  id: 5042002,
+  name: "Arc Testnet",
+  network: "arc-testnet",
+  nativeCurrency: { decimals: 18, name: "USDC", symbol: "USDC" },
+  rpcUrls: {
+    default: { http: ["https://rpc.testnet.arc.network"] },
+    public: { http: ["https://rpc.testnet.arc.network"] },
+  },
+  blockExplorers: {
+    default: { name: "Arcscan", url: "https://testnet.arcscan.app" },
+  },
+  testnet: true,
+});
+
+/**
+ * Base Sepolia chain definition
+ * Chain ID: 84532
+ * RPC: https://sepolia.base.org
+ * Native gas token: ETH (18 decimals); USDC is a standard ERC-20 (6 decimals)
+ */
+export const baseSepolia = defineChain({
+  id: 84532,
+  name: "Base Sepolia",
+  network: "base-sepolia",
+  nativeCurrency: { decimals: 18, name: "Ether", symbol: "ETH" },
+  rpcUrls: {
+    default: { http: ["https://sepolia.base.org"] },
+    public: { http: ["https://sepolia.base.org"] },
+  },
+  blockExplorers: {
+    default: { name: "BaseScan", url: "https://sepolia.basescan.org" },
+  },
+  testnet: true,
+});
+
+/**
  * Mezo Mainnet chain definition
  * Chain ID: 31612
  * RPC: https://mezo.drpc.org
@@ -75,6 +117,8 @@ import {
  * Chain configurations
  */
 export const CHAINS: Record<Network, Chain> = {
+  "arc-testnet": arcTestnet,
+  "base-sepolia": baseSepolia,
   mezo: mezoMainnet,
   "mezo-testnet": mezoTestnet,
 };
@@ -83,6 +127,8 @@ export const CHAINS: Record<Network, Chain> = {
  * Chain IDs
  */
 export const CHAIN_IDS: Record<Network, number> = {
+  "arc-testnet": 5042002,
+  "base-sepolia": 84532,
   mezo: 31612,
   "mezo-testnet": 31611,
 };
@@ -94,7 +140,16 @@ export const CHAIN_IDS: Record<Network, number> = {
  */
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000" as Address;
 
-export const TOKEN_ADDRESSES: Record<Network, Record<Exclude<TokenType, "BTC">, Address>> = {
+export const TOKEN_ADDRESSES: Record<Network, Partial<Record<Exclude<TokenType, "BTC">, Address>>> = {
+  "arc-testnet": {
+    // Native USDC's ERC-20 facade (system contract, 6 dec) — what x402 transfers
+    USDC: "0x3600000000000000000000000000000000000000" as Address,
+    EURC: "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a" as Address,
+  },
+  "base-sepolia": {
+    // Circle USDC on Base Sepolia (6 dec); gas is ETH (not a payment token here)
+    USDC: "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as Address,
+  },
   mezo: {
     MUSD: "0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186" as Address, // MUSD (18 dec)
     USDC: "0x04671C72Aab5AC02A03c1098314b1BB6B560c197" as Address, // mUSDC (Mezo Circle USDC, 6 dec)
@@ -117,6 +172,7 @@ export const TOKEN_DECIMALS: Record<TokenType, number> = {
   BTC: 18, // Mezo native gas (18 dec on Mezo, not 8 like real BTC)
   MUSD: 18, // Mezo USD stablecoin (verified on-chain: 18 decimals)
   USDC: 6,
+  EURC: 6,
   USDT: 6,
   DAI: 18,
 };
@@ -159,6 +215,8 @@ export function getRpcEndpoint(network: Network, customEndpoint?: string): strin
   
   // Default public RPCs (recommend using your own in production)
   const publicRpcs: Record<Network, string> = {
+    "arc-testnet": "https://rpc.testnet.arc.network",
+    "base-sepolia": "https://sepolia.base.org",
     mezo: "https://mezo.drpc.org",
     "mezo-testnet": "https://rpc.test.mezo.org",
   };
@@ -578,8 +636,12 @@ export async function verifyPaymentTransaction(
     }
     
     // Verify ERC20 token transfers
-    const tokenAddress = TOKEN_ADDRESSES[requirements.network][requirements.token];
-    
+    const tokenAddress = TOKEN_ADDRESSES[requirements.network][requirements.token as Exclude<TokenType, "BTC">];
+    if (!tokenAddress) {
+      console.error(`Token ${requirements.token} is not configured on ${requirements.network}`);
+      return false;
+    }
+
     if (tx.to?.toLowerCase() !== tokenAddress.toLowerCase()) {
       console.error("Transaction not to token contract");
       return false;

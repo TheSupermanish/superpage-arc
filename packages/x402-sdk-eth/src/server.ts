@@ -93,6 +93,8 @@ export class X402Server {
   private publicClient: PublicClient;
   private config: X402ServerConfig;
   private cache?: PaymentCache;
+  /** Public clients keyed by network, so one server can verify across chains. */
+  private clientsByNetwork: Map<Network, PublicClient> = new Map();
 
   constructor(config: X402ServerConfig) {
     this.config = {
@@ -100,10 +102,25 @@ export class X402Server {
       ...config,
     };
     this.publicClient = createConnection(config.network, config.rpcEndpoint);
-    
+    this.clientsByNetwork.set(config.network, this.publicClient);
+
     if (config.enableCache) {
       this.cache = new PaymentCache(config.cacheTTL);
     }
+  }
+
+  /**
+   * Resolve (and cache) a public client for an arbitrary supported network.
+   * The configured network reuses the rpcEndpoint override; others use the
+   * registry default. This is what makes multichain verification work: a tx
+   * settled on Base must be read against Base's RPC, not the server default.
+   */
+  private getClientForNetwork(network: Network): PublicClient {
+    const existing = this.clientsByNetwork.get(network);
+    if (existing) return existing;
+    const client = createConnection(network);
+    this.clientsByNetwork.set(network, client);
+    return client;
   }
 
   /**
@@ -163,9 +180,9 @@ export class X402Server {
         }
       }
 
-      // Verify transaction on blockchain
+      // Verify transaction on the chain it actually settled on (multichain).
       const verified = await verifyPaymentTransaction(
-        this.publicClient,
+        this.getClientForNetwork(requirements.network),
         proof.transactionHash as Hash,
         requirements,
         this.config.confirmations || 1

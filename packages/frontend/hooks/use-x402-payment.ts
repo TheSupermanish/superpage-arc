@@ -3,29 +3,33 @@
 import { useState, useCallback } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { useEnsureNetwork } from "./use-network-switch";
-import { createPublicClient, http, parseAbi } from "viem";
-import { getDefaultChain, getDefaultChainId } from "@/lib/chains";
-import { getNetwork, getCurrency, getPaymentTokenAddress, PAYMENT_TOKEN_ADDRESSES } from "@/lib/chain-config";
+import { useNetworkSwitch } from "./use-network-switch";
+import { createPublicClient, http, parseAbi, type Chain } from "viem";
+import { CHAIN_BY_ID, CHAIN_BY_NAME, getDefaultChain } from "@/lib/chains";
+import {
+  getSelectedNetwork,
+  getCurrency,
+  PAYMENT_TOKEN_ADDRESSES,
+  CHAIN_IDS,
+} from "@/lib/chain-config";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-// Resolve current chain config
-const CURRENT_NETWORK = getNetwork();
-const CURRENT_CHAIN_ID = getDefaultChainId();
-const CURRENT_CHAIN = getDefaultChain();
-const CURRENT_CURRENCY = getCurrency();
-const PAYMENT_TOKEN_ADDRESS = getPaymentTokenAddress();
 
 const ERC20_ABI = parseAbi([
   "function transfer(address to, uint256 amount) returns (bool)",
 ]);
 
-// Standalone viem client for tx receipt polling
-const paymentClient = createPublicClient({
-  chain: CURRENT_CHAIN,
-  transport: http(),
-});
+// A receipt-polling client for whichever chain the payment settled on.
+// Cached so we do not rebuild a client per call.
+const receiptClients = new Map<number, ReturnType<typeof createPublicClient>>();
+function getReceiptClient(chainId: number) {
+  const cached = receiptClients.get(chainId);
+  if (cached) return cached;
+  const chain: Chain = CHAIN_BY_ID[chainId] || getDefaultChain();
+  const client = createPublicClient({ chain, transport: http() });
+  receiptClients.set(chainId, client);
+  return client;
+}
 
 export type PaymentStatus =
   | "idle"
@@ -84,11 +88,18 @@ export interface CheckoutResult {
   };
 }
 
-function buildPaymentHeader(txHash: string) {
+/** A completed payment: the tx plus the chain it actually settled on. */
+interface PaidResult {
+  hash: string;
+  network: string;
+  chainId: number;
+}
+
+function buildPaymentHeader(paid: PaidResult) {
   return JSON.stringify({
-    transactionHash: txHash,
-    network: CURRENT_NETWORK,
-    chainId: CURRENT_CHAIN_ID,
+    transactionHash: paid.hash,
+    network: paid.network,
+    chainId: paid.chainId,
     timestamp: Date.now(),
   });
 }
@@ -122,15 +133,18 @@ async function readResponseBody(res: Response): Promise<unknown> {
   return res.text();
 }
 
-/** Map raw errors to user-friendly messages */
+/** Map raw errors to user-friendly messages (chain-aware) */
 function friendlyError(err: any): string {
+  const chainName = CHAIN_BY_NAME[getSelectedNetwork()]?.name || "the selected network";
+  const currency = getCurrency();
+
   // User rejected in wallet
   if (err.code === 4001 || err.code === "ACTION_REJECTED")
     return "You rejected the transaction in your wallet.";
 
   // Chain not added to wallet
   if (err.code === 4902)
-    return `${CURRENT_CHAIN.name} network not found in your wallet. Please add it and try again.`;
+    return `${chainName} network not found in your wallet. Please add it and try again.`;
 
   // Explicit message we threw (reverted, network switch, etc.)
   if (err.message?.startsWith("Transaction reverted"))
@@ -141,7 +155,7 @@ function friendlyError(err: any): string {
   // Wagmi / viem short messages
   const short: string = err.shortMessage || "";
   if (/insufficient funds/i.test(short) || /insufficient funds/i.test(err.message || ""))
-    return `Insufficient ${CURRENT_CURRENCY} balance. Make sure you have enough tokens on ${CURRENT_CHAIN.name}.`;
+    return `Insufficient ${currency} balance. Make sure you have enough tokens on ${chainName}.`;
   if (/user rejected/i.test(short))
     return "You rejected the transaction in your wallet.";
   if (/connector not connected/i.test(short))
@@ -178,7 +192,7 @@ export function useX402Payment() {
 
   const { isConnected, address } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { ensureCorrectNetwork } = useEnsureNetwork(CURRENT_CHAIN_ID);
+  const { switchToChain } = useNetworkSwitch();
   const { writeContractAsync } = useWriteContract();
 
   const reset = useCallback(() => {
@@ -188,46 +202,51 @@ export function useX402Payment() {
   }, []);
 
   const sendPayment = useCallback(
-    async (requirements: PaymentRequirements): Promise<string> => {
-      // Switch to the correct network
-      setStatus("switching-network");
-      const switched = await ensureCorrectNetwork();
-      if (!switched) throw new Error(`Please switch to ${CURRENT_CHAIN.name} network`);
+    async (requirements: PaymentRequirements): Promise<PaidResult> => {
+      // Resolve the chain to pay on from the chosen requirement (multichain).
+      const reqNetwork = requirements.network || getSelectedNetwork();
+      const targetChainId =
+        requirements.chainId || CHAIN_IDS[reqNetwork] || CHAIN_IDS[getSelectedNetwork()];
+      const chainName = CHAIN_BY_ID[targetChainId]?.name || reqNetwork;
 
-      // Determine payment token address — from the requirements' network or current default.
-      // The server can also pin an explicit token address via requirements.token.
-      const reqNetwork = requirements.network || CURRENT_NETWORK;
+      // Switch the wallet to that chain
+      setStatus("switching-network");
+      const switched = await switchToChain(targetChainId);
+      if (!switched) throw new Error(`Please switch to ${chainName} network`);
+
+      // Token address for the chosen chain. (The 402 sends a token symbol, not
+      // an address, so resolve by network; honor an explicit 0x override.)
       const tokenAddr = (requirements.token && requirements.token.startsWith("0x")
         ? (requirements.token as `0x${string}`)
-        : undefined) || PAYMENT_TOKEN_ADDRESSES[reqNetwork] || PAYMENT_TOKEN_ADDRESS;
+        : undefined) || PAYMENT_TOKEN_ADDRESSES[reqNetwork] || PAYMENT_TOKEN_ADDRESSES[getSelectedNetwork()];
 
-      // Send ERC-20 transfer
+      // Send ERC-20 transfer on the chosen chain
       setStatus("awaiting-approval");
       const hash = await writeContractAsync({
         abi: ERC20_ABI,
         address: tokenAddr,
         functionName: "transfer",
         args: [requirements.recipient as `0x${string}`, BigInt(requirements.amount)],
-        chainId: requirements.chainId || CURRENT_CHAIN_ID,
+        chainId: targetChainId,
         gas: 500_000n,
       });
 
       setTxHash(hash);
       setStatus("confirming-tx");
 
-      // Wait for confirmation and check status
-      const receipt = await paymentClient.waitForTransactionReceipt({ hash, confirmations: 1 });
+      // Wait for confirmation on the chain it settled on
+      const receipt = await getReceiptClient(targetChainId).waitForTransactionReceipt({ hash, confirmations: 1 });
 
       if (receipt.status === "reverted") {
         throw new Error(
-          `Transaction reverted — you may not have enough ${CURRENT_CURRENCY}. ` +
+          `Transaction reverted — you may not have enough ${getCurrency()}. ` +
           "Get test tokens from the faucet."
         );
       }
 
-      return hash;
+      return { hash, network: reqNetwork, chainId: targetChainId };
     },
-    [ensureCorrectNetwork, writeContractAsync],
+    [switchToChain, writeContractAsync],
   );
 
   // Flow A: Pay for a resource (API, file, article)
@@ -265,20 +284,23 @@ export function useX402Payment() {
         }
 
         const body = await phase1.json();
+        // Multichain: prefer the accepts[] entry for the user's selected chain.
+        const accepts: PaymentRequirements[] = body.accepts || body.paymentRequirements || [body];
+        const selected = getSelectedNetwork();
         const requirements: PaymentRequirements =
-          body.accepts?.[0] || body.paymentRequirements?.[0] || body;
+          accepts.find((a) => a.network === selected) || accepts[0];
 
         if (!requirements.recipient || !requirements.amount) {
           throw new Error("Invalid payment requirements from server");
         }
 
         // Send payment
-        const hash = await sendPayment(requirements);
+        const paid = await sendPayment(requirements);
 
         // Phase 2: Verify payment & get content
         setStatus("verifying-payment");
         const phase2 = await fetch(`${API_URL}/x402/resource/${resourceIdOrSlug}`, {
-          headers: { "X-PAYMENT": buildPaymentHeader(hash) },
+          headers: { "X-PAYMENT": buildPaymentHeader(paid) },
         });
 
         if (!phase2.ok) {
@@ -332,14 +354,17 @@ export function useX402Payment() {
         }
 
         const { orderIntentId, amounts, paymentRequirements } = await phase1.json();
-        const requirements: PaymentRequirements = paymentRequirements[0];
+        const selected = getSelectedNetwork();
+        const requirements: PaymentRequirements =
+          (paymentRequirements as PaymentRequirements[]).find((a) => a.network === selected) ||
+          paymentRequirements[0];
 
         if (!requirements?.recipient || !requirements?.amount) {
           throw new Error("Invalid payment requirements from server");
         }
 
         // Send payment
-        const hash = await sendPayment(requirements);
+        const paid = await sendPayment(requirements);
 
         // Phase 2: Verify payment
         setStatus("verifying-payment");
@@ -347,7 +372,7 @@ export function useX402Payment() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-PAYMENT": buildPaymentHeader(hash),
+            "X-PAYMENT": buildPaymentHeader(paid),
           },
           body: JSON.stringify({ ...checkoutData, orderIntentId }),
         });
@@ -363,7 +388,7 @@ export function useX402Payment() {
           orderId: result.orderId,
           orderIntentId: result.orderIntentId,
           shopifyOrderId: result.shopifyOrderId || null,
-          txHash: hash,
+          txHash: paid.hash,
           amounts: result.amounts || amounts,
         };
       } catch (err: any) {

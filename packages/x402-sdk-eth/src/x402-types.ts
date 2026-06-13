@@ -10,17 +10,19 @@ import { z } from "zod";
 export const PaymentSchemeSchema = z.enum(["exact", "spay", "upto"]);
 export type PaymentScheme = z.infer<typeof PaymentSchemeSchema>;
 
-// Supported networks — Mezo (Bitcoin economic layer L2, EVM-compatible)
+// Supported networks — Arc (Circle's stablecoin-native L1) + Base + Mezo.
 export const NetworkSchema = z.enum([
+  "arc-testnet",   // Arc Testnet (Circle L1, USDC-native gas)
+  "base-sepolia",  // Base Sepolia (Circle USDC, ETH gas)
   "mezo",          // Mezo Mainnet
   "mezo-testnet",  // Mezo Testnet (matsnet)
 ]);
 export type Network = z.infer<typeof NetworkSchema>;
 
-// Token types on Mezo.
-// Native gas token: BTC (18 decimals).
-// ERC20 payment tokens: MUSD (BTC-backed stablecoin, default), USDC, USDT, DAI.
-export const TokenTypeSchema = z.enum(["BTC", "MUSD", "USDC", "USDT", "DAI"]);
+// Token types.
+// Arc: USDC is native gas (18 dec native) and an ERC-20 facade (6 dec); EURC also available.
+// Mezo: BTC native gas (18 dec); MUSD (BTC-backed stablecoin, default), USDC, USDT, DAI.
+export const TokenTypeSchema = z.enum(["BTC", "MUSD", "USDC", "EURC", "USDT", "DAI"]);
 export type TokenType = z.infer<typeof TokenTypeSchema>;
 
 /**
