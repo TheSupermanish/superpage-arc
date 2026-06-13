@@ -1,0 +1,8 @@
+{
+  "chainId": 5042002,
+  "network": "arc-testnet",
+  "identityRegistry": "0xb8bc3c4121e90f67e40edc6c2c7bcb2a1bbe27c5",
+  "reputationRegistry": "0x92b19730d0b7416f195600489cd9be29e109ebce",
+  "validationRegistry": "0x6a81e89fdb563cdf0d21dc2ea5c18ec4020e596f",
+  "deployedAt": "2026-06-13T13:13:46.190Z"
+}
