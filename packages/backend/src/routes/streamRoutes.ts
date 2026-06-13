@@ -30,6 +30,14 @@ import {
   setTranscodeStatus,
 } from "../services/hls-transcode.js";
 import { settle, streamPublicClient, startSettlementSweep } from "../services/stream-settlement.js";
+import {
+  isGatewayEnabled,
+  getGatewayDomain,
+  GATEWAY_WALLET_ADDRESS,
+  GATEWAY_MINTER_ADDRESS,
+} from "../config/gateway.js";
+import { getGatewayBalance, prepareDeposit, settleBatch } from "../services/gateway-settlement.js";
+import { Creator } from "../models/index.js";
 
 const router: ExpressRouter = Router();
 
@@ -654,6 +662,145 @@ router.get("/hls/:resourceId/:file", async (req: Request, res: Response) => {
     return res.sendFile(filePath);
   } catch (err: any) {
     console.error("[stream] hls error:", err);
+    return res.status(500).json({ error: err.message || "Server error" });
+  }
+});
+
+// ============================================================
+// CIRCLE GATEWAY BATCHING (additive, feature-flagged)
+//
+// These endpoints expose the optional Gateway nanopayment batching path. They
+// do not alter the StreamPay routes above: with GATEWAY_BATCHING unset they are
+// read-only / inert (status reports disabled, settle-preview just builds a plan
+// and never sends). See docs/gateway.md.
+// ============================================================
+
+const ETH_ADDRESS = /^0x[a-fA-F0-9]{40}$/;
+
+/**
+ * @route   GET /stream/gateway/status
+ * @desc    Whether Gateway batching is enabled, plus the relevant addresses
+ *          and the Circle domain for the active chain.
+ * @access  Public
+ */
+router.get("/gateway/status", (_req: Request, res: Response) => {
+  return res.json({
+    enabled: isGatewayEnabled(),
+    domain: getGatewayDomain(),
+    gatewayWallet: GATEWAY_WALLET_ADDRESS,
+    gatewayMinter: GATEWAY_MINTER_ADDRESS,
+    liveSubmit: (process.env.GATEWAY_LIVE_SUBMIT || "").trim() === "1",
+  });
+});
+
+/**
+ * @route   GET /stream/gateway/balance
+ * @desc    Read the Gateway USDC balance for an address. Defaults to the
+ *          operator wallet; pass ?address=0x.. for a specific creator, or
+ *          ?creatorId=.. to resolve a creator's wallet from the DB.
+ * @access  Public (read-only)
+ */
+router.get("/gateway/balance", async (req: Request, res: Response) => {
+  try {
+    let address = (req.query.address as string) || "";
+
+    if (!address && req.query.creatorId) {
+      const id = req.query.creatorId as string;
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: "Invalid creatorId" });
+      }
+      const creator: any = await Creator.findById(id).select("walletAddress").lean();
+      address = creator?.walletAddress || "";
+    }
+
+    if (!address) {
+      address = process.env.OPERATOR_ADDRESS || process.env.SELLER_ADDRESS || "";
+    }
+
+    if (!address || !ETH_ADDRESS.test(address)) {
+      return res.status(400).json({
+        error: "No valid address: pass ?address=0x.. or ?creatorId=.., or set OPERATOR_ADDRESS",
+      });
+    }
+
+    const balance = await getGatewayBalance(address as `0x${string}`);
+    return res.json(balance);
+  } catch (err: any) {
+    console.error("[stream] gateway balance error:", err);
+    return res.status(500).json({ error: err.message || "Server error" });
+  }
+});
+
+/**
+ * @route   GET /stream/gateway/deposit-plan
+ * @desc    Return the prepared (unsent) deposit call for funding the Gateway
+ *          wallet. The backend never broadcasts on-chain txs; the operator
+ *          signs and sends this from a funded wallet. See docs/gateway.md.
+ * @access  Public (read-only)
+ */
+router.get("/gateway/deposit-plan", (req: Request, res: Response) => {
+  const usdc = parseFloat((req.query.usdc as string) || "1");
+  if (!Number.isFinite(usdc) || usdc <= 0) {
+    return res.status(400).json({ error: "usdc must be a positive number" });
+  }
+  const plan = prepareDeposit(usdc);
+  return res.json({
+    note: "Sign + send these two calls from a funded wallet to fund the Gateway. The backend does not broadcast.",
+    approve: {
+      to: plan.requiresApproval.token,
+      function: "approve(address spender, uint256 value)",
+      spender: plan.requiresApproval.spender,
+      value: plan.requiresApproval.value.toString(),
+    },
+    deposit: {
+      to: plan.to,
+      function: "deposit(address token, uint256 value)",
+      token: plan.args[0],
+      value: plan.args[1].toString(),
+    },
+  });
+});
+
+/**
+ * @route   POST /stream/gateway/settle-preview
+ * @desc    Dry-run the batched settlement for the currently-open sessions:
+ *          aggregate owed amounts per creator and return the Gateway batch
+ *          plan WITHOUT submitting. Honors all the safety gates in settleBatch
+ *          (flag, domain, operator deposit). Sends nothing on-chain.
+ * @access  Public (preview only)
+ */
+router.post("/gateway/settle-preview", async (_req: Request, res: Response) => {
+  try {
+    if (!isGatewayEnabled()) {
+      return res.status(409).json({ error: "GATEWAY_BATCHING is disabled" });
+    }
+
+    const open = await StreamSession.find({ status: "open" }).limit(50);
+    const pending: Array<{ session: typeof open[number]; creatorAddress: `0x${string}` }> = [];
+
+    for (const session of open) {
+      const resource: any = await Resource.findById(session.resourceId).select("creatorId").lean();
+      if (!resource?.creatorId) continue;
+      const creator: any = await Creator.findById(resource.creatorId).select("walletAddress").lean();
+      if (!creator?.walletAddress) continue;
+      pending.push({ session, creatorAddress: creator.walletAddress as `0x${string}` });
+    }
+
+    const result = await settleBatch(pending);
+    return res.json({
+      ok: result.ok,
+      submitted: result.submitted,
+      reason: result.reason || null,
+      totalUsdc: result.totalUsdc,
+      plans: result.plans.map((p) => ({
+        payTo: p.payTo,
+        sessionIds: p.sessionIds,
+        totalUsdc: p.totalUsdc,
+        sessionCount: p.submissions.length,
+      })),
+    });
+  } catch (err: any) {
+    console.error("[stream] gateway settle-preview error:", err);
     return res.status(500).json({ error: err.message || "Server error" });
   }
 });

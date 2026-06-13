@@ -24,11 +24,14 @@ export function ModernNavbar() {
     <nav className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <Link href="/" className="flex items-center gap-3 group">
-            <Image src="/logo.png" alt="SuperPage" width={40} height={40} className="h-10 w-auto" />
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <Image src="/logo.png" alt="SuperPage" width={32} height={32} className="h-8 w-auto" />
+            <span className="text-lg font-bold tracking-tight">
+              Super<span className="text-primary">Page</span>
+            </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-10">
+          <div className="hidden md:flex items-center gap-7">
             {navLinks.map((link) =>
               link.show ? (
                 <Link
@@ -38,7 +41,7 @@ export function ModernNavbar() {
                     "text-sm font-medium transition-colors",
                     pathname === link.href
                       ? "text-primary font-bold"
-                      : "text-muted-foreground hover:text-primary"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   {link.label}

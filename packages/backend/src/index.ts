@@ -19,6 +19,7 @@ import a2aRoutes from "./routes/a2aRoutes.js";
 import x402Routes from "./routes/x402Routes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import exploreRoutes from "./routes/exploreRoutes.js";
+import marketplaceRoutes from "./routes/marketplaceRoutes.js";
 import resourceRoutes from "./routes/resourceRoutes.js";
 import creatorRoutes from "./routes/creatorRoutes.js";
 import storeRoutes from "./routes/storeRoutes.js";
@@ -101,6 +102,9 @@ app.use("/api/analytics", analyticsRoutes);
 
 // Explore (public)
 app.use("/api/explore", exploreRoutes);
+
+// Marketplace catalog/search (public; website + AI agents)
+app.use("/api/market", marketplaceRoutes);
 
 // Resources (public + protected CRUD)
 app.use("/api/resources", resourceRoutes);

@@ -14,6 +14,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import mongoose from "mongoose";
 import "dotenv/config";
 
 const BASE_URL = process.argv[2] || "http://localhost:2337";
@@ -30,6 +31,19 @@ async function api(path: string, init?: RequestInit) {
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(`${path} -> ${res.status}: ${JSON.stringify(body).slice(0, 300)}`);
   return body;
+}
+
+// The resource-create API does not accept a tags field, so the seed writes
+// tags straight to Mongo by resource id once each resource is published. This
+// gives the marketplace catalog/search something to filter and facet on.
+async function setTags(resourceId: string | undefined, tags: string[]) {
+  if (!resourceId) return;
+  const db = mongoose.connection.db;
+  if (!db) return;
+  await db.collection("resources").updateOne(
+    { _id: new mongoose.Types.ObjectId(resourceId) },
+    { $set: { tags } }
+  );
 }
 
 async function login(): Promise<string> {
@@ -83,6 +97,15 @@ The server only hands out video segments while fresh vouchers arrive. Pause the 
 
 async function main() {
   console.log(`Seeding ${BASE_URL} as ${account.address}`);
+
+  // Direct Mongo connection so we can attach tags the create API does not store.
+  const mongoUri = process.env.MONGODB_URI;
+  if (!mongoUri) {
+    console.error("MONGODB_URI missing in env");
+    process.exit(1);
+  }
+  await mongoose.connect(mongoUri);
+
   const token = await login();
   const auth = { Authorization: `Bearer ${token}` };
   const jsonAuth = { ...auth, "Content-Type": "application/json" };
@@ -120,6 +143,7 @@ async function main() {
       },
     }),
   });
+  await setTags(a1.resource?.id, ["payments", "arc", "streaming"]);
   console.log("article (blocks):", a1.resource?.slug);
 
   // Legacy markdown article
@@ -138,6 +162,7 @@ async function main() {
       },
     }),
   });
+  await setTags(a2.resource?.id, ["payments", "arc"]);
   console.log("article (legacy):", a2.resource?.slug);
 
   // API resource
@@ -153,6 +178,7 @@ async function main() {
       config: { upstream_url: "https://rpc.testnet.arc.network", method: "POST" },
     }),
   });
+  await setTags(r3.resource?.id, ["developer", "arc", "api"]);
   console.log("api:", r3.resource?.slug);
 
   // File resource (external link mode)
@@ -168,6 +194,7 @@ async function main() {
       config: { external_url: "https://developers.circle.com/gateway/nanopayments", filename: "nanopayments-notes.pdf", mode: "external" },
     }),
   });
+  await setTags(r4.resource?.id, ["design", "notes"]);
   console.log("file:", r4.resource?.slug);
 
   // Video: generate a 90s test clip and push it through the real upload path
@@ -194,6 +221,7 @@ async function main() {
   const upBody = await up.json().catch(() => ({}));
   if (!up.ok) throw new Error(`/stream/upload -> ${up.status}: ${JSON.stringify(upBody).slice(0, 400)}`);
   const vid = upBody.resource;
+  await setTags(vid?._id || vid?.id, ["demo", "streaming", "arc"]);
   console.log("video uploaded:", vid?.slug, "(transcoding)");
 
   // Poll transcode
@@ -213,4 +241,12 @@ async function main() {
   console.log("  http://localhost:1337/@superdemo");
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main()
+  .then(async () => {
+    await mongoose.disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await mongoose.disconnect().catch(() => {});
+    process.exit(1);
+  });

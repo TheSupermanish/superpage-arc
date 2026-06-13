@@ -8,6 +8,9 @@ import { privateKeyToAccount } from "viem/accounts";
 import { getChainConfig } from "../config/chain-config.js";
 import { STREAMPAY_ADDRESS, STREAMPAY_ABI, isStreamPayDeployed } from "../config/streampay.js";
 import { StreamSession, type IStreamSession } from "../models/StreamSession.js";
+import { Resource, Creator } from "../models/index.js";
+import { isGatewayEnabled } from "../config/gateway.js";
+import { settleBatch } from "./gateway-settlement.js";
 
 const chainConfig = getChainConfig();
 
@@ -43,6 +46,19 @@ export async function settle(session: IStreamSession): Promise<void> {
     await session.save();
     console.log(`[stream-settle] session ${session.sessionId}: no voucher, marked expired`);
     return;
+  }
+
+  // Optional, feature-flagged path: route settlement through Circle Gateway
+  // batching instead of the StreamPay channel close. Only reachable when
+  // GATEWAY_BATCHING is on; otherwise the StreamPay path below runs unchanged.
+  if (isGatewayEnabled()) {
+    const settled = await settleViaGateway(session).catch((err) => {
+      console.error(`[stream-settle] session ${session.sessionId}: gateway path failed:`, err.message);
+      return false;
+    });
+    // If the gateway path declines (no deposit, scaffolded, etc.) fall through
+    // to the StreamPay close so settlement is never silently dropped.
+    if (settled) return;
   }
 
   if (!isStreamPayDeployed()) {
@@ -93,6 +109,40 @@ export async function settle(session: IStreamSession): Promise<void> {
     }
     await session.save();
   }
+}
+
+/**
+ * Resolve a session's creator wallet and settle it through Circle Gateway
+ * batching. Returns true ONLY when a real on-chain batch submission happened;
+ * otherwise returns false so the caller falls back to the StreamPay close. This
+ * keeps settlement safe while the Gateway path is scaffolded: nothing is marked
+ * settled until USDC has actually moved.
+ */
+async function settleViaGateway(session: IStreamSession): Promise<boolean> {
+  const resource: any = await Resource.findById(session.resourceId).select("creatorId").lean();
+  if (!resource?.creatorId) return false;
+  const creator: any = await Creator.findById(resource.creatorId).select("walletAddress").lean();
+  const creatorAddress = creator?.walletAddress;
+  if (!creatorAddress) return false;
+
+  const result = await settleBatch([
+    { session, creatorAddress: creatorAddress as `0x${string}` },
+  ]);
+
+  if (!result.submitted) {
+    // Flag on but not live yet (no deposit, scaffolded, or unsigned): log the
+    // batch plan for visibility and defer to the StreamPay close.
+    console.log(
+      `[stream-settle] session ${session.sessionId}: gateway batch prepared but not submitted (${result.reason || "scaffold"}); owed ${result.totalUsdc} USDC, falling back to StreamPay`
+    );
+    return false;
+  }
+
+  session.status = "settled";
+  await session.save();
+  settleAttempts.delete(session.sessionId);
+  console.log(`[stream-settle] session ${session.sessionId}: settled via Circle Gateway batch (${result.totalUsdc} USDC)`);
+  return true;
 }
 
 /** Close sessions whose last heartbeat is older than 60s. */

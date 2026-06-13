@@ -14,6 +14,16 @@ import {
   SubmitRow,
 } from "@/components/dashboard/resource-form/shared";
 
+/** Parse a comma-separated tags input into a deduped, lowercased string[]. */
+function parseTags(input: string): string[] {
+  const seen = new Set<string>();
+  for (const raw of input.split(",")) {
+    const tag = raw.trim().toLowerCase();
+    if (tag) seen.add(tag);
+  }
+  return [...seen];
+}
+
 export default function NewFileResourcePage() {
   const router = useRouter();
   const { token } = useAuth();
@@ -24,6 +34,7 @@ export default function NewFileResourcePage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [priceUsdc, setPriceUsdc] = useState("0.01");
+  const [tags, setTags] = useState("");
 
   const [fileMode, setFileMode] = useState<"upload" | "link">("upload");
   const [file, setFile] = useState<File | null>(null);
@@ -38,6 +49,8 @@ export default function NewFileResourcePage() {
     setError("");
 
     try {
+      const parsedTags = parseTags(tags);
+
       // Upload mode goes through the multipart upload endpoint
       if (fileMode === "upload" && file) {
         const formData = new FormData();
@@ -45,6 +58,8 @@ export default function NewFileResourcePage() {
         formData.append("name", name);
         formData.append("description", description);
         formData.append("priceUsdc", priceUsdc);
+        // Comma-separated string; the upload endpoint parses it into a tag array
+        if (parsedTags.length) formData.append("tags", parsedTags.join(","));
 
         const res = await fetch(`${API_URL}/api/upload`, {
           method: "POST",
@@ -73,6 +88,7 @@ export default function NewFileResourcePage() {
           name,
           description,
           priceUsdc: parseFloat(priceUsdc),
+          tags: parsedTags,
           config: {
             external_url: fileUrl,
             filename: fileName || fileUrl.split("/").pop() || "download",
@@ -108,6 +124,18 @@ export default function NewFileResourcePage() {
           priceUsdc={priceUsdc}
           setPriceUsdc={setPriceUsdc}
         />
+
+        <div>
+          <Label htmlFor="tags" className="text-foreground">Tags (optional)</Label>
+          <Input
+            id="tags"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="design, templates, figma"
+            className="bg-muted border-border text-foreground focus:border-sp-gold"
+          />
+          <p className="text-xs text-muted-foreground mt-1">Comma separated, used for search and discovery</p>
+        </div>
 
         <div className="space-y-4 pt-4 border-t border-border">
           <h4 className="font-medium text-sm text-muted-foreground">File Source</h4>

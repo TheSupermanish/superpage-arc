@@ -53,6 +53,15 @@ export interface StreamSessionApi {
   txHashClose: string | null;
   sessionId: string | null;
   hlsToken: string | null;
+  /** Per-second rate in USDC (echoed back for the live meter readout). */
+  ratePerSecondUsdc: number;
+  /**
+   * True only while the channel is "active" AND the video is actually
+   * playing. The meter ticks up and pulses on this; when false (paused or
+   * buffering) the meter visibly freezes. Sampled at ~10Hz, so it lags a
+   * play/pause by at most ~100ms.
+   */
+  isMetering: boolean;
   /** Open the channel with a deposit (in USDC) and start metering. */
   start: (depositUsdc: number) => Promise<void>;
   /** Stop watching: settle on-chain and wait for the receipt. */
@@ -78,6 +87,8 @@ export function useStreamSession(options: UseStreamSessionOptions): StreamSessio
   const [state, setState] = useState<StreamSessionState>("idle");
   const [error, setError] = useState<string | null>(null);
   const [secondsWatched, setSecondsWatched] = useState(0);
+  // Live "money is flowing" signal for the meter UI (active + actually playing)
+  const [isMetering, setIsMetering] = useState(false);
   const [hlsToken, setHlsToken] = useState<string | null>(null);
   const [txHashOpen, setTxHashOpen] = useState<string | null>(null);
   const [txHashClose, setTxHashClose] = useState<string | null>(null);
@@ -320,6 +331,21 @@ export function useStreamSession(options: UseStreamSessionOptions): StreamSessio
     };
   }, [stopTicking]);
 
+  // Sample the playback probe at ~10Hz so the meter UI knows, near-instantly,
+  // whether money is currently flowing (active + playing) versus frozen
+  // (paused / buffering). Read-only: it never touches what is owed or signed.
+  useEffect(() => {
+    if (state !== "active") {
+      setIsMetering(false);
+      return;
+    }
+    const id = setInterval(() => {
+      const flowing = optionsRef.current.isPlaying();
+      setIsMetering((prev) => (prev === flowing ? prev : flowing));
+    }, 100);
+    return () => clearInterval(id);
+  }, [state]);
+
   const spentWei = BigInt(Math.floor(secondsWatched)) * rateWei;
   const spentUsdc = weiToUsdc(spentWei > depositWeiRef.current ? depositWeiRef.current : spentWei);
 
@@ -334,6 +360,8 @@ export function useStreamSession(options: UseStreamSessionOptions): StreamSessio
     txHashClose,
     sessionId,
     hlsToken,
+    ratePerSecondUsdc: optionsRef.current.pricePerSecondUsdc,
+    isMetering,
     start,
     stop,
   };

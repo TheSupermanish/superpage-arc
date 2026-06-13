@@ -31,6 +31,14 @@ const ArticleRenderer = dynamic(() => import("@/components/editor/article-render
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
+/** Sub-cent prices are the point of nanopayments: never collapse them to $0.00. */
+function formatPrice(amount: number): string {
+  if (amount > 0 && amount < 0.01) {
+    return amount.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+  }
+  return amount.toFixed(2);
+}
+
 interface ArticlePreview {
   slug: string;
   type: string;
@@ -151,9 +159,21 @@ export default function ReadArticlePage() {
     return (
       <div className="min-h-screen bg-background">
         <PublicNavbar />
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <main className="pt-28 pb-24 px-6">
+          <div className="mx-auto w-full max-w-[68ch] space-y-10">
+            <div className="aspect-[2/1] w-full rounded-2xl skeleton" />
+            <div className="space-y-4">
+              <div className="h-10 w-5/6 rounded-lg skeleton" />
+              <div className="h-4 w-40 rounded skeleton" />
+            </div>
+            <div className="space-y-3.5 pt-2">
+              <div className="h-4 w-full rounded skeleton" />
+              <div className="h-4 w-full rounded skeleton" />
+              <div className="h-4 w-11/12 rounded skeleton" />
+              <div className="h-4 w-2/3 rounded skeleton" />
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -162,16 +182,19 @@ export default function ReadArticlePage() {
     return (
       <div className="min-h-screen bg-background">
         <PublicNavbar />
-        <div className="flex flex-col items-center justify-center min-h-screen gap-4 px-6 text-center">
+        <div className="flex flex-col items-center justify-center min-h-screen gap-3 px-6 text-center">
+          <div className="size-12 rounded-2xl bg-muted text-muted-foreground flex items-center justify-center mb-1">
+            <Lock className="h-6 w-6" />
+          </div>
           <h1 className="text-2xl font-bold text-foreground font-display">Article not found</h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-sm max-w-xs">
             This article does not exist or is no longer available.
           </p>
           <Link
             href="/explore"
-            className="text-primary hover:underline font-medium text-sm"
+            className="mt-3 inline-flex items-center gap-1.5 text-primary hover:underline font-medium text-sm"
           >
-            Explore the marketplace
+            Explore the marketplace <ExternalLink className="h-3.5 w-3.5" />
           </Link>
         </div>
       </div>
@@ -224,8 +247,8 @@ export default function ReadArticlePage() {
               {!unlocked && (
                 <>
                   <span aria-hidden>·</span>
-                  <span>
-                    {preview.priceUsdc} {preview.currency}
+                  <span className="font-mono">
+                    {formatPrice(preview.priceUsdc)} {preview.currency}
                   </span>
                 </>
               )}
@@ -248,7 +271,7 @@ export default function ReadArticlePage() {
                     <span>Unlocked with a previous purchase from this wallet</span>
                   ) : (
                     <span>
-                      Paid {preview.priceUsdc} {preview.currency} to @{username || byline}
+                      Paid {formatPrice(preview.priceUsdc)} {preview.currency} to @{username || byline}
                     </span>
                   )}
                   {txHash && (
@@ -276,21 +299,21 @@ export default function ReadArticlePage() {
                 </div>
 
                 {/* Paywall card */}
-                <div className="relative -mt-8 bg-card border border-border rounded-2xl p-8 text-center space-y-5 shadow-xl">
+                <div className="relative -mt-8 bg-card border border-border rounded-3xl p-8 text-center space-y-5 shadow-xl">
                   <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
                     <Lock className="h-6 w-6" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-foreground font-display">
-                      Unlock the full article
+                      Read the rest of this article
                     </h2>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Pay once with {preview.currency}, read forever. Works for humans and AI agents.
+                    <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto leading-relaxed">
+                      Pay once with {preview.currency}, read forever. Works the same for humans and AI agents.
                     </p>
                   </div>
-                  <p className="text-3xl font-bold text-primary">
-                    {preview.priceUsdc}{" "}
-                    <span className="text-base font-medium text-muted-foreground">
+                  <p className="text-3xl font-bold text-primary font-mono tracking-tight">
+                    {formatPrice(preview.priceUsdc)}{" "}
+                    <span className="text-base font-sans font-medium text-muted-foreground">
                       {preview.currency}
                     </span>
                   </p>
@@ -351,7 +374,7 @@ export default function ReadArticlePage() {
                       ) : (
                         <>
                           <Lock className="h-4 w-4" />
-                          Unlock for {preview.priceUsdc} {preview.currency}
+                          Unlock for {formatPrice(preview.priceUsdc)} {preview.currency}
                         </>
                       )}
                     </button>

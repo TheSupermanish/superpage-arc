@@ -19,6 +19,16 @@ type UploadPhase = "form" | "uploading" | "transcoding" | "ready" | "error";
 
 const ACCEPTED = ".mp4,.mov,.webm";
 
+/** Parse a comma-separated tags input into a deduped, lowercased string[]. */
+function parseTags(input: string): string[] {
+  const seen = new Set<string>();
+  for (const raw of input.split(",")) {
+    const tag = raw.trim().toLowerCase();
+    if (tag) seen.add(tag);
+  }
+  return [...seen];
+}
+
 export default function NewVideoResourcePage() {
   const router = useRouter();
   const { token } = useAuth();
@@ -32,6 +42,7 @@ export default function NewVideoResourcePage() {
   const [pricePerMinute, setPricePerMinute] = useState("0.30");
   const [freePreviewSeconds, setFreePreviewSeconds] = useState("10");
   const [coverImage, setCoverImage] = useState("");
+  const [tags, setTags] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -86,6 +97,9 @@ export default function NewVideoResourcePage() {
     formData.append("pricePerSecondUsdc", String(pricePerSecond));
     formData.append("freePreviewSeconds", freePreviewSeconds);
     if (coverImage) formData.append("coverImage", coverImage);
+    // Comma-separated string; the upload endpoint parses it into a tag array
+    const parsedTags = parseTags(tags);
+    if (parsedTags.length) formData.append("tags", parsedTags.join(","));
 
     // XMLHttpRequest for upload progress (fetch has no upload events)
     const xhr = new XMLHttpRequest();
@@ -255,6 +269,18 @@ export default function NewVideoResourcePage() {
             placeholder="https://example.com/cover.jpg"
             className="bg-muted border-border text-foreground focus:border-sp-gold"
           />
+        </div>
+
+        <div>
+          <Label htmlFor="tags" className="text-foreground">Tags (optional)</Label>
+          <Input
+            id="tags"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="tutorial, solidity, defi"
+            className="bg-muted border-border text-foreground focus:border-sp-gold"
+          />
+          <p className="text-xs text-muted-foreground mt-1">Comma separated, used for search and discovery</p>
         </div>
 
         <div className="space-y-4 pt-4 border-t border-border">

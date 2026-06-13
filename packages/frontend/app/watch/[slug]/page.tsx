@@ -10,8 +10,9 @@ import Link from "next/link";
 import { PublicNavbar } from "@/components/public-navbar";
 import { StreamPlayer } from "@/components/stream/stream-player";
 import { StreamReceipt } from "@/components/stream/stream-receipt";
+import { StreamMeter } from "@/components/stream/stream-meter";
 import { useStreamSession } from "@/hooks/use-stream-session";
-import { Loader2, Video, Clock, Zap } from "lucide-react";
+import { Loader2, Video, Clock, Zap, Gauge, Wallet } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -86,6 +87,12 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
         ? `${meta.creator.walletAddress.slice(0, 6)}...${meta.creator.walletAddress.slice(-4)}`
         : "Unknown creator");
 
+  // The live HUD takes over once a channel is open (and stays for settlement).
+  const hudActive =
+    session.state === "active" ||
+    session.state === "settling" ||
+    session.state === "settled";
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <PublicNavbar />
@@ -114,16 +121,60 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
 
         {meta && meta.transcodeStatus === "ready" && (
           <>
-            <StreamPlayer
-              resourceId={meta.id}
-              slug={meta.slug}
-              pricePerSecondUsdc={meta.pricePerSecondUsdc}
-              durationSeconds={meta.durationSeconds}
-              freePreviewSeconds={meta.freePreviewSeconds}
-              coverImage={meta.coverImage}
-              session={session}
-              isPlayingRef={isPlayingRef}
-            />
+            <div className="grid gap-4 lg:grid-cols-[1fr_360px] lg:items-start">
+              <StreamPlayer
+                resourceId={meta.id}
+                slug={meta.slug}
+                pricePerSecondUsdc={meta.pricePerSecondUsdc}
+                durationSeconds={meta.durationSeconds}
+                freePreviewSeconds={meta.freePreviewSeconds}
+                coverImage={meta.coverImage}
+                session={session}
+                isPlayingRef={isPlayingRef}
+              />
+
+              {hudActive ? (
+                <StreamMeter
+                  session={session}
+                  pricePerSecondUsdc={meta.pricePerSecondUsdc}
+                  active={hudActive}
+                  onStop={() => void session.stop()}
+                />
+              ) : (
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex size-9 items-center justify-center rounded-xl bg-sp-gold/15">
+                      <Gauge className="h-4 w-4 text-sp-gold" />
+                    </div>
+                    <p className="font-display font-bold text-foreground">Pay by the second</p>
+                  </div>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                    Watch the {meta.freePreviewSeconds}s preview free. Keep going and a
+                    live USDC meter ticks up at ${fmtUsdc(meta.pricePerSecondUsdc)} per
+                    second. Stop at any moment and the unused deposit comes straight back.
+                  </p>
+                  <div className="mt-4 space-y-2.5 text-sm">
+                    <div className="flex items-center justify-between font-mono">
+                      <span className="text-muted-foreground">Rate</span>
+                      <span className="font-semibold tabular-nums text-sp-gold">
+                        ${fmtUsdc(meta.pricePerSecondUsdc)}/sec
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between font-mono">
+                      <span className="text-muted-foreground">Per minute</span>
+                      <span className="font-semibold tabular-nums text-foreground">
+                        ${fmtUsdc(meta.pricePerSecondUsdc * 60, 4)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-center gap-1.5 rounded-xl bg-muted px-3 py-2.5 text-xs text-muted-foreground">
+                    <Wallet className="h-3.5 w-3.5 shrink-0 text-sp-blue" />
+                    One transaction opens a streaming channel on Arc. No charge until you
+                    press play past the preview.
+                  </div>
+                </div>
+              )}
+            </div>
 
             <StreamReceipt session={session} />
 

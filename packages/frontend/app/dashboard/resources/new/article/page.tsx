@@ -38,8 +38,19 @@ interface ArticleDraft {
   price: string;
   freeBlocks: string;
   coverImage: string;
+  tags: string;
   blocks: PartialBlock[];
   savedAt: number;
+}
+
+/** Parse a comma-separated tags input into a deduped, lowercased string[]. */
+function parseTags(input: string): string[] {
+  const seen = new Set<string>();
+  for (const raw of input.split(",")) {
+    const tag = raw.trim().toLowerCase();
+    if (tag) seen.add(tag);
+  }
+  return [...seen];
 }
 
 /** Mirror of the backend slug generator so the preview matches what gets created. */
@@ -73,6 +84,7 @@ export default function NewArticleResourcePage() {
   const [price, setPrice] = useState("0.01");
   const [freeBlocks, setFreeBlocks] = useState("3");
   const [coverImage, setCoverImage] = useState("");
+  const [tags, setTags] = useState("");
   const [blocks, setBlocks] = useState<Block[]>([]);
 
   const [publishing, setPublishing] = useState(false);
@@ -116,6 +128,7 @@ export default function NewArticleResourcePage() {
     setPrice(pendingDraft.price || "0.01");
     setFreeBlocks(pendingDraft.freeBlocks || "3");
     setCoverImage(pendingDraft.coverImage || "");
+    setTags(pendingDraft.tags || "");
     setRestoredBlocks(pendingDraft.blocks || null);
     setEditorKey((k) => k + 1);
     setPendingDraft(null);
@@ -139,6 +152,7 @@ export default function NewArticleResourcePage() {
         price,
         freeBlocks,
         coverImage,
+        tags,
         blocks: blocks as PartialBlock[],
         savedAt: Date.now(),
       };
@@ -149,7 +163,7 @@ export default function NewArticleResourcePage() {
       }
     }, 800);
     return () => clearTimeout(timer);
-  }, [title, slug, slugTouched, price, freeBlocks, coverImage, blocks, published]);
+  }, [title, slug, slugTouched, price, freeBlocks, coverImage, tags, blocks, published]);
 
   const handleTitleChange = (value: string) => {
     setTitle(value);
@@ -198,6 +212,7 @@ export default function NewArticleResourcePage() {
           description: excerpt,
           priceUsdc: priceNum,
           slug: slug || slugify(title),
+          tags: parseTags(tags),
           config: {
             blocks: doc,
             markdown,
@@ -333,6 +348,12 @@ export default function NewArticleResourcePage() {
           value={coverImage}
           onChange={(e) => setCoverImage(e.target.value)}
           placeholder="Cover image URL (optional)"
+          className="flex-1 h-9 bg-muted border-border text-foreground focus:border-sp-gold text-sm"
+        />
+        <Input
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder="Tags (comma separated)"
           className="flex-1 h-9 bg-muted border-border text-foreground focus:border-sp-gold text-sm"
         />
         <div className="flex items-center gap-1.5 sm:w-72">

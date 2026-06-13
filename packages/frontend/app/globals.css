@@ -226,6 +226,37 @@
   to { transform: translateX(100%); opacity: 0; }
 }
 
+/* Scroll reveal — used by IntersectionObserver on landing sections */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Skeleton shimmer for loading states */
+@keyframes skeleton-sweep {
+  0% { background-position: -150% 0; }
+  100% { background-position: 250% 0; }
+}
+
+/* The lepton: value divides down toward an infinitely small unit */
+@keyframes lepton-divide {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(0.45); opacity: 0.45; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+/* Soft, slow ambient drift for hero glows (transform only, GPU-friendly) */
+@keyframes glow-drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -24px, 0); }
+}
+
+/* A coin tick that counts up by the smallest unit */
+@keyframes tick-pop {
+  0% { transform: translateY(6px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
 /* ============================================
    UTILITY CLASSES
    ============================================ */
@@ -329,6 +360,97 @@
   animation: slide-out-right 0.3s ease-in forwards;
 }
 
+/* ============================================
+   SCROLL REVEAL
+   Sections start hidden, reveal on intersect.
+   .reveal -> initial state, .reveal.in-view -> animate.
+   ============================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  will-change: opacity, transform;
+}
+
+.reveal.in-view {
+  animation: reveal-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.reveal-delay-1.in-view { animation-delay: 0.06s; }
+.reveal-delay-2.in-view { animation-delay: 0.12s; }
+.reveal-delay-3.in-view { animation-delay: 0.18s; }
+.reveal-delay-4.in-view { animation-delay: 0.24s; }
+
+/* ============================================
+   SKELETON (loading placeholders)
+   ============================================ */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--muted);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--card) 70%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+
+/* ============================================
+   LEPTON THESIS VISUAL (hero)
+   ============================================ */
+.lepton-divide {
+  animation: lepton-divide 4.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.glow-drift {
+  animation: glow-drift 12s ease-in-out infinite;
+  will-change: transform;
+}
+
+.tick-pop {
+  animation: tick-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Fine grid backdrop for the hero — divisible value, drawn with tokens */
+.grid-fade {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--border) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border) 60%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 35%, #000 0%, transparent 75%);
+}
+
+/* Hairline divider that fades at both ends */
+.hairline {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in oklab, var(--border) 90%, transparent),
+    transparent
+  );
+}
+
+/* Subtle lift used on interactive cards (fast, respects tokens) */
+.lift {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lift:hover {
+  transform: translateY(-3px);
+}
+
 /* Material Symbols */
 .material-symbols-outlined {
   font-variation-settings:
@@ -379,4 +501,33 @@ pre {
 code {
   color: var(--primary);
   font-weight: 500;
+}
+
+/* ============================================
+   REDUCED MOTION
+   Honor the OS setting: kill looping/ambient motion,
+   keep content fully visible (no hidden reveals).
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .lift:hover {
+    transform: none;
+  }
 }

@@ -1,43 +1,55 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Search, ShoppingBag, Loader2 } from "lucide-react";
+import { Loader2, Search, ShoppingBag } from "lucide-react";
 import { PublicNavbar } from "@/components/public-navbar";
 import { ProductCard, type ProductCardItem } from "@/components/product-card";
 import { PurchaseModal, type PurchaseItem } from "@/components/purchase-modal";
+import { SearchBar } from "@/components/marketplace/search-bar";
+import { TypeFacets, type FacetType, type TypeCounts } from "@/components/marketplace/type-facets";
+import { TagNav, type TagFacet } from "@/components/marketplace/tag-nav";
+import { SortSelect, type MarketSort } from "@/components/marketplace/sort-select";
+import { CardSkeletonGrid } from "@/components/marketplace/card-skeleton";
+import { TrendingRow } from "@/components/marketplace/trending-row";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
-interface Resource {
+const PAGE_SIZE = 24;
+const TRENDING_COUNT = 6;
+
+/** A catalog item as returned by GET /api/market/search. */
+interface MarketItem {
   id: string;
-  slug: string;
-  type: "api" | "file" | "article" | "video" | "shopify";
+  slug: string | null;
+  type: "api" | "file" | "article" | "video";
   name: string;
   description: string | null;
   priceUsdc: number;
-  coverImage?: string | null;
-  pricePerSecondUsdc?: number | null;
+  pricePerSecondUsdc: number | null;
+  durationSeconds: number | null;
+  coverImage: string | null;
+  tags: string[];
   accessCount: number;
+  trendingScore: number;
   createdAt: string;
   creator: {
-    id: string;
-    walletAddress: string;
-    name: string;
-    username?: string;
-    avatarUrl?: string;
+    username: string | null;
+    displayName: string | null;
+    name: string | null;
+    avatarUrl: string | null;
+    walletAddress: string | null;
   };
 }
 
-interface Creator {
-  id: string;
-  username: string;
-  displayName?: string;
-  name: string;
-  avatarUrl?: string;
-  bio?: string;
-  totalSales: number;
-  resourceCount: number;
+interface SearchResponse {
+  items: MarketItem[];
+  total: number;
+  hasMore: boolean;
+  facets: {
+    types: Array<{ type: string; count: number }>;
+    tags: TagFacet[];
+  };
 }
 
 interface StoreProduct {
@@ -51,112 +63,183 @@ interface StoreProduct {
   inventory: number | null;
 }
 
-const TYPE_FILTERS: Array<{ value: string; label: string }> = [
-  { value: "all", label: "All" },
-  { value: "article", label: "Articles" },
-  { value: "video", label: "Videos" },
-  { value: "file", label: "Files" },
-  { value: "api", label: "APIs" },
-];
+function toCardItem(item: MarketItem): ProductCardItem {
+  return {
+    id: item.id,
+    slug: item.slug,
+    type: item.type,
+    name: item.name,
+    description: item.description,
+    priceUsdc: item.priceUsdc,
+    coverImage: item.coverImage,
+    pricePerSecondUsdc: item.pricePerSecondUsdc,
+    tags: item.tags,
+    trendingScore: item.trendingScore,
+    creator: {
+      username: item.creator?.username,
+      displayName: item.creator?.displayName,
+      name: item.creator?.name,
+    },
+  };
+}
 
 export default function ExplorePage() {
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [creators, setCreators] = useState<Creator[]>([]);
-  const [storeProducts, setStoreProducts] = useState<StoreProduct[]>([]);
+  // Catalog query state
+  const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<FacetType>("all");
+  const [tag, setTag] = useState<string | null>(null);
+  const [sort, setSort] = useState<MarketSort>("trending");
+
+  // Results
+  const [items, setItems] = useState<MarketItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+
+  // Facets: derived from a type-agnostic query (q + tag, no type) so the type
+  // pill counts and the "All" total stay stable when switching type.
+  const [facetTotal, setFacetTotal] = useState(0);
+  const [typeCounts, setTypeCounts] = useState<TypeCounts>({});
+  const [tagFacets, setTagFacets] = useState<TagFacet[]>([]);
+
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState(false);
+
+  // Trending row (shown only when no search/filter is active)
+  const [trending, setTrending] = useState<MarketItem[]>([]);
+
+  // Shopify store products (kept in a separate section)
+  const [storeProducts, setStoreProducts] = useState<StoreProduct[]>([]);
+
   const [purchaseItem, setPurchaseItem] = useState<PurchaseItem | null>(null);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
 
+  // Bumps to discard responses from stale (superseded) requests
+  const requestSeq = useRef(0);
+
+  const isBrowsing = !query && typeFilter === "all" && !tag;
+
+  const buildSearchUrl = useCallback(
+    (offset: number) => {
+      const params = new URLSearchParams();
+      if (query) params.set("q", query);
+      if (typeFilter !== "all") params.set("type", typeFilter);
+      if (tag) params.set("tag", tag);
+      params.set("sort", sort);
+      params.set("limit", String(PAGE_SIZE));
+      params.set("offset", String(offset));
+      return `${API_URL}/api/market/search?${params.toString()}`;
+    },
+    [query, typeFilter, tag, sort]
+  );
+
+  // Primary catalog fetch: reruns whenever a query input changes
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Combined explore endpoint
-        const exploreRes = await fetch(`${API_URL}/api/explore?limit=50`);
+    const seq = ++requestSeq.current;
+    setLoading(true);
+    setError(false);
 
-        if (exploreRes.ok) {
-          const data = await exploreRes.json();
-          if (data.success && data.data) {
-            setResources(data.data.resources || []);
-            setCreators(data.data.creators || []);
-            setStoreProducts(data.data.products || []);
-          }
-        } else {
-          // Fallback to individual endpoints if combined endpoint fails
-          const [resourcesRes, creatorsRes, productsRes] = await Promise.all([
-            fetch(`${API_URL}/x402/resources?limit=50`),
-            fetch(`${API_URL}/api/creators?limit=20&sortBy=sales`),
-            fetch(`${API_URL}/x402/store-products?limit=30`),
-          ]);
+    fetch(buildSearchUrl(0))
+      .then((res) => {
+        if (!res.ok) throw new Error(`search failed: ${res.status}`);
+        return res.json() as Promise<SearchResponse>;
+      })
+      .then((data) => {
+        if (seq !== requestSeq.current) return; // a newer request superseded us
+        setItems(data.items || []);
+        setTotal(data.total || 0);
+        setHasMore(Boolean(data.hasMore));
+      })
+      .catch(() => {
+        if (seq !== requestSeq.current) return;
+        setItems([]);
+        setTotal(0);
+        setHasMore(false);
+        setError(true);
+      })
+      .finally(() => {
+        if (seq === requestSeq.current) setLoading(false);
+      });
+  }, [buildSearchUrl]);
 
-          if (resourcesRes.ok) {
-            const data = await resourcesRes.json();
-            setResources(data.resources || []);
-          }
-          if (creatorsRes.ok) {
-            const data = await creatorsRes.json();
-            setCreators(data.creators || data.data || []);
-          }
-          if (productsRes.ok) {
-            const data = await productsRes.json();
-            setStoreProducts(data.products || []);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch data:", err);
-      } finally {
-        setLoading(false);
-      }
+  // Facet fetch: same q + tag context but no type filter, so the pills show how
+  // many of each type match and the "All" count is the unfiltered-by-type total.
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (tag) params.set("tag", tag);
+    params.set("limit", "1");
+    params.set("offset", "0");
+    const url = `${API_URL}/api/market/search?${params.toString()}`;
+
+    let cancelled = false;
+    fetch(url)
+      .then((res) => (res.ok ? (res.json() as Promise<SearchResponse>) : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        setFacetTotal(data.total || 0);
+        const counts: TypeCounts = {};
+        for (const t of data.facets?.types || []) counts[t.type] = t.count;
+        setTypeCounts(counts);
+        setTagFacets(data.facets?.tags || []);
+      })
+      .catch(() => {
+        /* facets are best-effort; the grid still works */
+      });
+
+    return () => {
+      cancelled = true;
     };
+  }, [query, tag]);
 
-    fetchData();
+  // Trending row + store products: fetched once on mount, independent of filters
+  useEffect(() => {
+    const trendingUrl = `${API_URL}/api/market/search?sort=trending&limit=${TRENDING_COUNT}&offset=0`;
+    fetch(trendingUrl)
+      .then((res) => (res.ok ? (res.json() as Promise<SearchResponse>) : null))
+      .then((data) => {
+        if (data?.items) setTrending(data.items);
+      })
+      .catch(() => {
+        /* trending is best-effort: the grid still works without it */
+      });
+
+    fetch(`${API_URL}/x402/store-products?limit=8`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.products) setStoreProducts(data.products);
+      })
+      .catch(() => {
+        /* store products are optional */
+      });
   }, []);
 
-  const searchLower = search.toLowerCase();
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    const seq = requestSeq.current;
+    setLoadingMore(true);
+    try {
+      const res = await fetch(buildSearchUrl(items.length));
+      if (!res.ok) throw new Error(`load more failed: ${res.status}`);
+      const data = (await res.json()) as SearchResponse;
+      if (seq !== requestSeq.current) return; // filters changed mid-flight
+      setItems((prev) => [...prev, ...(data.items || [])]);
+      setHasMore(Boolean(data.hasMore));
+    } catch {
+      // Leave the existing items in place; the Load more button stays available
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
-  // Newest first, then filter by search + type pill
-  const filteredResources = useMemo(() => {
-    return [...resources]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .filter((r) => {
-        const matchesSearch = search
-          ? r.name.toLowerCase().includes(searchLower) ||
-            r.description?.toLowerCase().includes(searchLower) ||
-            r.creator?.name?.toLowerCase().includes(searchLower) ||
-            r.creator?.username?.toLowerCase().includes(searchLower)
-          : true;
-        const matchesType = typeFilter === "all" || r.type === typeFilter;
-        return matchesSearch && matchesType;
-      });
-  }, [resources, search, searchLower, typeFilter]);
-
-  const filteredProducts = storeProducts.filter((p) => {
-    if (typeFilter !== "all") return false;
-    if (!search) return true;
-    return (
-      p.name?.toLowerCase().includes(searchLower) ||
-      p.description?.toLowerCase().includes(searchLower)
-    );
-  });
-
-  const toCardItem = (r: Resource): ProductCardItem => ({
-    id: r.id,
-    slug: r.slug,
-    type: r.type,
-    name: r.name,
-    description: r.description,
-    priceUsdc: r.priceUsdc,
-    coverImage: r.coverImage,
-    pricePerSecondUsdc: r.pricePerSecondUsdc,
-    creator: { username: r.creator?.username, name: r.creator?.name },
-  });
+  const trendingCards = useMemo(() => trending.map(toCardItem), [trending]);
+  const showTrendingRow = isBrowsing && !loading && trendingCards.length > 0;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <PublicNavbar />
 
-      {/* Header: search + filters */}
+      {/* Header: search + controls */}
       <div className="border-b border-border pt-32 pb-10">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col gap-8">
@@ -175,99 +258,100 @@ export default function ExplorePage() {
               </Link>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Search */}
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search products or creators"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-card border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-medium transition-all outline-none"
-                />
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <SearchBar value={query} onDebouncedChange={setQuery} />
+                <div className="flex gap-3">
+                  <TypeFacets active={typeFilter} counts={typeCounts} total={facetTotal} onChange={setTypeFilter} />
+                  <SortSelect value={sort} onChange={setSort} />
+                </div>
               </div>
 
-              {/* Type pills */}
-              <div className="flex gap-1.5 bg-card p-1.5 rounded-2xl border border-border w-fit overflow-x-auto">
-                {TYPE_FILTERS.map((f) => (
-                  <button
-                    key={f.value}
-                    onClick={() => setTypeFilter(f.value)}
-                    className={`px-5 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
-                      typeFilter === f.value
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
+              <TagNav tags={tagFacets} active={tag} onChange={setTag} />
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-12 space-y-16">
-        {/* Product grid */}
-        {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : filteredResources.length === 0 ? (
-          <div className="rounded-3xl border border-border bg-card p-16 text-center">
-            <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-4 mx-auto">
-              <Search className="text-muted-foreground" size={28} />
-            </div>
-            <h3 className="text-lg font-bold mb-2">Nothing here yet</h3>
-            <p className="text-muted-foreground text-sm">
-              {search || typeFilter !== "all"
-                ? "Try a different search or filter."
-                : "Be the first to publish something."}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredResources.map((resource) => (
-              <ProductCard key={resource.id} item={toCardItem(resource)} />
-            ))}
-          </div>
-        )}
+        {/* Trending now: only when browsing the unfiltered catalog */}
+        {showTrendingRow && <TrendingRow items={trendingCards} />}
 
-        {/* Creators strip */}
-        {!loading && creators.length > 0 && (
-          <section className="space-y-4">
-            <h2 className="text-lg font-bold tracking-tight">Creators</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {creators.slice(0, 10).map((creator) => (
-                <Link
-                  key={creator.id}
-                  href={creator.username ? `/${creator.username}` : `/creators/${creator.id}`}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-card border border-border hover:border-primary/40 transition-colors shrink-0"
+        {/* Resource grid */}
+        <section className="space-y-6">
+          {!loading && !error && items.length > 0 && (
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold tracking-tight">
+                {isBrowsing ? "All resources" : "Results"}
+              </h2>
+              <span className="text-sm text-muted-foreground">
+                {total} {total === 1 ? "resource" : "resources"}
+              </span>
+            </div>
+          )}
+
+          {loading ? (
+            <CardSkeletonGrid count={8} />
+          ) : items.length === 0 ? (
+            <div className="rounded-3xl border border-border bg-card p-16 text-center">
+              <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-4 mx-auto">
+                <Search className="text-muted-foreground" size={28} />
+              </div>
+              <h3 className="text-lg font-bold mb-2">
+                {error ? "Could not load the market" : "Nothing here yet"}
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                {error
+                  ? "The catalog is unavailable right now. Try again in a moment."
+                  : !isBrowsing
+                    ? "Try a different search, type, or tag."
+                    : "Be the first to publish something."}
+              </p>
+              {!isBrowsing && !error && (
+                <button
+                  onClick={() => {
+                    setQuery("");
+                    setTypeFilter("all");
+                    setTag(null);
+                  }}
+                  className="mt-5 text-sm font-bold text-primary hover:underline"
                 >
-                  <div
-                    className="size-7 rounded-full bg-cover bg-center bg-primary/15"
-                    style={
-                      creator.avatarUrl
-                        ? { backgroundImage: `url(${creator.avatarUrl})` }
-                        : undefined
-                    }
-                  />
-                  <span className="text-sm font-medium whitespace-nowrap">
-                    {creator.displayName || creator.name}
-                  </span>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    {creator.resourceCount} items
-                  </span>
-                </Link>
-              ))}
+                  Clear filters
+                </button>
+              )}
             </div>
-          </section>
-        )}
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {items.map((item) => (
+                  <ProductCard key={item.id} item={toCardItem(item)} />
+                ))}
+              </div>
 
-        {/* Shopify store products */}
-        {!loading && filteredProducts.length > 0 && (
+              {hasMore && (
+                <div className="flex justify-center pt-4">
+                  <button
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-card border border-border text-sm font-bold hover:border-primary/40 disabled:opacity-60 transition-colors"
+                  >
+                    {loadingMore ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading
+                      </>
+                    ) : (
+                      `Load more (${total - items.length} left)`
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </section>
+
+        {/* Shopify store products: clearly separate section, browsing view only */}
+        {isBrowsing && storeProducts.length > 0 && (
           <section className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold tracking-tight">Store products</h2>
@@ -276,7 +360,7 @@ export default function ExplorePage() {
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProducts.slice(0, 8).map((product) => (
+              {storeProducts.slice(0, 8).map((product) => (
                 <div
                   key={product.id}
                   className="group flex flex-col rounded-2xl bg-card border border-border overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20"

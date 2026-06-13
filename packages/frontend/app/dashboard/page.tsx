@@ -196,8 +196,20 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-sp-blue" />
+      <div className="w-full space-y-6 md:space-y-8">
+        <div className="rounded-2xl md:rounded-3xl min-h-[180px] md:min-h-[220px] skeleton" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-4 h-56 rounded-2xl skeleton" />
+          <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-40 rounded-2xl skeleton" />
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8 h-80 rounded-2xl skeleton" />
+          <div className="lg:col-span-4 h-80 rounded-2xl skeleton" />
+        </div>
       </div>
     );
   }
@@ -225,21 +237,22 @@ export default function DashboardPage() {
       {/* Hero Banner */}
       <div className="relative overflow-hidden rounded-2xl md:rounded-3xl min-h-[180px] md:min-h-[220px] flex flex-col justify-end p-6 md:p-8 bg-gradient-to-br from-sp-blue via-sp-pink to-sp-gold group">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.15),transparent_60%)]" />
-        {stats && stats.totalEarnings > 0 && (
+        {stats && (
           <div className="absolute top-4 right-4 bg-white/15 backdrop-blur-md border border-white/20 rounded-full px-4 py-2 flex items-center gap-2 text-white">
-            <TrendingUp className="h-4 w-4" />
+            <Activity className="h-4 w-4" />
             <span className="text-xs font-bold">
-              {stats.todayEarnings > 0
-                ? `+${((stats.todayEarnings / stats.totalEarnings) * 100).toFixed(1)}% Today`
-                : "No activity today"}
+              {stats.todayAccesses > 0
+                ? `${stats.todayAccesses} ${stats.todayAccesses === 1 ? "sale" : "sales"} today`
+                : "No sales yet today"}
             </span>
           </div>
         )}
         <div className="relative z-10 flex flex-col gap-1">
-          <p className="text-white/80 text-sm font-medium uppercase tracking-wider">Financial Overview</p>
-          <h2 className="text-white text-3xl md:text-4xl font-bold tracking-tight">Welcome back!</h2>
-          <p className="text-white/70 text-sm md:text-base max-w-lg mt-1">
-            Your earnings today: <span className="text-white font-bold">{formatUSDC(stats?.todayEarnings || 0)}</span>. Keep growing!
+          <p className="text-white/80 text-sm font-medium uppercase tracking-wider">Earnings overview</p>
+          <h2 className="text-white font-display text-3xl md:text-4xl font-bold tracking-tight">Welcome back</h2>
+          <p className="text-white/75 text-sm md:text-base max-w-lg mt-1">
+            Earned today: <span className="text-white font-bold tabular-nums">{formatUSDC(stats?.todayEarnings || 0)}</span> across{" "}
+            {stats?.todayAccesses || 0} {stats?.todayAccesses === 1 ? "sale" : "sales"}.
           </p>
         </div>
       </div>
@@ -256,21 +269,23 @@ export default function DashboardPage() {
                 <DollarSign className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="flex flex-col gap-1">
-                <h3 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+                <h3 className="font-display text-4xl md:text-5xl font-bold tracking-tight text-foreground tabular-nums">
                   {formatUSDC(stats?.totalEarnings || 0)}
                 </h3>
-                {stats && stats.totalEarnings > 0 && (
+                {stats && stats.totalEarnings > 0 ? (
                   <div className="flex items-center gap-2 mt-2">
                     <div className="flex items-center gap-1 bg-sp-blue/10 px-2 py-1 rounded-lg">
                       <TrendingUp className="h-4 w-4 text-sp-blue" />
-                      <span className="text-sp-blue text-sm font-bold">
-                        {stats.todayEarnings > 0
-                          ? `+${((stats.todayEarnings / stats.totalEarnings) * 100).toFixed(1)}%`
-                          : "0%"}
+                      <span className="text-sp-blue text-sm font-bold tabular-nums">
+                        +{formatUSDC(stats.todayEarnings)}
                       </span>
                     </div>
-                    <p className="text-muted-foreground text-sm">vs last month</p>
+                    <p className="text-muted-foreground text-sm">today</p>
                   </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm mt-2">
+                    Publish a resource to start earning.
+                  </p>
                 )}
               </div>
             </div>
@@ -350,8 +365,8 @@ export default function DashboardPage() {
           <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
               <div>
-                <h3 className="font-bold text-lg text-foreground">Portfolio Growth</h3>
-                <p className="text-sm text-muted-foreground">Asset performance tracking</p>
+                <h3 className="font-bold text-lg text-foreground">Earnings over time</h3>
+                <p className="text-sm text-muted-foreground">USDC settled to your wallet</p>
               </div>
               <div className="flex bg-muted p-1 rounded-lg">
                 <button
@@ -442,8 +457,19 @@ export default function DashboardPage() {
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-[240px] text-muted-foreground">
-                No data yet. Create your first resource to start earning.
+              <div className="flex flex-col items-center justify-center gap-3 h-[240px] text-center">
+                <div className="size-12 rounded-2xl bg-sp-blue/10 text-sp-blue flex items-center justify-center">
+                  <TrendingUp className="h-6 w-6" />
+                </div>
+                <p className="text-sm text-muted-foreground max-w-xs">
+                  No earnings yet. Your chart fills in as buyers and agents pay for your work.
+                </p>
+                <Link
+                  href="/dashboard/resources/new"
+                  className="text-sm font-bold text-sp-blue hover:underline"
+                >
+                  Publish your first resource
+                </Link>
               </div>
             )}
           </div>
@@ -487,8 +513,14 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                No transactions yet
+              <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
+                <div className="size-10 rounded-full bg-muted text-muted-foreground flex items-center justify-center">
+                  <Activity className="h-5 w-5" />
+                </div>
+                <p className="text-sm text-muted-foreground">No sales yet</p>
+                <p className="text-xs text-muted-foreground max-w-[200px]">
+                  Each payment shows up here with a link to its on-chain receipt.
+                </p>
               </div>
             )}
           </div>

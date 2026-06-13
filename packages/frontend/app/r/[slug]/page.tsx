@@ -13,10 +13,10 @@ import {
   Zap,
   Undo2,
   ShieldCheck,
-  Loader2,
   ExternalLink,
   Download,
   BookOpen,
+  ArrowRight,
   type LucideIcon,
 } from "lucide-react";
 import { PublicNavbar } from "@/components/public-navbar";
@@ -62,6 +62,14 @@ const TYPE_STYLES: Record<string, { icon: LucideIcon; label: string; text: strin
 
 function resolveCoverUrl(src: string): string {
   return src.startsWith("/") ? `${API_URL}${src}` : src;
+}
+
+/** Sub-cent prices are the whole point of nanopayments: never collapse them to $0.00. */
+function formatUsdc(amount: number): string {
+  if (amount > 0 && amount < 0.01) {
+    return `$${amount.toFixed(4).replace(/0+$/, "").replace(/\.$/, "")}`;
+  }
+  return `$${amount.toFixed(2)}`;
 }
 
 function formatDuration(seconds: number): string {
@@ -142,9 +150,20 @@ export default function ProductPage() {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <PublicNavbar />
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <main className="max-w-6xl mx-auto px-6 pt-28 pb-20">
+          <div className="grid lg:grid-cols-[1fr_380px] gap-10">
+            <div className="space-y-8 min-w-0">
+              <div className="aspect-video rounded-3xl skeleton" />
+              <div className="space-y-4">
+                <div className="h-9 w-3/4 rounded-lg skeleton" />
+                <div className="h-5 w-full rounded skeleton" />
+                <div className="h-5 w-2/3 rounded skeleton" />
+              </div>
+              <div className="h-44 rounded-2xl skeleton" />
+            </div>
+            <div className="h-64 rounded-3xl skeleton lg:sticky lg:top-28" />
+          </div>
+        </main>
       </div>
     );
   }
@@ -154,15 +173,16 @@ export default function ProductPage() {
       <div className="min-h-screen bg-background text-foreground">
         <PublicNavbar />
         <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center">
-          <h1 className="text-5xl font-bold mb-3">404</h1>
-          <p className="text-muted-foreground mb-8">
-            This product does not exist or is no longer for sale.
+          <p className="font-display text-7xl font-bold gradient-text leading-none mb-4">404</p>
+          <h1 className="text-xl font-bold mb-2">This product is not here</h1>
+          <p className="text-muted-foreground mb-8 max-w-sm">
+            It does not exist or is no longer for sale. The rest of the market is still open.
           </p>
           <Link
             href="/explore"
-            className="px-6 py-3 rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors"
+            className="px-6 py-3 rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
           >
-            Browse the market
+            Browse the market <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>
@@ -208,12 +228,12 @@ export default function ProductPage() {
           {/* Left column: cover + details */}
           <div className="space-y-8 min-w-0">
             {/* Cover */}
-            <div className={`relative aspect-video rounded-3xl overflow-hidden border border-border ${style.tint}`}>
+            <div className={`group relative aspect-video rounded-3xl overflow-hidden border border-border ${style.tint}`}>
               {meta.coverImage ? (
                 <img
                   src={resolveCoverUrl(meta.coverImage)}
                   alt={meta.name}
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -227,7 +247,9 @@ export default function ProductPage() {
 
             {/* Title + description */}
             <div className="space-y-4">
-              <h1 className="text-3xl md:text-4xl font-bold leading-tight">{meta.name}</h1>
+              <h1 className="font-display text-3xl md:text-4xl font-bold leading-tight tracking-tight text-balance">
+                {meta.name}
+              </h1>
               {meta.description && (
                 <p className="text-lg text-muted-foreground leading-relaxed">{meta.description}</p>
               )}
@@ -241,11 +263,13 @@ export default function ProductPage() {
             {/* What you get */}
             <div className="rounded-2xl border border-border bg-card p-6">
               <h2 className="font-bold text-lg mb-4">What you get</h2>
-              <ul className="space-y-3">
+              <ul className="space-y-3.5">
                 {bullets.map((line) => (
                   <li key={line} className="flex items-start gap-3 text-sm text-muted-foreground">
-                    <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span>{line}</span>
+                    <span className="mt-0.5 size-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Check className="h-3 w-3" />
+                    </span>
+                    <span className="leading-relaxed">{line}</span>
                   </li>
                 ))}
               </ul>
@@ -285,22 +309,22 @@ export default function ProductPage() {
 
           {/* Right column: sticky buy box */}
           <aside className="lg:sticky lg:top-28 h-fit">
-            <div className="rounded-3xl border border-border bg-card p-6 space-y-5">
+            <div className="rounded-3xl border border-border bg-card p-6 space-y-5 shadow-sm">
               {/* Price */}
               {meta.type === "video" && meta.video ? (
                 <div>
-                  <p className="text-4xl font-bold font-mono">
-                    ${ratePerMin.toFixed(2)}
+                  <p className="text-4xl font-bold font-mono tracking-tight">
+                    {formatUsdc(ratePerMin)}
                     <span className="text-lg text-muted-foreground font-sans font-medium">/min</span>
                   </p>
                   <p className="text-sm text-muted-foreground mt-2">
-                    About ${fullWatchCost.toFixed(2)} {currency} to watch all{" "}
+                    About {formatUsdc(fullWatchCost)} {currency} to watch all{" "}
                     {formatDuration(meta.video.durationSeconds)}
                   </p>
                 </div>
               ) : (
                 <div>
-                  <p className="text-4xl font-bold font-mono">${meta.priceUsdc.toFixed(2)}</p>
+                  <p className="text-4xl font-bold font-mono tracking-tight">{formatUsdc(meta.priceUsdc)}</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     One-time payment in {currency}
                   </p>

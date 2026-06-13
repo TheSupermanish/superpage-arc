@@ -15,7 +15,7 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { getTxUrl } from "@/lib/chain-config";
 import { isStreamPayDeployed } from "@/lib/streampay";
 import type { StreamSessionApi } from "@/hooks/use-stream-session";
-import { Loader2, Play, Square, ExternalLink, AlertCircle, Wallet, Zap } from "lucide-react";
+import { Loader2, Play, ExternalLink, AlertCircle, Wallet, Zap } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -46,12 +46,6 @@ function withToken(url: string, token: string | null): string {
 
 function fmtUsdc(n: number, dp = 6): string {
   return n.toFixed(dp).replace(/(\.\d*?[1-9])0+$|\.0+$/, "$1");
-}
-
-function fmtClock(totalSeconds: number): string {
-  const m = Math.floor(totalSeconds / 60);
-  const s = Math.floor(totalSeconds % 60);
-  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 export function StreamPlayer({
@@ -216,12 +210,6 @@ export function StreamPlayer({
     }
   }, [isConnected, openConnectModal, depositInput, session]);
 
-  const handleStop = useCallback(() => {
-    videoRef.current?.pause();
-    isPlayingRef.current = false;
-    void session.stop();
-  }, [session, isPlayingRef]);
-
   const opening = session.state === "opening";
   const showGate = phase === "gate" && session.state !== "active" && session.state !== "settling" && session.state !== "settled";
 
@@ -355,67 +343,31 @@ export function StreamPlayer({
         </div>
       )}
 
-      {/* Live meter bar */}
-      {(phase === "streaming" || phase === "done") && (
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-3 bg-zinc-950 border-t border-white/10 text-xs font-mono">
-          <span className="text-white/80">
-            <span className="text-white/40">watched </span>
-            {fmtClock(session.secondsWatched)}
+      {/* While streaming, a slim live pill overlays the top-left of the video so
+          the "paying by the second" signal stays visible (the preview hint is
+          gone by now); the full HUD lives beside the player. */}
+      {phase === "streaming" && session.state === "active" && (
+        <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2 font-mono text-xs">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 backdrop-blur ${
+              session.isMetering ? "bg-sp-gold/20 text-sp-gold" : "bg-black/60 text-white/70"
+            }`}
+          >
+            <span className="relative flex h-1.5 w-1.5">
+              {session.isMetering && (
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sp-gold opacity-70" />
+              )}
+              <span
+                className={`relative inline-flex h-1.5 w-1.5 rounded-full ${
+                  session.isMetering ? "bg-sp-gold" : "bg-white/50"
+                }`}
+              />
+            </span>
+            {session.isMetering ? "metering" : "paused"}
           </span>
-          <span className="text-sp-gold">
-            <span className="text-white/40">spent </span>
+          <span className="rounded-full bg-black/60 px-2.5 py-1 text-sp-gold tabular-nums backdrop-blur">
             ${fmtUsdc(session.spentUsdc)}
           </span>
-          <span className="text-white/80">
-            <span className="text-white/40">rate </span>
-            ${fmtUsdc(pricePerSecondUsdc)}/s
-          </span>
-          <span className="text-white/80">
-            <span className="text-white/40">status </span>
-            {session.state === "active"
-              ? "streaming"
-              : session.state === "settling"
-                ? "settling on-chain..."
-                : session.state === "settled"
-                  ? "settled"
-                  : session.state}
-          </span>
-          {session.txHashOpen && (
-            <a
-              href={getTxUrl(session.txHashOpen)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sp-blue hover:underline"
-            >
-              open tx <ExternalLink className="h-3 w-3" />
-            </a>
-          )}
-          {session.txHashClose && (
-            <a
-              href={getTxUrl(session.txHashClose)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sp-blue hover:underline"
-            >
-              close tx <ExternalLink className="h-3 w-3" />
-            </a>
-          )}
-          {session.state === "active" && (
-            <button
-              type="button"
-              onClick={handleStop}
-              className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 font-sans font-medium transition-colors"
-            >
-              <Square className="h-3 w-3" />
-              Stop and settle
-            </button>
-          )}
-          {session.state === "settling" && (
-            <span className="ml-auto inline-flex items-center gap-1.5 text-white/60">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              settling
-            </span>
-          )}
         </div>
       )}
     </div>
