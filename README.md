@@ -150,8 +150,8 @@ Honest scope: this is a hackathon build running on Arc Testnet. Nothing here tou
 ### Run
 
 ```bash
-git clone https://github.com/AIProjects402/superpage.git
-cd superpage
+git clone https://github.com/TheSupermanish/superpage-arc.git
+cd superpage-arc
 pnpm install
 ./dev.sh
 ```
