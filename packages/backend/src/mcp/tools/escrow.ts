@@ -74,15 +74,17 @@ const openEscrowTool = defineTool({
   inputSchema: z.object({
     seller: z.string().describe("Seller wallet address (paid on release)"),
     agentId: z.coerce.string().describe("Seller's ERC-8004 agent id the work is validated against"),
+    validator: z.string().describe("The ONE validator address the buyer trusts to attest the work (must match the request's validator)"),
     requestHash: z.string().describe("Validation request hash from request_validation"),
     amountUsdc: z.number().positive().describe("Amount to hold, in USDC"),
     refundAfterSeconds: z.number().optional().describe("Seconds until buyer can reclaim (default 86400)"),
   }),
-  handler: async ({ seller, agentId, requestHash, amountUsdc, refundAfterSeconds }) => {
+  handler: async ({ seller, agentId, validator, requestHash, amountUsdc, refundAfterSeconds }) => {
     try {
       const { id, txHash } = await openEscrow({
         seller: seller as `0x${string}`,
         agentId: BigInt(agentId),
+        validator: validator as `0x${string}`,
         requestHash: requestHash as `0x${string}`,
         amountUsdc,
         refundAfterSeconds,

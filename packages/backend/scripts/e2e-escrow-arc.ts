@@ -77,7 +77,7 @@ async function main() {
     address: ESCROW_ADDRESS,
     abi: ESCROW_ABI,
     functionName: "open",
-    args: [acct.address, AGENT_ID, requestHash, refundAfter],
+    args: [acct.address, AGENT_ID, acct.address /* trusted validator */, requestHash, refundAfter],
     value: usdcToWei(AMOUNT_USDC),
   });
   await pub.waitForTransactionReceipt({ hash: t2 });
@@ -120,9 +120,9 @@ async function main() {
   })) as any[];
   const balAfterRelease = await pub.getBalance({ address: ESCROW_ADDRESS });
   console.log("    tx:", t5);
-  console.log("    job.released:", job[6], "| escrow balance:", formatUnits(balAfterRelease, 18), "USDC");
+  console.log("    job.released:", job[7], "| escrow balance:", formatUnits(balAfterRelease, 18), "USDC");
 
-  if (job[6] !== true) throw new Error("release did not mark job released");
+  if (job[7] !== true) throw new Error("release did not mark job released");
   if (balAfterRelease >= balAfterOpen) throw new Error("escrow balance did not decrease on release");
 
   console.log("\n=== ESCROW E2E PASSED ===");

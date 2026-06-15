@@ -141,6 +141,20 @@
     "validationRegistry": "0x6a81e89fdb563cdf0d21dc2ea5c18ec4020e596f",
     "registrationFile": "https://superpa.ge/.well-known/agent-registration.json"
   },
+  "escrow": {
+    "note": "Validation-gated escrow for agent-commissioned work. A buyer locks USDC bound to an ERC-8004 validation request, a specific trusted validator, and the seller's agentId; release is permissionless and pays the seller only once THAT validator records a passing response (>= 80) for that request+agent. Each request gates at most one escrow; otherwise the buyer refunds after a deadline.",
+    "contract": "0x2e1107761b13c2eb293201d348b0891ad6618c1e",
+    "chainId": 5042002,
+    "passThreshold": 80,
+    "flow": "request_validation -> open_escrow (names the trusted validator) -> respond_validation (by that validator) -> release_escrow (MCP tools).",
+    "mcpTools": ["request_validation", "respond_validation", "open_escrow", "release_escrow", "refund_escrow", "get_escrow"]
+  },
+  "discovery": {
+    "note": "Agent-facing catalog with a paymentUrl per item. Filter by q/type/tag/maxPrice; each item carries creator {username, agentId} so a buyer can discover, pay, and review on-chain.",
+    "discover": "https://superpa.ge/api/market/discover",
+    "related": "https://superpa.ge/api/market/related/{id}",
+    "reputation": "https://superpa.ge/api/reputation/by-creator/{username}"
+  },
   "endpoints": {
     "a2a": "https://superpa.ge/a2a",
     "mcp": "https://superpa.ge/mcp/universal",
@@ -166,7 +180,7 @@
     {
       "name": "MCP Server (Claude Desktop)",
       "endpoint": "https://superpa.ge/mcp/universal",
-      "description": "30+ tools for autonomous resource discovery, payment, and ERC-8004 trust operations"
+      "description": "36 tools for autonomous resource discovery, payment, ERC-8004 trust, and validation-gated escrow"
     },
     {
       "name": "Standalone AI Agent",

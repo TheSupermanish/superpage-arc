@@ -1,10 +1,10 @@
 {
-  "address": "0x9ef4bb935b0a78a6a5beaef1a67579bc6ce625d8",
+  "address": "0x2e1107761b13c2eb293201d348b0891ad6618c1e",
   "chainId": 5042002,
   "network": "arc-testnet",
   "validationRegistry": "0x6a81e89fdb563cdf0d21dc2ea5c18ec4020e596f",
-  "deployTx": "0x0a49926da05e2836cf71c439da0c9690c39c5fffc3f35ae7b83eaf9d5a106da0",
-  "deployedAt": "2026-06-15T07:11:10.795Z",
+  "deployTx": "0xb08992ef7008b098d4dc1303620cb9d995c696ced0dd50ae7a004d59abfe6197",
+  "deployedAt": "2026-06-15T07:23:50.254Z",
   "abi": [
     {
       "inputs": [
@@ -36,6 +36,12 @@
           "indexed": true,
           "internalType": "address",
           "name": "seller",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "validator",
           "type": "address"
         },
         {
@@ -150,6 +156,11 @@
           "type": "address"
         },
         {
+          "internalType": "address",
+          "name": "validator",
+          "type": "address"
+        },
+        {
           "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
@@ -207,6 +218,11 @@
           "internalType": "uint256",
           "name": "agentId",
           "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "validator",
+          "type": "address"
         },
         {
           "internalType": "bytes32",
@@ -267,6 +283,25 @@
       "name": "release",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "requestUsed",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     }
   ]

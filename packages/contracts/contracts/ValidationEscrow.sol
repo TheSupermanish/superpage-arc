@@ -43,6 +43,7 @@ contract ValidationEscrow {
     struct Job {
         address buyer;
         address payable seller;
+        address validator;   // the ONE validator the buyer trusts to attest the work
         uint256 amount;
         uint256 agentId;     // the seller's ERC-8004 agent the work is validated against
         bytes32 requestHash; // the validation request this escrow is gated on
@@ -53,11 +54,14 @@ contract ValidationEscrow {
 
     uint256 public lastId;
     mapping(uint256 => Job) private jobs;
+    /** A validation request can gate at most one escrow (no replay across jobs). */
+    mapping(bytes32 => bool) public requestUsed;
 
     event EscrowOpened(
         uint256 indexed id,
         address indexed buyer,
         address indexed seller,
+        address validator,
         uint256 amount,
         uint256 agentId,
         bytes32 requestHash,
@@ -74,23 +78,33 @@ contract ValidationEscrow {
     /**
      * Open an escrow. msg.value is the amount held (native USDC wei, 18 dec).
      * `requestHash` must be the ERC-8004 validation request covering the
-     * seller's `agentId`; the work is released only when that request passes.
+     * seller's `agentId`, and `validator` is the one validator the buyer trusts
+     * to attest it. Funds release only when THAT validator records a passing
+     * response for that request. The buyer must pick a validator they trust:
+     * the registry is permissionless, so binding to a specific validator is
+     * what prevents a seller from self-attesting.
      */
     function open(
         address payable seller,
         uint256 agentId,
+        address validator,
         bytes32 requestHash,
         uint64 refundAfter
     ) external payable returns (uint256 id) {
         require(msg.value > 0, "Escrow: amount required");
         require(seller != address(0), "Escrow: seller required");
+        require(validator != address(0), "Escrow: validator required");
+        require(agentId > 0, "Escrow: agentId required");
         require(requestHash != bytes32(0), "Escrow: requestHash required");
         require(refundAfter > block.timestamp, "Escrow: refundAfter in past");
+        require(!requestUsed[requestHash], "Escrow: request already used");
 
+        requestUsed[requestHash] = true;
         id = ++lastId;
         jobs[id] = Job({
             buyer: msg.sender,
             seller: seller,
+            validator: validator,
             amount: msg.value,
             agentId: agentId,
             requestHash: requestHash,
@@ -99,7 +113,7 @@ contract ValidationEscrow {
             refunded: false
         });
 
-        emit EscrowOpened(id, msg.sender, seller, msg.value, agentId, requestHash, refundAfter);
+        emit EscrowOpened(id, msg.sender, seller, validator, msg.value, agentId, requestHash, refundAfter);
     }
 
     /**
@@ -112,9 +126,10 @@ contract ValidationEscrow {
         require(j.amount > 0, "Escrow: no such job");
         require(!j.released && !j.refunded, "Escrow: already settled");
 
-        (, uint256 agentId, uint8 response, , , uint256 lastUpdate) =
+        (address validatorAddress, uint256 agentId, uint8 response, , , uint256 lastUpdate) =
             registry.getValidationStatus(j.requestHash);
         require(lastUpdate > 0, "Escrow: not validated yet");
+        require(validatorAddress == j.validator, "Escrow: wrong validator");
         require(agentId == j.agentId, "Escrow: agent mismatch");
         require(response >= PASS_THRESHOLD, "Escrow: validation not passed");
 
@@ -162,6 +177,7 @@ contract ValidationEscrow {
         returns (
             address buyer,
             address seller,
+            address validator,
             uint256 amount,
             uint256 agentId,
             bytes32 requestHash,
@@ -174,6 +190,7 @@ contract ValidationEscrow {
         return (
             j.buyer,
             j.seller,
+            j.validator,
             j.amount,
             j.agentId,
             j.requestHash,

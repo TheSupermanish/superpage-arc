@@ -51,6 +51,7 @@ export const ESCROW_ABI = [
     inputs: [
       { name: "seller", type: "address" },
       { name: "agentId", type: "uint256" },
+      { name: "validator", type: "address" },
       { name: "requestHash", type: "bytes32" },
       { name: "refundAfter", type: "uint64" },
     ],
@@ -78,6 +79,7 @@ export const ESCROW_ABI = [
     outputs: [
       { name: "buyer", type: "address" },
       { name: "seller", type: "address" },
+      { name: "validator", type: "address" },
       { name: "amount", type: "uint256" },
       { name: "agentId", type: "uint256" },
       { name: "requestHash", type: "bytes32" },
@@ -107,6 +109,7 @@ export const ESCROW_ABI = [
       { name: "id", type: "uint256", indexed: true },
       { name: "buyer", type: "address", indexed: true },
       { name: "seller", type: "address", indexed: true },
+      { name: "validator", type: "address", indexed: false },
       { name: "amount", type: "uint256", indexed: false },
       { name: "agentId", type: "uint256", indexed: false },
       { name: "requestHash", type: "bytes32", indexed: false },
