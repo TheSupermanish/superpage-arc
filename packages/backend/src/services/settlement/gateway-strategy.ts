@@ -39,6 +39,6 @@ export const gatewayStrategy: SettlementStrategy = {
         reason: `gateway not live (${result.reason || "scaffold"}); owed ${result.totalUsdc} USDC`,
       };
     }
-    return { settled: true };
+    return { settled: true, txHash: result.plans[0]?.mintTxs?.[0] };
   },
 };

@@ -149,6 +149,14 @@
     "flow": "request_validation -> open_escrow (names the trusted validator) -> respond_validation (by that validator) -> release_escrow (MCP tools).",
     "mcpTools": ["request_validation", "respond_validation", "open_escrow", "release_escrow", "refund_escrow", "get_escrow"]
   },
+  "gateway": {
+    "note": "Circle Gateway nanopayment batching (live). The operator deposits USDC into GatewayWallet once, then settles many creator payouts as signed burn intents POSTed to /v1/transfer in one batch and minted on-chain via GatewayMinter. Additive + flagged: with GATEWAY_BATCHING/GATEWAY_LIVE_SUBMIT off, streaming settles via the StreamPay channel unchanged. Selected per-chain by capability (Arc + Base support Gateway; Mezo does not).",
+    "gatewayWallet": "0x0077777d7EBA4688BDeF3E311b846F25870A19B9",
+    "gatewayMinter": "0x0022222ABE238Cc2C7Bb1f21003F0a260052475B",
+    "arcDomain": 26,
+    "api": "https://gateway-api-testnet.circle.com",
+    "provenOnChain": "deposit -> burn intent -> /v1/transfer -> gatewayMint (single + batch), settled on Arc"
+  },
   "discovery": {
     "note": "Agent-facing catalog with a paymentUrl per item. Filter by q/type/tag/maxPrice; each item carries creator {username, agentId} so a buyer can discover, pay, and review on-chain.",
     "discover": "https://superpa.ge/api/market/discover",

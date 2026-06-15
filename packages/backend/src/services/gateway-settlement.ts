@@ -33,6 +33,7 @@ import {
   isGatewayEnabled,
 } from "../config/gateway.js";
 import { weiToUsdc } from "../config/streampay.js";
+import { signBurnIntent, submitTransfers, mintAttestations } from "./gateway-transfer.js";
 import type { IStreamSession } from "../models/StreamSession.js";
 
 const chainConfig = getChainConfig();
@@ -182,42 +183,19 @@ export interface CreatorBatchPlan {
   totalAtomic: bigint;
   /** Total owed, in USDC, for logging/receipts. */
   totalUsdc: number;
-  /**
-   * One /v1/batch/submit body per session. Built faithfully to the Gateway
-   * batch API (EIP-3009 single-chain authorization). `auth.eip3009Auth.signature`
-   * is left empty: it requires a viewer-side EIP-3009 signature, which the
-   * current StreamPay voucher is not. See docs/gateway.md.
-   */
-  submissions: GatewayBatchSubmission[];
-}
-
-export interface GatewayBatchSubmission {
-  token: "USDC";
-  sendingDomain: number;
-  recipientDomain: number;
-  auth: {
-    eip3009Auth: {
-      from: `0x${string}`;
-      to: `0x${string}`;
-      value: string;
-      validAfter: string;
-      validBefore: string;
-      nonce: `0x${string}`;
-      /** Empty until a real EIP-3009 authorization is produced viewer-side. */
-      signature: `0x${string}` | "";
-    };
-  };
+  /** gatewayMint tx hashes once the batch settled on-chain (live path only). */
+  mintTxs?: string[];
 }
 
 export interface BatchSettleResult {
   ok: boolean;
-  /** Why the batch did not actually submit (flag off, no deposit, scaffolded). */
+  /** Why the batch did not actually submit (flag off, no deposit, not live). */
   reason?: string;
-  /** Per-creator plans that WOULD be submitted. */
+  /** Per-creator plans (what was, or would be, settled). */
   plans: CreatorBatchPlan[];
   /** Total USDC across all creators in this batch. */
   totalUsdc: number;
-  /** True only if a real submission was attempted (GATEWAY_LIVE_SUBMIT=1). */
+  /** True only if a real submission happened (GATEWAY_LIVE_SUBMIT=1). */
   submitted: boolean;
 }
 
@@ -228,18 +206,19 @@ interface PendingForBatch {
 }
 
 /**
- * Aggregate a set of pending stream sessions into per-creator Gateway batches
- * and (when fully enabled) submit them. This is the additive alternative to
- * calling closeSession once per session.
+ * Aggregate pending stream sessions into per-creator Gateway payouts and (when
+ * live) settle them through Circle Gateway: the operator signs one burn intent
+ * per owed amount, POSTs them all to /v1/transfer in a single batch, and mints
+ * each attestation on-chain. This is the additive alternative to calling
+ * closeSession once per session — the operator's single Gateway deposit funds
+ * many creator payouts.
  *
  * Safety gates, in order:
- *   1. GATEWAY_BATCHING flag must be on (else this is never reached).
- *   2. The active chain must have a Circle domain (Arc testnet / Base Sepolia).
- *   3. The operator must have a Gateway deposit ("needs deposit" guard) before
- *      any settlement is attempted.
- *   4. Actual network submission only happens with GATEWAY_LIVE_SUBMIT=1 AND a
- *      real EIP-3009 authorization signature present; otherwise we return the
- *      constructed plan (scaffold) without touching the network or chain.
+ *   1. GATEWAY_BATCHING must be on (the strategy checks this before calling).
+ *   2. The active chain must have a Circle domain (Arc / Base Sepolia).
+ *   3. The operator must have a Gateway deposit ("needs deposit" guard).
+ *   4. Actual settlement only happens with GATEWAY_LIVE_SUBMIT=1; otherwise the
+ *      constructed plan is returned without touching the network or chain.
  */
 export async function settleBatch(pending: PendingForBatch[]): Promise<BatchSettleResult> {
   const empty: BatchSettleResult = { ok: true, plans: [], totalUsdc: 0, submitted: false };
@@ -270,98 +249,44 @@ export async function settleBatch(pending: PendingForBatch[]): Promise<BatchSett
     };
   }
 
-  // Group owed amounts by creator and build one EIP-3009 submission per session.
+  // Group owed amounts by creator (one payout per creator across their sessions).
   const byCreator = new Map<string, CreatorBatchPlan>();
-  const now = Math.floor(Date.now() / 1000);
-  const validBefore = now + 3600; // 1h authorization window
-
   for (const { session, creatorAddress } of pending) {
     const owedWei = BigInt(session.lastAmountWei || "0");
-    if (owedWei <= 0n || !session.lastSig) continue; // nothing to settle
-
+    if (owedWei <= 0n || !session.lastSig) continue;
     const owedUsdc = weiToUsdc(owedWei);
-    const owedAtomic = usdcToAtomic(owedUsdc);
-    if (owedAtomic <= 0n) continue;
+    if (usdcToAtomic(owedUsdc) <= 0n) continue;
 
     const key = creatorAddress.toLowerCase();
     let plan = byCreator.get(key);
     if (!plan) {
-      plan = {
-        payTo: creatorAddress,
-        sessionIds: [],
-        totalAtomic: 0n,
-        totalUsdc: 0,
-        submissions: [],
-      };
+      plan = { payTo: creatorAddress, sessionIds: [], totalAtomic: 0n, totalUsdc: 0 };
       byCreator.set(key, plan);
     }
-
     plan.sessionIds.push(session.sessionId);
-    plan.totalAtomic += owedAtomic;
+    plan.totalAtomic += usdcToAtomic(owedUsdc);
     plan.totalUsdc += owedUsdc;
-    plan.submissions.push({
-      token: "USDC",
-      sendingDomain: domain,
-      recipientDomain: domain, // single-chain settlement on Arc
-      auth: {
-        eip3009Auth: {
-          from: session.viewerAddress as `0x${string}`,
-          to: creatorAddress,
-          value: owedAtomic.toString(),
-          validAfter: "0",
-          validBefore: validBefore.toString(),
-          // Per-session unique nonce derived from the on-chain session id.
-          nonce: sessionNonce(session.sessionId),
-          // Empty: needs a viewer-side EIP-3009 signature (see docs/gateway.md).
-          signature: "",
-        },
-      },
-    });
   }
 
   const plans = [...byCreator.values()];
   const totalUsdc = plans.reduce((sum, p) => sum + p.totalUsdc, 0);
 
-  // Scaffold boundary: only cross the network if explicitly enabled AND every
-  // submission carries a real authorization signature. We never send otherwise.
   const liveSubmit = (process.env.GATEWAY_LIVE_SUBMIT || "").trim() === "1";
-  const allSigned = plans.every((p) => p.submissions.every((s) => s.auth.eip3009Auth.signature));
-
   if (!liveSubmit) {
-    return { ok: true, plans, totalUsdc, submitted: false, reason: "scaffold: GATEWAY_LIVE_SUBMIT unset" };
-  }
-  if (!allSigned) {
-    return {
-      ok: true,
-      plans,
-      totalUsdc,
-      submitted: false,
-      reason: "scaffold: EIP-3009 authorizations not yet produced viewer-side",
-    };
+    return { ok: true, plans, totalUsdc, submitted: false, reason: "GATEWAY_LIVE_SUBMIT unset" };
   }
 
-  // Live path (only reachable once viewer-side EIP-3009 signing lands): POST
-  // each authorization to Circle's batch API. Circle locks the sender balance,
-  // queues the tx, and settles the batch on-chain via its forwarder.
-  for (const plan of plans) {
-    for (const submission of plan.submissions) {
-      const res = await fetch(`${GATEWAY_API_BASE}/v1/batch/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(submission),
-      });
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(`/v1/batch/submit ${res.status} for creator ${plan.payTo}: ${text}`);
-      }
-    }
-  }
+  // Live: one burn intent per creator payout, submitted as a single batch, then
+  // each attestation minted on-chain. maxFee is capped generously (Circle's
+  // testnet fee is a few percent); the operator's deposit covers value + fee.
+  const intents = await Promise.all(
+    plans.map((p) => signBurnIntent(p.payTo, p.totalUsdc, Math.max(p.totalUsdc, 0.01)))
+  );
+  const attestations = await submitTransfers(intents);
+  const mintTxs = await mintAttestations(attestations);
+  plans.forEach((p, i) => {
+    p.mintTxs = mintTxs[i] ? [mintTxs[i]] : [];
+  });
 
   return { ok: true, plans, totalUsdc, submitted: true };
-}
-
-/** Deterministic 32-byte nonce for a session so a batch cannot double-submit it. */
-function sessionNonce(sessionId: string): `0x${string}` {
-  const hex = BigInt(sessionId).toString(16).padStart(64, "0");
-  return `0x${hex}`;
 }

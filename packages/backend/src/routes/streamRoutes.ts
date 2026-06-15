@@ -796,7 +796,8 @@ router.post("/gateway/settle-preview", async (_req: Request, res: Response) => {
         payTo: p.payTo,
         sessionIds: p.sessionIds,
         totalUsdc: p.totalUsdc,
-        sessionCount: p.submissions.length,
+        sessionCount: p.sessionIds.length,
+        mintTxs: p.mintTxs || [],
       })),
     });
   } catch (err: any) {
