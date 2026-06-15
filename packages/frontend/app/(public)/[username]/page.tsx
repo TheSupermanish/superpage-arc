@@ -28,6 +28,7 @@ import { parseUnits } from "viem";
 import { PublicNavbar } from "@/components/public-navbar";
 import { PurchaseModal, type PurchaseItem } from "@/components/purchase-modal";
 import { ProductCard, type ProductCardItem, type ProductCardType } from "@/components/product-card";
+import { ReputationBadge } from "@/components/reputation-badge";
 import {
   getTxUrl,
   getAddressUrl,
@@ -307,6 +308,7 @@ export default function PublicProfilePage() {
                     On-chain Agent #{profile.erc8004AgentId}
                   </span>
                 )}
+                <ReputationBadge username={profile.username} />
               </div>
               {profile.bio && (
                 <p className="text-muted-foreground leading-relaxed max-w-2xl">{profile.bio}</p>

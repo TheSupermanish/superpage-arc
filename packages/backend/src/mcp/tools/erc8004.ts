@@ -36,7 +36,7 @@ import type { Address } from "viem";
 const registerAgentTool = defineTool({
   name: "register_agent",
   description:
-    "Register a new agent on the ERC-8004 Identity Registry (Mezo). Mints an on-chain identity NFT and returns the agentId.",
+    "Register a new agent on the ERC-8004 Identity Registry (Arc). Mints an on-chain identity NFT and returns the agentId.",
   inputSchema: z.object({
     agentURI: z
       .string()
@@ -67,7 +67,7 @@ const getAgentInfoTool = defineTool({
   description:
     "Look up an agent's on-chain identity on the ERC-8004 Identity Registry. Returns URI, owner, and payment wallet.",
   inputSchema: z.object({
-    agentId: z.string().describe("The agent ID (uint256) to look up"),
+    agentId: z.coerce.string().describe("The agent ID (uint256) to look up"),
   }),
   handler: async ({ agentId }) => {
     try {
@@ -130,7 +130,7 @@ const giveFeedbackTool = defineTool({
   description:
     "Submit reputation feedback for an agent on the ERC-8004 Reputation Registry. Value is a signed integer (e.g., 95 for a 95/100 score).",
   inputSchema: z.object({
-    agentId: z.string().describe("The agent ID to give feedback for"),
+    agentId: z.coerce.string().describe("The agent ID to give feedback for"),
     value: z.number().describe("Feedback value (e.g., 95 for 95/100)"),
     valueDecimals: z.number().optional().describe("Decimal precision (default 0)"),
     tag1: z.string().optional().describe("Primary category tag (e.g., 'quality', 'x402')"),
@@ -166,7 +166,7 @@ const getReputationTool = defineTool({
   description:
     "Get reputation summary for an agent from the ERC-8004 Reputation Registry. Returns feedback count and average score.",
   inputSchema: z.object({
-    agentId: z.string().describe("The agent ID to check reputation for"),
+    agentId: z.coerce.string().describe("The agent ID to check reputation for"),
     tag1: z.string().optional().describe("Filter by primary tag"),
     tag2: z.string().optional().describe("Filter by secondary tag"),
   }),
@@ -195,7 +195,7 @@ const readFeedbackTool = defineTool({
   description:
     "Read detailed feedback entries for an agent from the ERC-8004 Reputation Registry.",
   inputSchema: z.object({
-    agentId: z.string().describe("The agent ID"),
+    agentId: z.coerce.string().describe("The agent ID"),
     clientAddress: z
       .string()
       .optional()
@@ -264,7 +264,7 @@ const revokeFeedbackTool = defineTool({
   description:
     "Revoke previously submitted feedback on the ERC-8004 Reputation Registry.",
   inputSchema: z.object({
-    agentId: z.string().describe("The agent ID"),
+    agentId: z.coerce.string().describe("The agent ID"),
     feedbackIndex: z.number().describe("The feedback index to revoke (1-based)"),
   }),
   handler: async ({ agentId, feedbackIndex }) => {
@@ -317,7 +317,7 @@ const getValidationSummaryTool = defineTool({
   description:
     "Get validation summary for an agent from the ERC-8004 Validation Registry.",
   inputSchema: z.object({
-    agentId: z.string().describe("The agent ID"),
+    agentId: z.coerce.string().describe("The agent ID"),
     tag: z.string().optional().describe("Filter by validation tag"),
   }),
   handler: async ({ agentId, tag }) => {

@@ -2,7 +2,7 @@
  * ERC-8004 Reputation Registry Module
  *
  * Provides functions to submit, read, and manage reputation feedback
- * for agents via the ReputationRegistry contract on Mezo.
+ * for agents via the ReputationRegistry contract on Arc.
  */
 
 import type { Address, Hash } from "viem";
