@@ -64,7 +64,7 @@ export function StreamReceipt({ session }: { session: StreamSessionApi }) {
             </p>
           </div>
           <div className="rounded-xl border border-border bg-muted p-4">
-            <p className="text-xs text-muted-foreground">Refunded to you</p>
+            <p className="text-xs text-muted-foreground">Stayed in your wallet</p>
             <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-foreground">
               ${fmtUsdc(refund)}
             </p>
@@ -80,7 +80,7 @@ export function StreamReceipt({ session }: { session: StreamSessionApi }) {
             </p>
           </div>
           <div className="rounded-xl border border-border bg-muted p-3">
-            <p className="text-xs text-muted-foreground">Deposit</p>
+            <p className="text-xs text-muted-foreground">Approved cap</p>
             <p className="mt-0.5 font-mono font-bold tabular-nums text-foreground">
               ${fmtUsdc(session.depositUsdc)}
             </p>
@@ -120,8 +120,7 @@ export function StreamReceipt({ session }: { session: StreamSessionApi }) {
             </span>
           ) : (
             <span className="text-xs text-muted-foreground">
-              No on-chain close was needed; your full deposit is reclaimable from the
-              contract after 24h.
+              No on-chain pull was needed; you were charged nothing.
             </span>
           )}
         </div>

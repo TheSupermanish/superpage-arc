@@ -4,7 +4,7 @@
  * deployed and an operator key is configured (today: Arc, where USDC is the
  * native gas token). This is the default/fallback mechanism.
  */
-import { STREAMPAY_ADDRESS, STREAMPAY_ABI, isStreamPayDeployed } from "../../config/streampay.js";
+import { STREAMPULL_ADDRESS, STREAMPULL_ABI, isStreamPullDeployed } from "../../config/streampull.js";
 import type { IStreamSession } from "../../models/StreamSession.js";
 import type { SettlementStrategy, SettlementOutcome } from "./types.js";
 import { settlementPublicClient, getOperatorWalletClient } from "./context.js";
@@ -13,7 +13,7 @@ export const streamPayStrategy: SettlementStrategy = {
   name: "streampay",
 
   isAvailable(): boolean {
-    return isStreamPayDeployed() && getOperatorWalletClient() !== null;
+    return isStreamPullDeployed() && getOperatorWalletClient() !== null;
   },
 
   async settle(session: IStreamSession): Promise<SettlementOutcome> {
@@ -27,8 +27,8 @@ export const streamPayStrategy: SettlementStrategy = {
 
     // Throws on revert so the orchestrator applies its retry/expire policy.
     const hash = await walletClient.writeContract({
-      address: STREAMPAY_ADDRESS,
-      abi: STREAMPAY_ABI,
+      address: STREAMPULL_ADDRESS,
+      abi: STREAMPULL_ABI,
       functionName: "closeSession",
       args: [BigInt(session.sessionId), amount, session.lastSig as `0x${string}`],
       chain: walletClient.chain,

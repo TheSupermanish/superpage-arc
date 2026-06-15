@@ -344,7 +344,7 @@ export function StreamMeter({
                 {Math.round(pct * 100)}%
               </span>
               <span className="text-[10px] uppercase tracking-wider text-white/40">
-                deposit used
+                cap used
               </span>
             </div>
           </div>
@@ -359,7 +359,7 @@ export function StreamMeter({
             </div>
           </div>
           <div className="rounded-xl bg-white/5 px-2 py-2.5">
-            <div className="text-[10px] uppercase tracking-wider text-white/40">Deposit</div>
+            <div className="text-[10px] uppercase tracking-wider text-white/40">Approved</div>
             <div className="mt-0.5 text-sm font-semibold tabular-nums text-white">
               ${fmtUsdc(deposit, 4)}
             </div>

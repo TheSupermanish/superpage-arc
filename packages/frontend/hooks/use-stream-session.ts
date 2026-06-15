@@ -16,7 +16,17 @@ import { createPublicClient, http, keccak256, encodePacked, decodeEventLog } fro
 import { generatePrivateKey, privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import { useEnsureNetwork } from "./use-network-switch";
 import { getDefaultChain, getDefaultChainId } from "@/lib/chains";
-import { STREAMPAY_ADDRESS, STREAMPAY_ABI, usdcToWei, weiToUsdc, isStreamPayDeployed } from "@/lib/streampay";
+// No-deposit approval/pull model. Aliased to the prior names so the rest of the
+// hook is unchanged; amounts are now 6-decimal USDC token units.
+import {
+  STREAMPULL_ADDRESS as STREAMPAY_ADDRESS,
+  STREAMPULL_ABI as STREAMPAY_ABI,
+  usdcToUnits as usdcToWei,
+  unitsToUsdc as weiToUsdc,
+  isStreamPullDeployed as isStreamPayDeployed,
+  USDC_ADDRESS,
+  ERC20_APPROVE_ABI,
+} from "@/lib/streampull";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const HEARTBEAT_INTERVAL_MS = 5_000;
@@ -83,7 +93,7 @@ function friendlyError(err: any): string {
 }
 
 export function useStreamSession(options: UseStreamSessionOptions): StreamSessionApi {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { ensureCorrectNetwork } = useEnsureNetwork(CURRENT_CHAIN_ID);
   const { writeContractAsync } = useWriteContract();
 
@@ -238,17 +248,40 @@ export function useStreamSession(options: UseStreamSessionOptions): StreamSessio
         const sessionKey = privateKeyToAccount(generatePrivateKey());
         sessionKeyRef.current = sessionKey;
 
-        const depositWei = usdcToWei(depositUsdcInput);
+        // "deposit" input is the spending cap: the max USDC this session may
+        // pull. No funds move on open — the viewer just approves the cap and
+        // keeps their USDC. Unused cap stays as an allowance (reusable credit),
+        // never locked, so there's nothing to refund.
+        const cap = usdcToWei(depositUsdcInput);
         const openRateWei = usdcToWei(pricePerSecondUsdc);
-        depositWeiRef.current = depositWei;
+        depositWeiRef.current = cap;
         setDepositUsdc(depositUsdcInput);
 
+        // 1) Approve the cap so the contract can pull on close. Skip if the
+        // existing allowance already covers it (approve once, watch many).
+        const allowance = (await streamClient.readContract({
+          address: USDC_ADDRESS,
+          abi: ERC20_APPROVE_ABI,
+          functionName: "allowance",
+          args: [address as `0x${string}`, STREAMPAY_ADDRESS],
+        })) as bigint;
+        if (allowance < cap) {
+          const approveHash = await writeContractAsync({
+            abi: ERC20_APPROVE_ABI,
+            address: USDC_ADDRESS,
+            functionName: "approve",
+            args: [STREAMPAY_ADDRESS, cap],
+            chainId: CURRENT_CHAIN_ID,
+          });
+          await streamClient.waitForTransactionReceipt({ hash: approveHash, confirmations: 1 });
+        }
+
+        // 2) Open the session (no value moves here).
         const hash = await writeContractAsync({
           abi: STREAMPAY_ABI,
           address: STREAMPAY_ADDRESS,
           functionName: "openSession",
-          args: [creatorWallet as `0x${string}`, openRateWei, sessionKey.address],
-          value: depositWei,
+          args: [creatorWallet as `0x${string}`, openRateWei, sessionKey.address, cap],
           chainId: CURRENT_CHAIN_ID,
         });
         setTxHashOpen(hash);
@@ -304,7 +337,7 @@ export function useStreamSession(options: UseStreamSessionOptions): StreamSessio
         throw err;
       }
     },
-    [isConnected, ensureCorrectNetwork, writeContractAsync, startTicking]
+    [isConnected, address, ensureCorrectNetwork, writeContractAsync, startTicking]
   );
 
   const stop = useCallback(async () => {

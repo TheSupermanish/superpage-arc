@@ -287,14 +287,15 @@ export function StreamPlayer({
                 Keep watching for ${fmtUsdc(pricePerSecondUsdc)} per second
               </p>
               <p className="text-sm text-white/60 mt-1">
-                One transaction opens a payment channel. Leave at any second and you pay
-                exactly for what you watched; the rest comes back.
+                Approve a spending cap once (your USDC stays in your wallet), then
+                watch. You only pay for the seconds you watch; nothing is locked
+                and there's no refund step.
               </p>
             </div>
 
             <div className="flex items-center gap-2 justify-center">
               <label htmlFor="stream-deposit" className="text-sm text-white/70">
-                Deposit (USDC)
+                Spending cap (USDC)
               </label>
               <input
                 id="stream-deposit"
@@ -316,7 +317,8 @@ export function StreamPlayer({
               </button>
             </div>
             <p className="text-xs text-white/40">
-              Minimum $0.10. Unused deposit is refunded on-chain when you stop.
+              Minimum $0.10. The unused cap just stays in your wallet as an approval,
+              reusable for your next watch.
             </p>
 
             {!isStreamPayDeployed() && (

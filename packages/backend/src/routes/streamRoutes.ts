@@ -21,7 +21,7 @@ import { Resource } from "../models/index.js";
 import { StreamSession } from "../models/StreamSession.js";
 import { authMiddleware, type AuthenticatedRequest } from "../api/wallet-auth.js";
 import { getChainConfig } from "../config/chain-config.js";
-import { STREAMPAY_ADDRESS, STREAMPAY_ABI, isStreamPayDeployed, usdcToWei } from "../config/streampay.js";
+import { STREAMPULL_ADDRESS, STREAMPULL_ABI, isStreamPullDeployed, usdcToUnits } from "../config/streampull.js";
 import {
   HLS_ROOT,
   VIDEO_SRC_ROOT,
@@ -260,7 +260,7 @@ router.get("/meta/:slug", async (req: Request, res: Response) => {
       freePreviewSeconds: resource.config?.freePreviewSeconds ?? DEFAULT_FREE_PREVIEW_SECONDS,
       coverImage: resource.config?.coverImage || null,
       transcodeStatus: resource.config?.transcodeStatus || "ready",
-      streamPayAddress: isStreamPayDeployed() ? STREAMPAY_ADDRESS : null,
+      streamPayAddress: isStreamPullDeployed() ? STREAMPULL_ADDRESS : null,
       creator: {
         walletAddress: resource.creatorId?.walletAddress || null,
         username: resource.creatorId?.username || null,
@@ -299,8 +299,8 @@ router.post("/session/register", async (req: Request, res: Response) => {
     if (!resourceSlug || sessionId === undefined || sessionId === null) {
       return res.status(400).json({ error: "resourceSlug and sessionId are required" });
     }
-    if (!isStreamPayDeployed()) {
-      return res.status(503).json({ error: "StreamPay contract is not deployed yet" });
+    if (!isStreamPullDeployed()) {
+      return res.status(503).json({ error: "StreamPayPull contract is not deployed yet" });
     }
 
     const resource: any = await Resource.findOne({ slug: resourceSlug, type: "video" })
@@ -317,11 +317,11 @@ router.post("/session/register", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "sessionId must be a numeric string" });
     }
 
-    // Read the session straight from the contract
-    const [viewer, creator, sessionKey, deposit, ratePerSecond, , open] =
+    // Read the session straight from the contract (pull shape: rate before cap)
+    const [viewer, creator, sessionKey, ratePerSecond, cap, , open] =
       await streamPublicClient.readContract({
-        address: STREAMPAY_ADDRESS,
-        abi: STREAMPAY_ABI,
+        address: STREAMPULL_ADDRESS,
+        abi: STREAMPULL_ABI,
         functionName: "getSession",
         args: [onChainId],
       });
@@ -335,7 +335,7 @@ router.post("/session/register", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Session creator does not match resource creator" });
     }
 
-    const expectedRate = usdcToWei(resource.config?.pricePerSecondUsdc || 0);
+    const expectedRate = usdcToUnits(resource.config?.pricePerSecondUsdc || 0);
     if (expectedRate <= 0n || ratePerSecond !== expectedRate) {
       return res.status(400).json({ error: "Session rate does not match resource price" });
     }
@@ -350,7 +350,7 @@ router.post("/session/register", async (req: Request, res: Response) => {
           viewerAddress: viewer.toLowerCase(),
           sessionKey: sessionKey.toLowerCase(),
           ratePerSecondWei: ratePerSecond.toString(),
-          depositWei: deposit.toString(),
+          depositWei: cap.toString(), // pull model: "deposit" field holds the approved cap
           lastAmountWei: "0",
           lastSig: "",
           secondsWatched: 0,
@@ -399,15 +399,15 @@ router.post("/session/:sessionId/heartbeat", async (req: Request, res: Response)
     }
 
     const lastAmount = BigInt(session.lastAmountWei || "0");
-    const deposit = BigInt(session.depositWei);
+    const cap = BigInt(session.depositWei); // pull model: this field holds the approved cap
     const rate = BigInt(session.ratePerSecondWei);
 
-    // Monotonic, within deposit, and plausible for the elapsed wall time
+    // Monotonic, within the approved cap, and plausible for the elapsed wall time
     if (amount < lastAmount) {
       return res.status(403).json({ error: "amountOwedWei must not decrease" });
     }
-    if (amount > deposit) {
-      return res.status(403).json({ error: "amountOwedWei exceeds deposit" });
+    if (amount > cap) {
+      return res.status(403).json({ error: "amountOwedWei exceeds approved cap" });
     }
     const elapsedSeconds = Math.ceil((Date.now() - session.createdAt.getTime()) / 1000);
     const maxPlausible = rate * BigInt(elapsedSeconds + 30); // 30s slack
@@ -420,7 +420,7 @@ router.post("/session/:sessionId/heartbeat", async (req: Request, res: Response)
     const digest = keccak256(
       encodePacked(
         ["string", "uint256", "address", "uint256", "uint256"],
-        ["SUPERPAGE_STREAM", chainId, STREAMPAY_ADDRESS, BigInt(sessionId), amount]
+        ["SUPERPAGE_STREAM", chainId, STREAMPULL_ADDRESS, BigInt(sessionId), amount]
       )
     );
     let signer: string;
