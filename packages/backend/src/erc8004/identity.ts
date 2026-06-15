@@ -26,17 +26,13 @@ export async function registerAgent(agentURI?: string): Promise<AgentRegistratio
       address: ERC8004_CONTRACTS.identityRegistry,
       abi: IDENTITY_REGISTRY_ABI,
       functionName: "register",
-      args: [agentURI],
-    gas: 200000n,
-    });
+      args: [agentURI],    });
   } else {
     txHash = await walletClient.writeContract({
       address: ERC8004_CONTRACTS.identityRegistry,
       abi: IDENTITY_REGISTRY_ABI,
       functionName: "register",
-      args: [],
-    gas: 200000n,
-    });
+      args: [],    });
   }
 
   const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
@@ -88,9 +84,7 @@ export async function setAgentURI(agentId: bigint, newURI: string): Promise<Hash
     address: ERC8004_CONTRACTS.identityRegistry,
     abi: IDENTITY_REGISTRY_ABI,
     functionName: "setAgentURI",
-    args: [agentId, newURI],
-    gas: 200000n,
-  });
+    args: [agentId, newURI],  });
 }
 
 /**
@@ -143,9 +137,7 @@ export async function setAgentMetadata(agentId: bigint, key: string, value: stri
     address: ERC8004_CONTRACTS.identityRegistry,
     abi: IDENTITY_REGISTRY_ABI,
     functionName: "setMetadata",
-    args: [agentId, key, toHex(value)],
-    gas: 200000n,
-  });
+    args: [agentId, key, toHex(value)],  });
 }
 
 /**

@@ -26,6 +26,7 @@ export { registerPaymentTools } from "./tools/payment.js";
 export { registerResourceTools } from "./tools/resources.js";
 export { registerA2ATools } from "./tools/a2a.js";
 export { registerERC8004Tools } from "./tools/erc8004.js";
+export { registerEscrowTools } from "./tools/escrow.js";
 
 // Import for internal use
 import { registerShoppingTools } from "./tools/shopping.js";
@@ -33,6 +34,7 @@ import { registerPaymentTools } from "./tools/payment.js";
 import { registerResourceTools } from "./tools/resources.js";
 import { registerA2ATools } from "./tools/a2a.js";
 import { registerERC8004Tools } from "./tools/erc8004.js";
+import { registerEscrowTools } from "./tools/escrow.js";
 import { createMCPHandler } from "./base-handler.js";
 
 /**
@@ -45,6 +47,7 @@ export function initializeMCPTools(): void {
   registerResourceTools();
   registerA2ATools();
   registerERC8004Tools();
+  registerEscrowTools();
 
   console.log("[MCP] All tools initialized");
 }

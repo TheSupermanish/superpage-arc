@@ -26,9 +26,7 @@ export async function requestValidation(
     address: ERC8004_CONTRACTS.validationRegistry,
     abi: VALIDATION_REGISTRY_ABI,
     functionName: "validationRequest",
-    args: [validatorAddress, agentId, requestURI, requestHash],
-    gas: 200000n,
-  });
+    args: [validatorAddress, agentId, requestURI, requestHash],  });
 }
 
 /**
@@ -47,9 +45,7 @@ export async function respondToValidation(
     address: ERC8004_CONTRACTS.validationRegistry,
     abi: VALIDATION_REGISTRY_ABI,
     functionName: "validationResponse",
-    args: [requestHash, response, responseURI, responseHash, tag],
-    gas: 200000n,
-  });
+    args: [requestHash, response, responseURI, responseHash, tag],  });
 }
 
 /**
