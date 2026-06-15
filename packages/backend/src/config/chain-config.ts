@@ -52,6 +52,8 @@ interface ChainMetadata {
   enabled?: boolean;
   /** Pay-per-second streaming (native-USDC channel) is supported here. */
   supportsStreaming?: boolean;
+  /** Circle Gateway nanopayment batching is available here (Circle-supported chain). */
+  supportsGateway?: boolean;
 }
 
 export type { ChainMetadata };
@@ -88,6 +90,7 @@ export const CHAIN_REGISTRY: Record<NetworkId, ChainMetadata> = {
     isTestnet: true,
     enabled: true,
     supportsStreaming: true, // USDC-as-native-gas enables the StreamPay channel
+    supportsGateway: true, // Circle Gateway domain 26
   },
   "base-sepolia": {
     chainId: 84532,
@@ -102,6 +105,7 @@ export const CHAIN_REGISTRY: Record<NetworkId, ChainMetadata> = {
     isTestnet: true,
     enabled: true,
     supportsStreaming: false, // gas is ETH, not USDC, so the native channel does not apply
+    supportsGateway: true, // Circle Gateway domain 6
   },
   mezo: {
     chainId: 31612,
@@ -210,6 +214,10 @@ export function getEnabledNetworks(): NetworkId[] {
 
 export function supportsStreaming(networkId: NetworkId): boolean {
   return CHAIN_REGISTRY[networkId]?.supportsStreaming === true;
+}
+
+export function supportsGateway(networkId: NetworkId): boolean {
+  return CHAIN_REGISTRY[networkId]?.supportsGateway === true;
 }
 
 // ============================================================
