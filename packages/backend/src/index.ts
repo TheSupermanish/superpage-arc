@@ -25,6 +25,7 @@ import resourceRoutes from "./routes/resourceRoutes.js";
 import creatorRoutes from "./routes/creatorRoutes.js";
 import storeRoutes from "./routes/storeRoutes.js";
 import streamRoutes from "./routes/streamRoutes.js";
+import { startSettlementSweep } from "./services/stream-settlement.js";
 
 // Error handling
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -196,6 +197,13 @@ async function startServer() {
 
     // Connect to MongoDB
     await connectDB();
+
+    // Start the stream settlement sweep: the backstop that closes any session
+    // whose heartbeats stopped (tab killed, internet dropped, crash) with its
+    // last voucher, so creators get paid and deposits aren't stranded even when
+    // the tab-close beacon never arrives. Without this, dropped sessions sit
+    // open until the 24h on-chain reclaim.
+    startSettlementSweep();
 
     // Migrate stale store networks to configured chain
     try {

@@ -107,11 +107,20 @@ async function main() {
   if (hb.status !== 200) throw new Error(`heartbeat failed ${hb.status}: ${JSON.stringify(hb.body)}`);
   console.log("    voucher accepted, owed:", fmt(amountOwed), "\n");
 
-  // 5. close + poll for settlement
-  console.log("[5] close session...");
-  await j(`/stream/session/${sessionId}/close`, { method: "POST" });
+  // 5. close + poll for settlement.
+  // DROP=1 simulates the tab dying / internet dropping: we DON'T call close and
+  // never send another heartbeat, then wait for the backend's stale-session
+  // sweep (60s no-heartbeat cutoff, runs every 30s) to settle it for us.
+  const drop = process.env.DROP === "1";
+  if (drop) {
+    console.log("[5] DROP: no close, no more heartbeats — waiting for the sweep backstop...");
+  } else {
+    console.log("[5] close session...");
+    await j(`/stream/session/${sessionId}/close`, { method: "POST" });
+  }
   let settled: any = null;
-  for (let i = 0; i < 30; i++) {
+  const tries = drop ? 75 : 30; // ~150s for the sweep path
+  for (let i = 0; i < tries; i++) {
     await new Promise((r) => setTimeout(r, 2000));
     const s = (await j(`/stream/session/${sessionId}`)).body;
     if (s.status === "settled" || s.status === "expired") { settled = s; break; }
