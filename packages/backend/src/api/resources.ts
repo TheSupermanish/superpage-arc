@@ -352,6 +352,8 @@ function formatResource(data: any) {
     name: data.name,
     description: data.description,
     priceUsdc: safeNumber(data.priceUsdc, 0),
+    tags: Array.isArray(data.tags) ? data.tags : [],
+    category: data.category ?? null,
     config: data.config,
     isActive: data.isActive,
     isPublic: data.isActive, // map isActive to isPublic for compatibility
