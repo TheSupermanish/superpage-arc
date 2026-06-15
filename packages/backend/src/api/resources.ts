@@ -8,6 +8,7 @@ import { Response } from "express";
 import crypto from "crypto";
 import { Resource } from "../models/index.js";
 import { AuthenticatedRequest } from "./wallet-auth";
+import { autoTag } from "../services/auto-tag.js";
 
 // Types
 export type ResourceType = "api" | "file" | "article" | "shopify";
@@ -141,6 +142,13 @@ export async function handleCreateResource(req: AuthenticatedRequest, res: Respo
     // Generate slug
     const slug = generateSlug(name);
 
+    // Auto-tag + categorize for discovery. Author-supplied tags (if any) are
+    // merged in and take precedence; the deriver fills the (usually empty) rest.
+    const { tags, category } = autoTag(
+      { name, description, type },
+      Array.isArray((req.body as any).tags) ? (req.body as any).tags : []
+    );
+
     try {
       const resource = await Resource.create({
         creatorId: req.creator.id,
@@ -149,6 +157,8 @@ export async function handleCreateResource(req: AuthenticatedRequest, res: Respo
         name,
         description: description || undefined,
         priceUsdc,
+        tags,
+        category,
         config: config || {},
         isActive: isPublic !== false,
       });
@@ -159,7 +169,7 @@ export async function handleCreateResource(req: AuthenticatedRequest, res: Respo
       if (error.code === 11000 && error.keyPattern?.slug) {
         // Try with random suffix
         const uniqueSlug = `${slug}-${crypto.randomBytes(3).toString("hex")}`;
-        
+
         const resource = await Resource.create({
           creatorId: req.creator.id,
           slug: uniqueSlug,
@@ -167,6 +177,8 @@ export async function handleCreateResource(req: AuthenticatedRequest, res: Respo
           name,
           description: description || undefined,
           priceUsdc,
+          tags,
+          category,
           config: config || {},
           isActive: isPublic !== false,
         });

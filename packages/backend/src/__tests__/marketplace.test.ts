@@ -18,6 +18,9 @@ import {
   applyFilters,
   sortItems,
   computeFacets,
+  relatedScore,
+  rankRelated,
+  toAgentCatalogItem,
   type MarketItem,
 } from "../controllers/marketplaceController.js";
 
@@ -277,5 +280,48 @@ describe("computeFacets", () => {
       arc: 1,
       streaming: 1,
     });
+  });
+});
+
+// ============================================================
+// relatedScore / rankRelated
+// ============================================================
+
+describe("relatedScore + rankRelated", () => {
+  it("scores shared tags above category/creator overlap", () => {
+    const items = catalog();
+    const base = items[0]; // art-1: payments, arc, streaming
+    const vid = items[1]; // vid-1: demo, streaming, arc (2 shared tags)
+    const file = items[3]; // file-1: design, notes (0 shared)
+    expect(relatedScore(base, vid)).toBeGreaterThan(relatedScore(base, file));
+  });
+
+  it("excludes the base item itself", () => {
+    const items = catalog();
+    expect(relatedScore(items[0], items[0])).toBe(-Infinity);
+  });
+
+  it("rankRelated drops zero-overlap items and orders by relevance", () => {
+    const items = catalog();
+    const base = items[0]; // payments, arc, streaming
+    const related = rankRelated(base, items.slice(1), 6);
+    expect(related[0].id).toBe("vid-1"); // 2 shared tags (streaming, arc)
+    expect(related.map((r) => r.id)).not.toContain("art-1"); // not itself
+    // file-1 shares no tags with base → dropped
+    expect(related.map((r) => r.id)).not.toContain("file-1");
+  });
+});
+
+// ============================================================
+// toAgentCatalogItem
+// ============================================================
+
+describe("toAgentCatalogItem", () => {
+  it("exposes a paymentUrl and the essentials for an agent", () => {
+    const item = catalog()[0];
+    const agentItem = toAgentCatalogItem(item);
+    expect(agentItem.paymentUrl).toBe(`/x402/resource/${item.id}`);
+    expect(agentItem.priceUsdc).toBe(item.priceUsdc);
+    expect(agentItem.tags).toEqual(item.tags);
   });
 });

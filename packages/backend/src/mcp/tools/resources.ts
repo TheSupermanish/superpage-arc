@@ -196,6 +196,46 @@ const accessResourceTool = defineTool({
   },
 });
 
+const discoverResourcesTool = defineTool({
+  name: "discover_resources",
+  description:
+    "Discover purchasable resources by intent. Returns a compact catalog with a paymentUrl per item (the x402 endpoint to pay). Use this to decide what to buy, then get_resource_info + make_payment + access_resource.",
+  inputSchema: z.object({
+    q: z.string().optional().describe("Keyword / intent, e.g. 'agent payments'"),
+    type: z.string().optional().describe("Filter by type: api, file, article, video"),
+    tag: z.string().optional().describe("Filter by a single tag, e.g. 'defi'"),
+    maxPrice: z.number().optional().describe("Max price in USDC"),
+    sort: z.enum(["trending", "newest", "price_asc", "price_desc"]).optional(),
+    limit: z.number().optional().describe("Max items (default 12)"),
+  }),
+  handler: async ({ q, type, tag, maxPrice, sort, limit }) => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (type) params.set("type", type);
+    if (tag) params.set("tag", tag);
+    if (typeof maxPrice === "number") params.set("maxPrice", String(maxPrice));
+    if (sort) params.set("sort", sort);
+    if (typeof limit === "number") params.set("limit", String(limit));
+
+    const response = await fetch(`${BACKEND_URL}/api/market/discover?${params.toString()}`);
+    const data = (await response.json()) as { items?: any[]; total?: number; facets?: any };
+
+    if (response.status !== 200) {
+      return { success: false, error: "Discovery failed", details: data };
+    }
+
+    return {
+      success: true,
+      count: data.items?.length || 0,
+      total: data.total || 0,
+      items: data.items || [],
+      facets: data.facets,
+      nextStep:
+        "Pick an item, then get_resource_info(resourceId) to read its 402, make_payment, and access_resource with the proof.",
+    };
+  },
+});
+
 // ============================================================
 // Register all resource tools
 // ============================================================
@@ -204,6 +244,7 @@ export function registerResourceTools(): void {
   toolRegistry.register(listResourcesTool, "resources");
   toolRegistry.register(getResourceInfoTool, "resources");
   toolRegistry.register(accessResourceTool, "resources");
-  
-  console.log("[Resource Tools] ✅ Registered 3 tools");
+  toolRegistry.register(discoverResourcesTool, "resources");
+
+  console.log("[Resource Tools] ✅ Registered 4 tools");
 }

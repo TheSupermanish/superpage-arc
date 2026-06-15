@@ -26,6 +26,7 @@ export interface MarketItem {
   durationSeconds: number | null;
   coverImage: string | null;
   tags: string[];
+  category: string | null;
   accessCount: number;
   trendingScore: number;
   createdAt: Date | string;
@@ -92,6 +93,7 @@ export function toMarketItem(r: any, now: number = Date.now()): MarketItem {
     durationSeconds: isVideo ? config.durationSeconds ?? null : null,
     coverImage: config.coverImage || null,
     tags: Array.isArray(r.tags) ? r.tags : [],
+    category: r.category ?? null,
     accessCount: r.accessCount || 0,
     trendingScore: computeTrendingScore(r.accessCount, r.totalRevenue, r.createdAt, now),
     createdAt: r.createdAt,
@@ -185,6 +187,64 @@ export function computeFacets(items: MarketItem[]): {
   return { types, tags };
 }
 
+/**
+ * Relevance of `candidate` to `base` for "more like this": shared tags dominate
+ * (8 each), same category adds a bump (5), same creator a small one (3), and
+ * trendingScore breaks ties (scaled down so it never outweighs a tag match).
+ */
+export function relatedScore(base: MarketItem, candidate: MarketItem): number {
+  if (candidate.id === base.id) return -Infinity;
+  const baseTags = new Set(base.tags);
+  const sharedTags = candidate.tags.filter((t) => baseTags.has(t)).length;
+  let relevance = sharedTags * 8;
+  if (candidate.category && candidate.category === base.category) relevance += 5;
+  if (candidate.creator.id && candidate.creator.id === base.creator.id) relevance += 3;
+  // No tag/category/creator overlap → not related, regardless of how trending it
+  // is. Only once there's real relevance does trendingScore break ties (<=1).
+  if (relevance <= 0) return 0;
+  return relevance + Math.min(candidate.trendingScore, 50) / 50;
+}
+
+/** Rank candidates by relevance to base, dropping zero-overlap items. */
+export function rankRelated(base: MarketItem, candidates: MarketItem[], limit = 6): MarketItem[] {
+  return candidates
+    .map((c) => ({ c, s: relatedScore(base, c) }))
+    .filter((x) => x.s > 0)
+    .sort((a, b) => b.s - a.s)
+    .slice(0, limit)
+    .map((x) => x.c);
+}
+
+/**
+ * Compact, machine-readable view of a catalog item for agents: just what's
+ * needed to decide and pay. paymentUrl is the x402 endpoint to hit.
+ */
+export interface AgentCatalogItem {
+  id: string;
+  slug: string | null;
+  type: string;
+  name: string;
+  description: string | null;
+  priceUsdc: number;
+  tags: string[];
+  category: string | null;
+  paymentUrl: string;
+}
+
+export function toAgentCatalogItem(item: MarketItem): AgentCatalogItem {
+  return {
+    id: item.id,
+    slug: item.slug,
+    type: item.type,
+    name: item.name,
+    description: item.description,
+    priceUsdc: item.priceUsdc,
+    tags: item.tags,
+    category: item.category,
+    paymentUrl: `/x402/resource/${item.id}`,
+  };
+}
+
 function parseSort(raw: unknown): MarketplaceSort {
   const allowed: MarketplaceSort[] = ["trending", "newest", "price_asc", "price_desc"];
   return allowed.includes(raw as MarketplaceSort) ? (raw as MarketplaceSort) : "trending";
@@ -254,4 +314,60 @@ export const listMarketplaceTags = asyncHandler(async (_req: Request, res: Respo
   ]);
 
   return res.json({ tags: rows });
+});
+
+/**
+ * GET /api/market/related/:id
+ * "More like this" — resources sharing tags/category with the given resource.
+ */
+export const relatedMarketplace = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 6, 1), 12);
+
+  const raw = await Resource.find({ isActive: true, isPublic: true })
+    .populate("creatorId", "username displayName name avatarUrl walletAddress")
+    .lean();
+
+  const now = Date.now();
+  const all = raw.map((r: any) => toMarketItem(r, now));
+  const base = all.find((it) => it.id === id || it.slug === id);
+  if (!base) return res.status(404).json({ error: "Resource not found" });
+
+  const related = rankRelated(base, all.filter((it) => it.id !== base.id), limit);
+  return res.json({ items: related, total: related.length });
+});
+
+/**
+ * GET /api/market/discover
+ * Agent-facing discovery: a compact, machine-readable catalog with a paymentUrl
+ * per item, plus intent filters (q, type, tag, maxPrice). Sorted by trending so
+ * an autonomous buyer can pick high-signal items first. This is the endpoint the
+ * buyer agent loop consumes.
+ */
+export const discoverMarketplace = asyncHandler(async (req: Request, res: Response) => {
+  const { q, type, tag, maxPrice, sort } = req.query;
+  const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 12, 1), MAX_LIMIT);
+
+  const filters: MarketFilters = {
+    q: typeof q === "string" ? q : undefined,
+    type: typeof type === "string" ? type : undefined,
+    tag: typeof tag === "string" ? tag : undefined,
+    maxPrice: parseNumber(maxPrice),
+  };
+
+  const raw = await Resource.find({ isActive: true, isPublic: true })
+    .populate("creatorId", "username displayName name avatarUrl walletAddress")
+    .lean();
+
+  const now = Date.now();
+  const normalized = raw.map((r: any) => toMarketItem(r, now));
+  const filtered = applyFilters(normalized, filters);
+  const sorted = sortItems(filtered, parseSort(sort)).slice(0, limit);
+
+  return res.json({
+    items: sorted.map(toAgentCatalogItem),
+    total: filtered.length,
+    facets: computeFacets(filtered),
+    note: "Pay any item by POSTing an X-PAYMENT proof to its paymentUrl (x402). chainId in the 402 accepts[] is authoritative.",
+  });
 });
