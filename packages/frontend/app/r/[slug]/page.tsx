@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { PublicNavbar } from "@/components/public-navbar";
 import { PurchaseModal, type PurchaseItem } from "@/components/purchase-modal";
+import { ProductCard, type ProductCardItem } from "@/components/product-card";
 import { getAddressUrl, getCurrency } from "@/lib/chain-config";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -125,6 +126,7 @@ export default function ProductPage() {
   const [notFound, setNotFound] = useState(false);
   const [purchaseItem, setPurchaseItem] = useState<PurchaseItem | null>(null);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
+  const [related, setRelated] = useState<ProductCardItem[]>([]);
 
   useEffect(() => {
     if (!slug) return;
@@ -144,6 +146,25 @@ export default function ProductPage() {
       }
     };
     fetchMeta();
+  }, [slug]);
+
+  // "More like this": resources sharing tags/category, ranked by the related API.
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/market/related/${slug}?limit=4`);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!cancelled) setRelated((json.items || []) as ProductCardItem[]);
+      } catch {
+        /* related is best-effort */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
   if (loading) {
@@ -385,6 +406,18 @@ export default function ProductPage() {
             </div>
           </aside>
         </div>
+
+        {/* More like this */}
+        {related.length > 0 && (
+          <section className="mt-16">
+            <h2 className="font-display text-xl font-bold mb-5">More like this</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {related.map((item) => (
+                <ProductCard key={item.id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       <PurchaseModal
