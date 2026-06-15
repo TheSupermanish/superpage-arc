@@ -123,9 +123,13 @@ export const CHAIN_REGISTRY: Record<NetworkId, ChainMetadata> = {
     nativeToken: { symbol: "BTC", decimals: 18 },
     tokens: {
       MUSD: { address: "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503", decimals: 18 },
+      // SuperPage MockUSDC on matsnet (6 decimals, mintable) — keeps amounts aligned with Arc/Base
+      USDC: { address: "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c", decimals: 6 },
     },
-    defaultPaymentToken: "MUSD",
+    defaultPaymentToken: "USDC",
     isTestnet: true,
+    enabled: true,
+    supportsStreaming: false, // gas is BTC, not USDC, so the native channel does not apply
   },
 };
 
@@ -194,7 +198,7 @@ export function getSupportedNetworks(): NetworkId[] {
  * Mezo stays in the registry for back-compat but is not surfaced here.
  */
 export function getEnabledNetworks(): NetworkId[] {
-  const order: NetworkId[] = ["arc-testnet", "base-sepolia"];
+  const order: NetworkId[] = ["arc-testnet", "base-sepolia", "mezo-testnet"];
   return (Object.keys(CHAIN_REGISTRY) as NetworkId[])
     .filter((id) => CHAIN_REGISTRY[id].enabled)
     .sort((a, b) => {

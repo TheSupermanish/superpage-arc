@@ -10,7 +10,7 @@ const CHAIN_DEFAULTS: Record<string, { defaultCurrency: string; displayCurrency?
   "arc-testnet": { defaultCurrency: "USDC" },
   "base-sepolia": { defaultCurrency: "USDC" },
   "mezo": { defaultCurrency: "MUSD" },
-  "mezo-testnet": { defaultCurrency: "MUSD" },
+  "mezo-testnet": { defaultCurrency: "USDC" },
 };
 
 const NATIVE_TOKENS: Record<string, string> = {
@@ -42,14 +42,15 @@ export const PAYMENT_TOKEN_ADDRESSES: Record<string, `0x${string}`> = {
   "arc-testnet": "0x3600000000000000000000000000000000000000",
   "base-sepolia": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
   "mezo": "0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186",
-  "mezo-testnet": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
+  // matsnet MockUSDC (6 decimals) so the pay amount matches Arc/Base
+  "mezo-testnet": "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c",
 };
 
 export const PAYMENT_TOKEN_DECIMALS: Record<string, number> = {
   "arc-testnet": 6,
   "base-sepolia": 6,
   "mezo": 18,
-  "mezo-testnet": 18,
+  "mezo-testnet": 6,
 };
 
 /** @deprecated use PAYMENT_TOKEN_ADDRESSES — kept for older call sites */
@@ -72,6 +73,7 @@ export interface ChainOption {
 export const ENABLED_CHAINS: ChainOption[] = [
   { id: "arc-testnet", label: "Arc Testnet", shortLabel: "Arc", chainId: 5042002, supportsStreaming: true },
   { id: "base-sepolia", label: "Base Sepolia", shortLabel: "Base", chainId: 84532, supportsStreaming: false },
+  { id: "mezo-testnet", label: "Mezo Matsnet", shortLabel: "Mezo", chainId: 31611, supportsStreaming: false },
 ];
 
 export function getEnabledChains(): ChainOption[] {

@@ -186,7 +186,10 @@ export const CHAIN_REGISTRY: Record<NetworkId, ChainMetadata> = {
       // SuperPage MockUSDC deployed on matsnet (6 decimals, mintable, for testing the faucet/UI)
       USDC: { symbol: "USDC", decimals: 6, address: "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c" },
     },
-    defaultPaymentToken: "MUSD",
+    // USDC (6 decimals), so amounts match Arc/Base; MUSD stays available for callers that ask for it
+    defaultPaymentToken: "USDC",
+    enabled: true,
+    supportsStreaming: false, // gas is BTC, not USDC, so the native channel does not apply
   },
 };
 
@@ -200,10 +203,10 @@ export function getSupportedNetworks(): NetworkId[] {
 
 /**
  * Networks offered to users in the multichain selector, default (Arc) first.
- * Mezo stays in the registry for back-compat but is not surfaced here.
+ * Arc + Base + Mezo (matsnet) are surfaced; Mezo mainnet stays back-compat only.
  */
 export function getEnabledNetworks(): NetworkId[] {
-  const order: NetworkId[] = ["arc-testnet", "base-sepolia"];
+  const order: NetworkId[] = ["arc-testnet", "base-sepolia", "mezo-testnet"];
   const enabled = (Object.keys(CHAIN_REGISTRY) as NetworkId[]).filter(
     (id) => CHAIN_REGISTRY[id].enabled
   );

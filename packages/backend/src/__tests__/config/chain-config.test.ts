@@ -82,8 +82,10 @@ describe("CHAIN_REGISTRY (Arc + Base + Mezo)", () => {
     expect(matsnet.chainId).toBe(31611);
     expect(matsnet.isTestnet).toBe(true);
     expect(matsnet.nativeToken.symbol).toBe("BTC");
-    expect(matsnet.defaultPaymentToken).toBe("MUSD");
+    expect(matsnet.defaultPaymentToken).toBe("USDC");
     expect(matsnet.tokens.MUSD?.address).toBe("0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503");
+    expect(matsnet.enabled).toBe(true);
+    expect(matsnet.supportsStreaming).toBe(false);
   });
 });
 
@@ -173,18 +175,19 @@ describe("getAvailableTokens", () => {
     expect(tokens).toContain("EURC");
   });
 
-  it("includes BTC + MUSD on matsnet", () => {
+  it("includes BTC + MUSD + USDC on matsnet", () => {
     const tokens = getAvailableTokens("mezo-testnet");
     expect(tokens).toContain("BTC");
     expect(tokens).toContain("MUSD");
+    expect(tokens).toContain("USDC");
   });
 });
 
 describe("getDefaultPaymentToken", () => {
-  it("returns USDC on Arc and MUSD on Mezo", () => {
+  it("returns USDC on Arc, MUSD on Mezo mainnet, USDC on matsnet", () => {
     expect(getDefaultPaymentToken("arc-testnet")).toBe("USDC");
     expect(getDefaultPaymentToken("mezo")).toBe("MUSD");
-    expect(getDefaultPaymentToken("mezo-testnet")).toBe("MUSD");
+    expect(getDefaultPaymentToken("mezo-testnet")).toBe("USDC");
   });
 });
 
@@ -203,9 +206,9 @@ describe("getSupportedNetworks", () => {
 });
 
 describe("getEnabledNetworks", () => {
-  it("returns Arc first, then Base (Mezo excluded)", () => {
+  it("returns Arc first, then Base, then Mezo matsnet", () => {
     const enabled = getEnabledNetworks();
-    expect(enabled).toEqual(["arc-testnet", "base-sepolia"]);
+    expect(enabled).toEqual(["arc-testnet", "base-sepolia", "mezo-testnet"]);
   });
 });
 

@@ -118,6 +118,15 @@
       "default": false,
       "supportsStreaming": false,
       "note": "Second pay option. Article/file/API purchases settle here; gas is ETH. Streaming is Arc-only."
+    },
+    {
+      "network": "mezo-testnet",
+      "chainId": 31611,
+      "currency": "USDC",
+      "usdcContract": "0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c",
+      "default": false,
+      "supportsStreaming": false,
+      "note": "Third pay option (Mezo matsnet). Article/file/API purchases settle in USDC; gas is BTC. Streaming is Arc-only."
     }
   ],
   "multichain": {

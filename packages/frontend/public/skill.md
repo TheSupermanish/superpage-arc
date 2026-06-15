@@ -47,8 +47,9 @@ Payments are multichain. A 402 response lists one option per supported chain in 
 |-------|---------|---------------|-----------|
 | Arc Testnet (default) | 5042002 | `0x3600000000000000000000000000000000000000` (6 dec) | yes |
 | Base Sepolia | 84532 | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` (6 dec) | no (ETH gas) |
+| Mezo Matsnet | 31611 | `0xc2fa1cff46ee4bde61aa5a97e930fb1c3f8d503c` (6 dec) | no (BTC gas) |
 
-Per-second video streaming (StreamPay channel) is Arc-only, since it relies on USDC being the native gas token. Article, file, and API purchases settle on either chain.
+Per-second video streaming (StreamPay channel) is Arc-only, since it relies on USDC being the native gas token. Article, file, and API purchases settle on any of these chains.
 
 Any agent can use SuperPage over plain **HTTP** (sections below). OpenClaw and Claude Desktop (MCP) wrappers are also provided.
 
