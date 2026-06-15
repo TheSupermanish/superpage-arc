@@ -37,6 +37,7 @@ export interface MarketItem {
     name: string | null;
     avatarUrl: string | null;
     walletAddress: string | null;
+    agentId: number | null;
   };
 }
 
@@ -104,6 +105,7 @@ export function toMarketItem(r: any, now: number = Date.now()): MarketItem {
       name: creator.name ?? null,
       avatarUrl: creator.avatarUrl ?? null,
       walletAddress: creator.walletAddress ?? null,
+      agentId: typeof creator.erc8004AgentId === "number" ? creator.erc8004AgentId : null,
     },
   };
 }
@@ -229,6 +231,8 @@ export interface AgentCatalogItem {
   tags: string[];
   category: string | null;
   paymentUrl: string;
+  /** Enough to leave on-chain feedback after buying, if the creator is an agent. */
+  creator: { username: string | null; agentId: number | null };
 }
 
 export function toAgentCatalogItem(item: MarketItem): AgentCatalogItem {
@@ -242,6 +246,7 @@ export function toAgentCatalogItem(item: MarketItem): AgentCatalogItem {
     tags: item.tags,
     category: item.category,
     paymentUrl: `/x402/resource/${item.id}`,
+    creator: { username: item.creator.username, agentId: item.creator.agentId },
   };
 }
 
@@ -279,7 +284,7 @@ export const searchMarketplace = asyncHandler(async (req: Request, res: Response
   // enough that this keeps the search/facet contract identical to the unit
   // tests, and keyword search spans the populated creator handle.
   const raw = await Resource.find({ isActive: true, isPublic: true })
-    .populate("creatorId", "username displayName name avatarUrl walletAddress")
+    .populate("creatorId", "username displayName name avatarUrl walletAddress erc8004AgentId")
     .lean();
 
   const now = Date.now();
@@ -325,7 +330,7 @@ export const relatedMarketplace = asyncHandler(async (req: Request, res: Respons
   const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 6, 1), 12);
 
   const raw = await Resource.find({ isActive: true, isPublic: true })
-    .populate("creatorId", "username displayName name avatarUrl walletAddress")
+    .populate("creatorId", "username displayName name avatarUrl walletAddress erc8004AgentId")
     .lean();
 
   const now = Date.now();
@@ -356,7 +361,7 @@ export const discoverMarketplace = asyncHandler(async (req: Request, res: Respon
   };
 
   const raw = await Resource.find({ isActive: true, isPublic: true })
-    .populate("creatorId", "username displayName name avatarUrl walletAddress")
+    .populate("creatorId", "username displayName name avatarUrl walletAddress erc8004AgentId")
     .lean();
 
   const now = Date.now();
