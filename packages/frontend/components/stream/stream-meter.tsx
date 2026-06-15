@@ -57,12 +57,15 @@ export function StreamMeter({
   pricePerSecondUsdc,
   active,
   onStop,
+  variant = "panel",
 }: {
   session: StreamSessionApi;
   pricePerSecondUsdc: number;
   /** True once a channel is open (streaming/settling/settled): show the live HUD. */
   active: boolean;
   onStop: () => void;
+  /** "overlay" = compact glass HUD that floats over the video; "panel" = full card. */
+  variant?: "panel" | "overlay";
 }) {
   const phase = phaseFrom(session);
   const chip = CHIPS[phase];
@@ -144,6 +147,63 @@ export function StreamMeter({
   const [intPart, decPart = ""] = spendStr.split(".");
   const majorDec = decPart.slice(0, 2).padEnd(2, "0");
   const microDec = decPart.slice(2).padEnd(4, "0");
+
+  // Compact glass HUD that floats over the video (theater layout). Same live
+  // numbers as the full panel, just the essentials: state, spend, rate, stop.
+  if (variant === "overlay") {
+    return (
+      <div className="w-52 rounded-xl border border-white/10 bg-black/70 p-3 shadow-xl shadow-black/50 backdrop-blur-md">
+        <div className="flex items-center justify-between gap-2">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium ${chip.bg} ${chip.text}`}
+          >
+            <span className="relative flex h-1.5 w-1.5">
+              {phase === "streaming" && (
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sp-gold opacity-60" />
+              )}
+              <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${chip.dot}`} />
+            </span>
+            {chip.label}
+          </span>
+          <span className="font-mono text-[10px] tabular-nums text-white/45">${fmtUsdc(rate, 6)}/s</span>
+        </div>
+
+        <div
+          key={phase === "streaming" ? pulseKey : "frozen"}
+          className={`mt-2 flex items-baseline font-mono font-bold tabular-nums leading-none ${
+            phase === "streaming" ? "text-sp-gold sp-tick" : "text-white/60"
+          }`}
+        >
+          <style>{`@keyframes sp-tick{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}.sp-tick{animation:sp-tick 320ms ease-out}@media (prefers-reduced-motion:reduce){.sp-tick{animation:none!important}}`}</style>
+          <span className="mr-0.5 text-sm">$</span>
+          <span className="text-2xl tracking-tight">
+            {intPart}.{majorDec}
+          </span>
+          <span className={`text-sm ${phase === "streaming" ? "text-sp-gold/55" : "text-white/30"}`}>
+            {microDec}
+          </span>
+        </div>
+        <div className="mt-0.5 text-[10px] text-white/40">
+          paid so far · {fmtClock(session.secondsWatched)} watched
+        </div>
+
+        {session.state === "active" && (
+          <button
+            type="button"
+            onClick={onStop}
+            className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-red-500/20 px-2 py-1.5 text-[11px] font-medium text-red-300 transition-colors hover:bg-red-500/30"
+          >
+            <Square className="h-3 w-3" /> Stop &amp; settle
+          </button>
+        )}
+        {session.state === "settling" && (
+          <div className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] text-white/60">
+            <Loader2 className="h-3 w-3 animate-spin" /> settling…
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full overflow-hidden rounded-2xl border border-white/10 bg-zinc-950">

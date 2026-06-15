@@ -77,6 +77,7 @@ export function StreamPlayer({
   const [depositInput, setDepositInput] = useState(String(fullDeposit));
 
   const sessionRef = useRef(session);
+  const resumeOnVisibleRef = useRef(false);
   sessionRef.current = session;
 
   const destroyHls = useCallback(() => {
@@ -174,6 +175,28 @@ export function StreamPlayer({
       destroyHls();
     }
   }, [session.state, session.hlsToken, attachStream, destroyHls, freePreviewSeconds, isPlayingRef]);
+
+  // Pay-per-second must not bill for a tab you're not watching. Pause when the
+  // tab is hidden (the meter only ticks while the video reports playing, so this
+  // stops the charge), and resume on return if it was playing.
+  useEffect(() => {
+    const onVisibility = () => {
+      const video = videoRef.current;
+      if (!video) return;
+      const inStream = phaseRef.current === "preview" || phaseRef.current === "streaming";
+      if (document.hidden) {
+        if (inStream && !video.paused) {
+          resumeOnVisibleRef.current = true;
+          video.pause();
+        }
+      } else if (resumeOnVisibleRef.current) {
+        resumeOnVisibleRef.current = false;
+        if (inStream) void video.play().catch(() => {});
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   // ── Video events: drive the meter and the preview gate ──
 
