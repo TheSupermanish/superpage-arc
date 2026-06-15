@@ -20,6 +20,9 @@ import { STREAMPAY_ADDRESS, STREAMPAY_ABI, usdcToWei, weiToUsdc, isStreamPayDepl
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const HEARTBEAT_INTERVAL_MS = 5_000;
+// Keep-alive ping cadence while paused (well under the backend's 60s sweep
+// cutoff) so a paused-but-open tab is never mistaken for a dead session.
+const KEEPALIVE_INTERVAL_MS = 20_000;
 
 const CURRENT_CHAIN = getDefaultChain();
 const CURRENT_CHAIN_ID = getDefaultChainId();
@@ -173,7 +176,16 @@ export function useStreamSession(options: UseStreamSessionOptions): StreamSessio
     stopTicking();
     tickTimerRef.current = setInterval(() => {
       if (stateRef.current !== "active") return;
-      if (!optionsRef.current.isPlaying()) return;
+      if (!optionsRef.current.isPlaying()) {
+        // Keep-alive while paused but the page is still open: re-send the
+        // current (unchanged) voucher every KEEPALIVE so the stale-session
+        // sweep doesn't close a session the viewer merely paused. The sweep
+        // still fires once the page is actually gone (no pings at all).
+        if (Date.now() - lastHeartbeatAtRef.current >= KEEPALIVE_INTERVAL_MS) {
+          void sendHeartbeat();
+        }
+        return;
+      }
       secondsRef.current += 1;
       setSecondsWatched(secondsRef.current);
       // Heartbeat every 5s of playback (also fires right after a long pause,
