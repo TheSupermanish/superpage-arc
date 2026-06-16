@@ -42,11 +42,11 @@ const TYPE_STYLES: Record<
   ProductCardType,
   { icon: LucideIcon; label: string; text: string; tint: string; chip: string }
 > = {
-  api: { icon: Code, label: "API", text: "text-sp-blue", tint: "bg-sp-blue/10", chip: "bg-sp-blue/15 text-sp-blue" },
-  file: { icon: FileText, label: "File", text: "text-sp-gold", tint: "bg-sp-gold/10", chip: "bg-sp-gold/15 text-sp-gold" },
-  article: { icon: Newspaper, label: "Article", text: "text-sp-coral", tint: "bg-sp-coral/10", chip: "bg-sp-coral/15 text-sp-coral" },
-  video: { icon: Play, label: "Video", text: "text-sp-pink", tint: "bg-sp-pink/10", chip: "bg-sp-pink/15 text-sp-pink" },
-  shopify: { icon: ShoppingBag, label: "Store", text: "text-sp-cream", tint: "bg-sp-cream/10", chip: "bg-sp-cream/15 text-sp-cream" },
+  api: { icon: Code, label: "API", text: "text-sp-blue", tint: "bg-sp-blue/15", chip: "bg-sp-blue/20 text-sp-blue" },
+  file: { icon: FileText, label: "File", text: "text-sp-gold", tint: "bg-sp-gold/15", chip: "bg-sp-gold/25 text-sp-gold" },
+  article: { icon: Newspaper, label: "Article", text: "text-sp-coral", tint: "bg-sp-coral/15", chip: "bg-sp-coral/20 text-sp-coral" },
+  video: { icon: Play, label: "Video", text: "text-sp-pink", tint: "bg-sp-pink/15", chip: "bg-sp-pink/20 text-sp-pink" },
+  shopify: { icon: ShoppingBag, label: "Store", text: "text-sp-cream", tint: "bg-sp-cream/20", chip: "bg-sp-cream/25 text-secondary-foreground" },
 };
 
 /** Cover images may be stored as backend-relative paths (e.g. /uploads/...) */
@@ -93,7 +93,7 @@ export function ProductCard({ item, trending }: ProductCardProps) {
   return (
     <Link
       href={`/r/${item.slug || item.id}`}
-      className="group flex flex-col rounded-2xl bg-card border border-border overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 hover:border-foreground/20"
+      className="group flex flex-col rounded-3xl bg-card border-2 border-border overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/40"
     >
       {/* Cover, consistent 4:3 */}
       <div className={`relative aspect-[4/3] overflow-hidden ${style.tint}`}>

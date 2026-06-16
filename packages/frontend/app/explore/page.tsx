@@ -239,22 +239,35 @@ export default function ExplorePage() {
     <div className="min-h-screen bg-background text-foreground">
       <PublicNavbar />
 
-      {/* Header: search + controls */}
-      <div className="border-b border-border pt-32 pb-10">
+      {/* Header: playful gradient hero + search + controls */}
+      <div className="relative overflow-hidden pt-32 pb-12">
+        <div
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(55% 80% at 12% 0%, rgba(244,114,182,0.20), transparent 60%), radial-gradient(45% 70% at 88% 8%, rgba(59,158,255,0.18), transparent 60%), radial-gradient(60% 90% at 55% 100%, rgba(251,191,36,0.16), transparent 60%)",
+          }}
+        />
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col gap-8">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Explore the market</h1>
-                <p className="text-muted-foreground mt-2">
-                  Videos, articles, files, and APIs. Pay per use, settled in USDC.
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight">
+                  Explore the{" "}
+                  <span className="bg-gradient-to-r from-sp-pink via-sp-coral to-sp-gold bg-clip-text text-transparent">
+                    market
+                  </span>{" "}
+                  ✨
+                </h1>
+                <p className="text-muted-foreground mt-3 text-base md:text-lg">
+                  Pay by the fraction — per article, per second, per call. Settled instantly in USDC. 🪙
                 </p>
               </div>
               <Link
                 href="/creators"
-                className="hidden sm:block text-sm font-bold text-primary hover:underline whitespace-nowrap"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:-translate-y-0.5 hover:shadow-xl whitespace-nowrap"
               >
-                Browse creators
+                Browse creators →
               </Link>
             </div>
 

@@ -41,16 +41,19 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* SuperPage brand colors from logo */
-  --color-sp-pink: #E8A0BF;
-  --color-sp-blue: #5B8FB9;
-  --color-sp-gold: #E5BA73;
-  --color-sp-cream: #D4C5A9;
-  --color-sp-coral: #E07A8F;
+  /* SuperPage brand colors — brightened for a playful, Linktree-jolly vibe */
+  --color-sp-pink: #F472B6;
+  --color-sp-blue: #3B9EFF;
+  --color-sp-gold: #FBBF24;
+  --color-sp-cream: #E8D5B0;
+  --color-sp-coral: #FB7185;
+  --color-sp-mint: #34D399;
+  --color-sp-violet: #A78BFA;
 }
 
 :root {
-  --radius: 0.625rem;
+  /* Chunkier corners for the playful, tappable Linktree feel */
+  --radius: 1rem;
 
   /* SuperPage light theme — warm creative palette */
   --background: #FDFBF7;
