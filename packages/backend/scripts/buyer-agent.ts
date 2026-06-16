@@ -25,7 +25,15 @@
 import { createWalletClient, createPublicClient, http, defineChain, parseAbi } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import "dotenv/config";
+import { config as loadEnv } from "dotenv";
+import { execSync } from "child_process";
+import { homedir } from "os";
+import { join } from "path";
 import { giveFeedback, getAgentInfo } from "../src/erc8004/index.js";
+
+// Pick up the gemini CLI's Vertex config (~/.gemini/.env): GOOGLE_CLOUD_PROJECT,
+// GOOGLE_CLOUD_LOCATION. Won't override anything already set in the env.
+loadEnv({ path: join(homedir(), ".gemini/.env") });
 
 const BASE_URL = process.argv[2] || process.env.BUYER_BASE_URL || "http://localhost:2337";
 const USDC_FACADE = "0x3600000000000000000000000000000000000000" as `0x${string}`;
@@ -40,7 +48,56 @@ const DRY_RUN = process.env.BUYER_DRY_RUN === "1";
 const GOAL = process.env.BUYER_GOAL ||
   "Learn how nanopayments and pay-per-second streaming work on Arc, spending as little as possible.";
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
-const BUYER_MODEL = process.env.BUYER_MODEL || "claude-haiku-4-5";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+const VERTEX_PROJECT = process.env.GOOGLE_CLOUD_PROJECT || "";
+const VERTEX_LOCATION = process.env.GOOGLE_CLOUD_LOCATION || "global";
+// Pick a provider from what's configured: Anthropic key > Gemini (AI Studio key
+// or the gemini CLI's Vertex project) > none (fall back to cheapest).
+const LLM_PROVIDER: "anthropic" | "gemini" | "none" =
+  ANTHROPIC_API_KEY ? "anthropic" : GEMINI_API_KEY || VERTEX_PROJECT ? "gemini" : "none";
+const BUYER_MODEL =
+  process.env.BUYER_MODEL || (LLM_PROVIDER === "anthropic" ? "claude-haiku-4-5" : "gemini-2.5-flash");
+
+/** Ask the configured model for a completion; returns its text, or null if no provider. */
+async function llmChoose(prompt: string): Promise<string | null> {
+  if (LLM_PROVIDER === "anthropic") {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: BUYER_MODEL, max_tokens: 500, messages: [{ role: "user", content: prompt }] }),
+    });
+    const data: any = await res.json();
+    return data?.content?.[0]?.text ?? null;
+  }
+  if (LLM_PROVIDER === "gemini") {
+    const body = JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      // Disable Gemini 2.5 "thinking" for this structured pick so the token
+      // budget goes to the answer (thinking can otherwise return empty text).
+      generationConfig: { maxOutputTokens: 1024, temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } },
+    });
+    if (GEMINI_API_KEY) {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${BUYER_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        { method: "POST", headers: { "content-type": "application/json" }, body }
+      );
+      const data: any = await res.json();
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+    }
+    // Vertex AI (gemini CLI setup): auth via a gcloud access token, no API key.
+    const token = execSync("gcloud auth print-access-token", { encoding: "utf8" }).trim();
+    const host = VERTEX_LOCATION === "global" ? "aiplatform.googleapis.com" : `${VERTEX_LOCATION}-aiplatform.googleapis.com`;
+    const url = `https://${host}/v1/projects/${VERTEX_PROJECT}/locations/${VERTEX_LOCATION}/publishers/google/models/${BUYER_MODEL}:generateContent`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      body,
+    });
+    const data: any = await res.json();
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+  }
+  return null;
+}
 
 const arc = defineChain({
   id: CHAIN_ID,
@@ -80,10 +137,10 @@ async function decideWhatToBuy(
   candidates: CatalogItem[],
   count: number
 ): Promise<Array<CatalogItem & { reason: string }>> {
-  if (!ANTHROPIC_API_KEY || candidates.length === 0) {
+  if (LLM_PROVIDER === "none" || candidates.length === 0) {
     return candidates.slice(0, count).map((c) => ({
       ...c,
-      reason: ANTHROPIC_API_KEY ? "" : "cheapest available (no ANTHROPIC_API_KEY — set it for real agent decisions)",
+      reason: LLM_PROVIDER === "none" ? "cheapest available (no LLM provider configured)" : "",
     }));
   }
   const menu = candidates.map((c) => ({
@@ -95,13 +152,7 @@ async function decideWhatToBuy(
     `Pick the item id(s) that best serve the goal for the money — judge by relevance, not just price. ` +
     `Reply with ONLY a JSON array: [{"id":"...","reason":"one short sentence"}], at most ${count}.`;
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: BUYER_MODEL, max_tokens: 500, messages: [{ role: "user", content: prompt }] }),
-    });
-    const data: any = await res.json();
-    const text = (data?.content?.[0]?.text || "").trim();
+    const text = ((await llmChoose(prompt)) || "").trim();
     const arr = JSON.parse(text.slice(text.indexOf("["), text.lastIndexOf("]") + 1));
     const chosen: Array<CatalogItem & { reason: string }> = [];
     for (const pick of arr) {
@@ -208,7 +259,7 @@ async function main() {
   const candidates = await discover();
   console.log(`    ${candidates.length} buyable item(s) under $${MAX_PRICE}`);
 
-  console.log(`[1b] decide${ANTHROPIC_API_KEY ? ` (${BUYER_MODEL} reasoning over the catalog)` : ""}…`);
+  console.log(`[1b] decide${LLM_PROVIDER !== "none" ? ` (${LLM_PROVIDER}/${BUYER_MODEL} reasoning over the catalog)` : " (no LLM — cheapest)"}…`);
   const picks = await decideWhatToBuy(candidates, BUY_COUNT);
   if (picks.length === 0) {
     console.log("\nnothing to buy. done.");
