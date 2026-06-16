@@ -35,6 +35,12 @@ const BUY_COUNT = Math.max(1, Number(process.env.BUYER_BUY_COUNT || "1"));
 const QUERY = process.env.BUYER_QUERY || "";
 const LEAVE_FEEDBACK = process.env.BUYER_FEEDBACK === "1";
 const DRY_RUN = process.env.BUYER_DRY_RUN === "1";
+// The agent's goal — it reasons over the catalog against this, instead of a
+// fixed "buy cheapest" rule. The single real decision that makes it agentic.
+const GOAL = process.env.BUYER_GOAL ||
+  "Learn how nanopayments and pay-per-second streaming work on Arc, spending as little as possible.";
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
+const BUYER_MODEL = process.env.BUYER_MODEL || "claude-haiku-4-5";
 
 const arc = defineChain({
   id: CHAIN_ID,
@@ -58,9 +64,54 @@ interface CatalogItem {
   slug: string | null;
   type: string;
   name: string;
+  description?: string | null;
+  tags?: string[];
   priceUsdc: number;
   paymentUrl: string;
   creator: { username: string | null; agentId: number | null };
+}
+
+/**
+ * The agent's actual decision: reason over the catalog against GOAL + budget and
+ * CHOOSE what's worth buying (with a why) — not a fixed price sort. Falls back to
+ * cheapest-first when ANTHROPIC_API_KEY is unset so the script still runs.
+ */
+async function decideWhatToBuy(
+  candidates: CatalogItem[],
+  count: number
+): Promise<Array<CatalogItem & { reason: string }>> {
+  if (!ANTHROPIC_API_KEY || candidates.length === 0) {
+    return candidates.slice(0, count).map((c) => ({
+      ...c,
+      reason: ANTHROPIC_API_KEY ? "" : "cheapest available (no ANTHROPIC_API_KEY — set it for real agent decisions)",
+    }));
+  }
+  const menu = candidates.map((c) => ({
+    id: c.id, name: c.name, description: c.description, type: c.type, priceUsdc: c.priceUsdc, tags: c.tags,
+  }));
+  const prompt =
+    `You are an autonomous buyer agent spending real USDC.\nGoal: ${GOAL}\n` +
+    `Budget: up to $${MAX_PRICE} per item; buy up to ${count}.\nCatalog (JSON):\n${JSON.stringify(menu)}\n\n` +
+    `Pick the item id(s) that best serve the goal for the money — judge by relevance, not just price. ` +
+    `Reply with ONLY a JSON array: [{"id":"...","reason":"one short sentence"}], at most ${count}.`;
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: BUYER_MODEL, max_tokens: 500, messages: [{ role: "user", content: prompt }] }),
+    });
+    const data: any = await res.json();
+    const text = (data?.content?.[0]?.text || "").trim();
+    const arr = JSON.parse(text.slice(text.indexOf("["), text.lastIndexOf("]") + 1));
+    const chosen: Array<CatalogItem & { reason: string }> = [];
+    for (const pick of arr) {
+      const item = candidates.find((c) => c.id === pick.id);
+      if (item) chosen.push({ ...item, reason: pick.reason || "" });
+    }
+    return chosen.length ? chosen.slice(0, count) : candidates.slice(0, count).map((c) => ({ ...c, reason: "fallback: no valid LLM pick" }));
+  } catch (err: any) {
+    return candidates.slice(0, count).map((c) => ({ ...c, reason: `fallback: LLM error (${String(err.message).slice(0, 40)})` }));
+  }
 }
 
 async function discover(): Promise<CatalogItem[]> {
@@ -153,10 +204,12 @@ async function main() {
   console.log(`buyer: ${buyer.address}`);
   console.log(`backend: ${BASE_URL} | maxPrice: $${MAX_PRICE} | count: ${BUY_COUNT}${DRY_RUN ? " | DRY-RUN" : ""}\n`);
 
-  console.log("[1] discover…");
+  console.log(`[1] discover… (goal: ${GOAL})`);
   const candidates = await discover();
   console.log(`    ${candidates.length} buyable item(s) under $${MAX_PRICE}`);
-  const picks = candidates.slice(0, BUY_COUNT);
+
+  console.log(`[1b] decide${ANTHROPIC_API_KEY ? ` (${BUYER_MODEL} reasoning over the catalog)` : ""}…`);
+  const picks = await decideWhatToBuy(candidates, BUY_COUNT);
   if (picks.length === 0) {
     console.log("\nnothing to buy. done.");
     return;
@@ -165,6 +218,7 @@ async function main() {
   const receipts: Array<{ name: string; price: number; hash: string }> = [];
   for (const item of picks) {
     console.log(`\n[2] buy "${item.name}" ($${item.priceUsdc}) from @${item.creator.username ?? "?"}`);
+    if (item.reason) console.log(`    🤖 agent chose this: ${item.reason}`);
     const hash = await buy(item);
     await review(item);
     receipts.push({ name: item.name, price: item.priceUsdc, hash });
